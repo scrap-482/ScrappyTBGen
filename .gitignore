@@ -1,0 +1,29 @@
+*.exe
+*.o
+*.obj
+*.stackdump
+*.gch
+
+# User specific files
+scons.config
+
+# Ignored folders
+old_code/
+scratch/
+
+# Visual Studio Code
+.vscode/
+.vs/
+
+# SCons
+.sconsign.dblite
+
+# Executables (since unix-like doesn't use .exe)
+scrappytbgen
+
+# shared/library files
+*.dll
+*.exp
+*.lib
+*.os
+*.so

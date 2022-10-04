@@ -1,0 +1,33 @@
+numDeletionsPerTurn = 1
+allowRotations = false
+allowReflections = false
+pieceMoveOptions = {
+    # `defaults {properties}` will initialize properties of following moves that are left unspecified
+    defaults {
+        forwardOnly = false
+        captureMode = 0 # 0=normal(move or capture), 1=captureonly, 2=moveonly, 3=projectile
+        flyOverGaps = false
+        flyOverPieces = false
+    }
+    # Normal sliding pieces
+    R add slide(-1 orthogonal)
+    B add slide(-1 diagonal)
+    Q add slide(-1 orthogonal)
+    Q add slide(-1 diagonal)
+    K add slide(1 orthogonal)
+    K add slide(1 diagonal)
+
+    # pawns
+    P add slide(1 orthogonal) {
+        captureMode = 2
+    }
+    P add slide(1 diagonal) {
+        captureMode = 1
+    }
+
+    # kNights
+    N add leap(2 1) {
+        flyOverGaps = true
+        flyOverPieces = true
+    }
+}
