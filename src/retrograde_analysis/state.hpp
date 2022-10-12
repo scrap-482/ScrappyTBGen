@@ -43,16 +43,17 @@ generatePredecessors(const BoardState<FlattenedSz>& board);
 
 // Generate all permutations of up to n-man board positions, enumerating the checkmate states
 // Permutations generator from https://stackoverflow.com/questions/28711797/generating-n-choose-k-permutations-in-c
-template<typename CheckmateEvalFn, ::std::size_t FlattenedSz>
-std::vector<BoardState<FlattenedSz>>
-generateAllCheckmates(const std::vector<piece_label_t>& pieceSet,
+// TODO: this is not terribly slow, but see if this can be generated more efficiently 
+template<::std::size_t FlattenedSz, typename CheckmateEvalFn>
+::std::vector<BoardState<FlattenedSz>>
+generateCheckmatePermutations(::std::vector<BoardState<FlattenedSz>> checkmates,
+    const ::std::vector<piece_label_t>& pieceSet,
     CheckmateEvalFn checkmateEval)
 {
-  std::vector<BoardState<FlattenedSz>> checkmates;
-  std::array<std::size_t, FlattenedSz> indexPermutations;
-  std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
+  ::std::array<::std::size_t, FlattenedSz> indexPermutations;
+  ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
   
-  for (auto k_permute = 2; k_permute != pieceSet.size()+1; ++k_permute)
+  for (auto k_permute = 2; k_permute != pieceSet.size() + 1; ++k_permute)
   {
     do 
     {
@@ -63,10 +64,19 @@ generateAllCheckmates(const std::vector<piece_label_t>& pieceSet,
       if (checkmateEval(currentBoard))
         checkmates.push_back(currentBoard);
 
-      std::reverse(indexPermutations.begin() + k_permute, indexPermutations.end());
-    } while (std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
+      ::std::reverse(indexPermutations.begin() + k_permute, indexPermutations.end());
+    } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
   }
 
+  return std::move(checkmates);
+}
+
+template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn>
+generateAllCheckmates(const ::std::vector<piece_label_t>& fullPieceSet, CheckmateEvalFn eval)
+{
+  //TODO: Finish
+  ::std::vector<BoardState<FlattenedSz>> checkmates;
+  auto remaining_N = N - 2; // 2 kings must be present 
   return checkmates;
 }
 
