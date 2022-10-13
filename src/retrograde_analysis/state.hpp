@@ -6,8 +6,13 @@
 #include <numeric>
 #include <algorithm>
 #include <iostream>
+#include <type_traits>
+#include <unordered_set>
 
 using piece_label_t = unsigned char;
+
+// fallback for optional function templating 
+struct null_type {};
 
 #if 1
 template<::std::size_t FlattenedSz>
@@ -40,18 +45,14 @@ template<::std::size_t FlattenedSz>
 auto
 generatePredecessors(const BoardState<FlattenedSz>& board);
 
-// TODO:
-// Games like chess have unreachable positions.
-// we can have an is_valid_check position potentially. Not immediately pressing.
-
 // Generate all permutations of up to n-man board positions, enumerating the checkmate states
 // Permutations generator from https://stackoverflow.com/questions/28711797/generating-n-choose-k-permutations-in-c
-// TODO: this is not terribly slow, but see if this can be generated more efficiently 
-template<::std::size_t FlattenedSz, typename CheckmateEvalFn>
+template<::std::size_t FlattenedSz, typename CheckmateEvalFn, class IsValidBoardFn = null_type>
 ::std::vector<BoardState<FlattenedSz>>
 generateCheckmatePermutations(::std::vector<BoardState<FlattenedSz>> checkmates,
     const ::std::vector<piece_label_t>& pieceSet,
-    CheckmateEvalFn checkmateEval)
+    CheckmateEvalFn checkmateEval,
+    IsValidBoardFn boardValidityEval = {})
 {
   ::std::array<::std::size_t, FlattenedSz> indexPermutations;
   ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
@@ -64,6 +65,10 @@ generateCheckmatePermutations(::std::vector<BoardState<FlattenedSz>> checkmates,
       for (::std::size_t i = 0; i != k_permute; ++i)
         currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
 
+      if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
+        if (!IsValidBoardFn(currentBoard))
+          continue;
+
       if (checkmateEval(currentBoard))
         checkmates.push_back(currentBoard);
 
@@ -75,26 +80,40 @@ generateCheckmatePermutations(::std::vector<BoardState<FlattenedSz>> checkmates,
 }
 
 // todo: analyze performance tomorrow.
-template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn>
-auto generateAllCheckmates(const ::std::vector<piece_label_t>& noKingsPieceset, CheckmateEvalFn eval)
+template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn> // need to add null type
+auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset, 
+    const ::std::vector<piece_label_t>& royaltyPieceset, CheckmateEvalFn eval)
 {
   ::std::vector<BoardState<FlattenedSz>> checkmates;
   constexpr auto remaining_N = N - 2; // 2 kings must be present 
   
   // https://rosettacode.org/wiki/Combinations#C.2B.2B
-  std::string bitmask(remaining_N, 1); // K leading 1's
-  bitmask.resize(noKingsPieceset.size(), 0); // N-K trailing 0's
-  
+  ::std::string bitmask(remaining_N, 1); // K leading 1's
+  ::std::string configId(remaining_N, ' ');
+  ::std::unordered_set<::std::string> visitedConfigs;
+  bitmask.resize(noRoyaltyPieceset.size(), 0); // N-K trailing 0's
+
   // generate all C(||noKingsPieceset||, remaining_N) combinations
-  do {  
-    std::vector<piece_label_t> tmpPieceSet(remaining_N);
+  do {
+    std::vector<piece_label_t> tmpPieceset = royaltyPieceset;
+    tmpPieceset.resize(N);
     
-    ::std::size_t idx = 0;
+    ::std::size_t idx = 2;
     for (::std::size_t i = 0; i < bitmask.size(); ++i)
+    {
       if (bitmask[i])
-        tmpPieceSet[idx++] = noKingsPieceset[i];
-    checkmates = generateCheckmatePermutations<FlattenedSz>(::std::move(checkmates), noKingsPieceset,
-      eval); // TODO: add kings.
+      {
+        tmpPieceset[idx] = noRoyaltyPieceset[i];
+        configId[idx++] = noRoyaltyPieceset[i]; 
+      }
+    }
+
+    if (visitedConfigs.find(configId) == visitedConfigs.end())
+    {
+      checkmates = generateCheckmatePermutations<FlattenedSz>(::std::move(checkmates), tmpPieceset, eval);
+      visitedConfigs.insert(configId);
+    }
+
   } while (::std::prev_permutation(bitmask.begin(), bitmask.end()));
   
   return checkmates;
