@@ -3,7 +3,7 @@
 
 class Coordinates { // for now, this is just a wrapper for std:pair<int, int>
 
-}
+};
 
 // An instance of this corresponds to a type of piece, e.g. there is a single Piece instance for pawns.
 class PieceType {
@@ -27,6 +27,10 @@ class Region {
 
 enum class tribool {REQUIRED, PROHIBITED, OPTIONAL};
 
+// How the piece's movement is affected by the precense of other pieces in its path.
+// E.g. Rooks are sliding, Knights are leaping, Xiangqi Cannons are Cannon
+enum class LocomotionMode {SLIDING, LEAPING, CANNON}; // More can, and probably will need to be added
+
 class PMO {
     // like how en passant or castling affect flags in board state
     affectFlag; // type probably will be POD of which flag, function reference
@@ -36,13 +40,13 @@ class PMO {
 class StdPMO extends PMO {
     std::vector<Region> allowedStartingRegions;
     std::vector<Region> allowedEndingRegions;
-    bool isLeaping;
+    LocomotionMode locomotionMode;
 
     tribool canCapture;
 
     // changes the PieceType
     std::optional<std::vector<PieceType>> promoteOptions;
-    // Can on
+    // Can on 
     std::optional<std::vector<PieceType>> captureWhitelist;
 
     // move geometry
