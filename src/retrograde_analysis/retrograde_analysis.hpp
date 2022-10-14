@@ -77,4 +77,8 @@ auto retrograde_analysis(Args&&... args)
     return retrograde_analysis_cluster_impl(::std::forward<Args>(args)...);
 }
 
+bool operator==(const BoardState& x, const BoardState& y){
+	return x.m_board == y.m_board;
+}
+
 #endif
