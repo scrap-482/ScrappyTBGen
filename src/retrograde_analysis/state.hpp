@@ -70,7 +70,7 @@ generateCheckmatePermutations(::std::vector<BoardState<FlattenedSz>> checkmates,
           continue;
 
       if (checkmateEval(currentBoard))
-        checkmates.push_back(currentBoard);
+        ; //checkmates.push_back(currentBoard);
 
       ::std::reverse(indexPermutations.begin() + k_permute, indexPermutations.end());
     } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
@@ -90,9 +90,10 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
   // https://rosettacode.org/wiki/Combinations#C.2B.2B
   ::std::string bitmask(remaining_N, 1); // K leading 1's
   ::std::string configId(remaining_N, ' ');
+  ::std::string altConfigId(remaining_N, ' ');
   ::std::unordered_set<::std::string> visitedConfigs;
   bitmask.resize(noRoyaltyPieceset.size(), 0); // N-K trailing 0's
-
+  
   // generate all C(||noKingsPieceset||, remaining_N) combinations
   do {
     std::vector<piece_label_t> tmpPieceset = royaltyPieceset;
@@ -104,11 +105,18 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
       if (bitmask[i])
       {
         tmpPieceset[idx] = noRoyaltyPieceset[i];
-        configId[idx++] = noRoyaltyPieceset[i]; 
+        configId[idx++ - 2] = noRoyaltyPieceset[i]; 
       }
     }
+    
+    for (::std::size_t i = 0; i < configId.size(); ++i)
+      altConfigId[i] = ::std::isupper(configId[i]) ? ::std::tolower(configId[i]) : ::std::toupper(configId[i]);
 
-    if (visitedConfigs.find(configId) == visitedConfigs.end())
+    ::std::sort(configId.begin(), configId.end());
+    ::std::sort(altConfigId.begin(), altConfigId.end());
+
+    if (visitedConfigs.find(configId) == visitedConfigs.end() 
+        && visitedConfigs.find(altConfigId) == visitedConfigs.end())
     {
       checkmates = generateCheckmatePermutations<FlattenedSz>(::std::move(checkmates), tmpPieceset, eval);
       visitedConfigs.insert(configId);
