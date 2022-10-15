@@ -5,9 +5,12 @@
 #include <vector>
 #include <numeric>
 #include <algorithm>
+#include <bitset>
 #include <iostream>
 #include <type_traits>
 #include <unordered_set>
+
+#include <omp.h>
 
 using piece_label_t = unsigned char;
 
@@ -19,7 +22,7 @@ template<::std::size_t FlattenedSz>
 struct BoardState
 {
   // 1 for white move. 0 for black move
-  //::std::bitset<1> m_player;
+  ::std::bitset<1> m_player;
   ::std::array<piece_label_t, FlattenedSz> m_board;
 };
 #else // TODO: Potential future bitboard optimization 
@@ -45,11 +48,12 @@ template<::std::size_t FlattenedSz>
 auto
 generatePredecessors(const BoardState<FlattenedSz>& board);
 
+
 // Generate all permutations of up to n-man board positions, enumerating the checkmate states
 // Permutations generator from https://stackoverflow.com/questions/28711797/generating-n-choose-k-permutations-in-c
 template<::std::size_t FlattenedSz, typename CheckmateEvalFn, class IsValidBoardFn = null_type>
-::std::vector<BoardState<FlattenedSz>>
-generateCheckmatePermutations(::std::vector<BoardState<FlattenedSz>> checkmates,
+void
+parallelCheckmateGenerator(::std::vector<BoardState<FlattenedSz>>& checkmates,
     const ::std::vector<piece_label_t>& pieceSet,
     CheckmateEvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -70,13 +74,26 @@ generateCheckmatePermutations(::std::vector<BoardState<FlattenedSz>> checkmates,
           continue;
 
       if (checkmateEval(currentBoard))
-        ; //checkmates.push_back(currentBoard);
+      {
+#pragma omp critical 
+        {
+          checkmates.push_back(currentBoard);
+        }
+      }
+      
+      currentBoard.m_player.set();
+
+      if (checkmateEval(currentBoard))
+      {
+#pragma omp critical
+        {
+          checkmates.push_back(currentBoard);
+        }
+      }
 
       ::std::reverse(indexPermutations.begin() + k_permute, indexPermutations.end());
     } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
   }
-
-  return ::std::move(checkmates);
 }
 
 // todo: analyze performance tomorrow.
@@ -93,8 +110,10 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
   ::std::string altConfigId(remaining_N, ' ');
   ::std::unordered_set<::std::string> visitedConfigs;
   bitmask.resize(noRoyaltyPieceset.size(), 0); // N-K trailing 0's
+
+  ::std::vector<std::vector<piece_label_t>> configsToProcess;
   
-  // generate all C(||noKingsPieceset||, remaining_N) combinations
+  // generate all C(||noKingsPieceset||, remaining_N) combinations. This can probably be done serially
   do {
     std::vector<piece_label_t> tmpPieceset = royaltyPieceset;
     tmpPieceset.resize(N);
@@ -118,12 +137,20 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
     if (visitedConfigs.find(configId) == visitedConfigs.end() 
         && visitedConfigs.find(altConfigId) == visitedConfigs.end())
     {
-      checkmates = generateCheckmatePermutations<FlattenedSz>(::std::move(checkmates), tmpPieceset, eval);
+      configsToProcess.push_back(tmpPieceset);
+      std::cout << configId << std::endl;
       visitedConfigs.insert(configId);
     }
 
   } while (::std::prev_permutation(bitmask.begin(), bitmask.end()));
-  
+
+  // permute the states in parallel
+#pragma omp parallel for 
+  for (::std::size_t i = 0; i < configsToProcess.size(); ++i)
+  {
+    parallelCheckmateGenerator<FlattenedSz>(checkmates, configsToProcess[i], eval);
+  }
+
   return checkmates;
 }
 
