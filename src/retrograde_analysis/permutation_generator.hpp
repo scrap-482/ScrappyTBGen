@@ -1,3 +1,5 @@
+// TODO: Matt reduce code duplication in symmetry functions
+
 #ifndef PERMUTATION_GENERATOR_HPP_ 
 #define PERMUTATION_GENERATOR_HPP_
 
@@ -19,6 +21,9 @@ class PermutationEvaluator
    HorizontalSymFn m_hSymFn;
    VerticalSymFn m_vSymFn;
 
+   ::std::size_t m_rowSz;
+   ::std::size_t m_colSz;
+
    bool m_isHSym;
    bool m_isVSym;
 
@@ -37,7 +42,7 @@ public:
       m_isVSym = true;
   }
 
-  void inline generateAllPermutations(::std::vector<BoardState<FlattenedSz>>& checkmates,
+  void inline generatePermutations(::std::vector<BoardState<FlattenedSz>>& checkmates,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -53,6 +58,61 @@ public:
         BoardState<FlattenedSz> currentBoard;
         for (::std::size_t i = 0; i != k_permute; ++i)
           currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
+
+        if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
+          if (!IsValidBoardFn(currentBoard))
+            continue;
+
+        if (checkmateEval(currentBoard))
+        {
+#pragma omp critical 
+          {
+            checkmates.push_back(currentBoard);
+          }
+        }
+        
+        currentBoard.m_player.set();
+
+        if (checkmateEval(currentBoard))
+        {
+#pragma omp critical
+          {
+            checkmates.push_back(currentBoard);
+          }
+        }
+
+        ::std::reverse(indexPermutations.begin() + k_permute, indexPermutations.end());
+      } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
+    }
+  }
+
+  void inline generateSymPermutations(::std::vector<BoardState<FlattenedSz>>& checkmates,
+    const ::std::vector<piece_label_t>& pieceSet,
+    EvalFn checkmateEval,
+    IsValidBoardFn boardValidityEval = {})
+  {
+    ::std::array<::std::size_t, FlattenedSz> indexPermutations;
+    ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
+    ::std::size_t mid = indexPermutations[indexPermutations.size() / 2];
+    
+    // currently generates checkmates from 2 to n
+    for (::std::size_t k_permute = 2; k_permute != pieceSet.size() + 1; ++k_permute)
+    {
+      do 
+      {
+        BoardState<FlattenedSz> currentBoard;
+        for (::std::size_t i = 0; i != k_permute; ++i)
+          currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
+        
+        // TODO: this works for even row length boards only.
+        if (m_isHSym && mid == indexPermutations[0])
+          break;
+        
+        // TODO: this works for odd column length boards only
+        if (m_isVSym && ((indexPermutations[0] % m_colSz) > (m_colSz / 2)))
+        {
+          // reset 
+        }
 
         if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
           if (!IsValidBoardFn(currentBoard))
@@ -105,21 +165,14 @@ public:
     
     // If piece set is both vertically and horizontally symmetric, 
     // then it is diagonally symmetric.
-    if (pieceVSym && pieceHzSym)
+    if (pieceVSym || pieceHzSym)
     {
-      //TODO: Write function to be invoked here
-    }
-    else if (pieceVSym) // generate for a single left and right quadrant
-    {
-      //TODO: Write function to be invoked here
-    }
-    else if (pieceHzSym) // generate for a single upper and lower quadrant 
-    {
-      //TODO: Write function to be invoked here
+      generateSymPermutations(checkmates, pieceSet, eval,
+        boardValidityEval);
     }
     else // generate for all 4 quadrants 
     {
-      generateAllPermutations(checkmates, pieceSet, eval,
+      generatePermutations(checkmates, pieceSet, eval,
         boardValidityEval);
     }
   }
