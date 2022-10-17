@@ -14,13 +14,14 @@ struct false_fn
 };
 
 // permutation generator functor. This accounts for symmetry of the board
-template <::std::size_t FlattenedSz, typename EvalFn, typename IsValidBoardFn = null_type,
-         typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn>
+template <::std::size_t FlattenedSz, typename EvalFn, 
+         typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn, typename IsValidBoardFn = null_type>
 class PermutationEvaluator
 {
    HorizontalSymFn m_hSymFn;
    VerticalSymFn m_vSymFn;
-
+  
+   // TODO: add these to constructor
    ::std::size_t m_rowSz;
    ::std::size_t m_colSz;
 
@@ -35,6 +36,7 @@ public:
       m_isHSym(false),
       m_isVSym(true)
   {
+    m_colSz = 4;
     if constexpr (!::std::is_same<false_fn, HorizontalSymFn>::value)
       m_isHSym = true;
 
@@ -51,7 +53,7 @@ public:
     ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
     
     // currently generates checkmates from 2 to n
-    for (::std::size_t k_permute = 2; k_permute != pieceSet.size() + 1; ++k_permute)
+    for (::std::size_t k_permute = 4; k_permute != pieceSet.size() + 1; ++k_permute)
     {
       do 
       {
@@ -62,12 +64,12 @@ public:
         if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
           if (!IsValidBoardFn(currentBoard))
             continue;
-
+        
         if (checkmateEval(currentBoard))
         {
 #pragma omp critical 
           {
-            checkmates.push_back(currentBoard);
+            //checkmates.push_back(currentBoard);
           }
         }
         
@@ -77,7 +79,7 @@ public:
         {
 #pragma omp critical
           {
-            checkmates.push_back(currentBoard);
+            //checkmates.push_back(currentBoard);
           }
         }
 
@@ -91,12 +93,13 @@ public:
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
   {
-    ::std::array<::std::size_t, FlattenedSz> indexPermutations;
+    // todo: change back to vector
+    ::std::vector<::std::size_t> indexPermutations(FlattenedSz);
     ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
     ::std::size_t mid = indexPermutations[indexPermutations.size() / 2];
     
     // currently generates checkmates from 2 to n
-    for (::std::size_t k_permute = 2; k_permute != pieceSet.size() + 1; ++k_permute)
+    for (::std::size_t k_permute = 4; k_permute != pieceSet.size() + 1; ++k_permute)
     {
       do 
       {
@@ -105,13 +108,31 @@ public:
           currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
         
         // TODO: this works for even row length boards only.
-        if (m_isHSym && mid == indexPermutations[0])
+        if (m_isHSym && (mid == indexPermutations[0]))
           break;
         
         // TODO: this works for odd column length boards only
         if (m_isVSym && ((indexPermutations[0] % m_colSz) > (m_colSz / 2)))
         {
-          // reset 
+          auto next_first_idx = indexPermutations[0] + (m_colSz - indexPermutations[0] % m_colSz);
+
+          auto insert_new = ::std::find_if(indexPermutations.begin(),
+              indexPermutations.end(),
+              [&indexPermutations] (const auto& e) { return e > indexPermutations[0]; });
+          indexPermutations.insert(insert_new, indexPermutations[0]);
+          
+          auto new_first = ::std::find(indexPermutations.begin(),
+              indexPermutations.end(), next_first_idx);
+          
+          // end of generation
+          if (new_first == indexPermutations.end() 
+              || insert_new == indexPermutations.end())
+          { 
+            break; 
+          }
+     
+          indexPermutations[0] = *new_first;
+          indexPermutations.erase(new_first);
         }
 
         if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
@@ -122,7 +143,7 @@ public:
         {
 #pragma omp critical 
           {
-            checkmates.push_back(currentBoard);
+            // checkmates.push_back(currentBoard);
           }
         }
         
@@ -132,7 +153,7 @@ public:
         {
 #pragma omp critical
           {
-            checkmates.push_back(currentBoard);
+            // checkmates.push_back(currentBoard);
           }
         }
 
