@@ -4,7 +4,7 @@
 #include <utility>
 #include <tuple>
 #include <unordered_map>
-#include "state.h"
+#include "state.hpp"
 
 #ifdef MULTI_NODE_
 # include "mpi.h"
@@ -31,7 +31,7 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet
 
   ::std::vector<BoardState<FlattenedSz>> checkmates = generateAllCheckmates(fullPieceSet, checkmateEval);
 
-  unordered_map<BoardState<FlattenedSz>, int> position;
+  ::std::unordered_map<BoardState<FlattenedSz>, int> position;
 
   for(int v = 1; v > 0; v++){
 
@@ -80,6 +80,7 @@ auto retrograde_analysis(Args&&... args)
     return retrograde_analysis_cluster_impl(::std::forward<Args>(args)...);
 }
 
+template<::std::size_t FlattenedSz>
 bool operator==(const BoardState<FlattenedSz>& x, const BoardState<FlattenedSz>& y){
 	return x.m_board == y.m_board;
 }
