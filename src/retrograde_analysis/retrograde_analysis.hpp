@@ -24,10 +24,12 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet
     CheckmateEvalFn checkmateEval)
 {
 	//todo nick you moron
-  ::std::vector<BoardState> wins;
-  ::std::vector<BoardState> losses;
+  ::std::vector<BoardState<FlattenedSz>> wins;
+  ::std::vector<BoardState<FlattenedSz>> losses;
 
   //identify checkmate positions
+
+  ::std::vector<BoardState<FlattenedSz>> checkmates = generateAllCheckmates(fullPieceSet, checkmateEval);
 
   unordered_map<BoardState<FlattenedSz>, int> position;
 
