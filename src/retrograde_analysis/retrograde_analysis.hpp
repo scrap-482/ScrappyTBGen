@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <tuple>
+#include <unordered_map>
 #include "state.h"
 
 #ifdef MULTI_NODE_
@@ -28,17 +29,17 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet
 
   //identify checkmate positions
 
-  for(; ;){
+  unordered_map<BoardState<FlattenedSz>, int> position;
 
-	int v = 1;
+  for(int v = 1; v > 0; v++){
+
 	bool updateW = false;
 	for(int b = 0; b < wins.size(); b++){ //identify win moves
-		::std::vector<BoardState> prev = generatePredecessors(wins[b]);
+		::std::vector<BoardState<FlattenedSz>> prev = generatePredecessors(wins[b]);
 		for(int i = 0; i < prev.size(); i++){
-			if(::std::count(losses.begin(), losses.end(), prev[i])){ //&& move is v-1 
-				//find method to check if BoardStates are equivalent (== operator?)
-				wins.push_back(prev[i]);
-				//
+			if(::std::count(losses.begin(), losses.end(), prev[i]) && position[prev[i]] == (v-1)){
+				wins.push_back(wins[b]);
+				position[wins[b]] = v;
 				updateW = true;
 			}
 		}
@@ -49,11 +50,11 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet
 
 	bool updateL = false;
 	for(int b = 0; b < losses.size(); b++){ //identify loss moves
-		::std::vector<BoardState> prev = generatePredecessors(losses[b]);
+		::std::vector<BoardState<FlattenedSz>> prev = generatePredecessors(losses[b]);
 		for(int i = 0; i < prev.size(); i++){
-			if(::std::count(wins.begin(), wins.end(), prev[i])){
-				losses.push_back(prev[i]);
-				//
+			if(::std::count(wins.begin(), wins.end(), prev[i]) && position[losses[b]] <= v){
+				losses.push_back(losses[b]);
+				position[losses[b]] = v;
 				updateL = true;
 			}
 		}
@@ -77,7 +78,7 @@ auto retrograde_analysis(Args&&... args)
     return retrograde_analysis_cluster_impl(::std::forward<Args>(args)...);
 }
 
-bool operator==(const BoardState& x, const BoardState& y){
+bool operator==(const BoardState<FlattenedSz>& x, const BoardState<FlattenedSz>& y){
 	return x.m_board == y.m_board;
 }
 
