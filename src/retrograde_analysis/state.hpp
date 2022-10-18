@@ -27,12 +27,7 @@ struct bb_state
 };
 #endif
 
-// TODO:
-// it is necessary to make copies. all retrograde analysis
-// implementations do this because the algorithm is not a tree 
-// meaning that multiple predecessors may exist. it is necessary to store each state
-
-// "unmove" operations matt todo
+// TODO: "unmove" operations 
 template<::std::size_t FlattenedSz>
 auto
 generatePredecessors(const BoardState<FlattenedSz>& board);
