@@ -71,7 +71,7 @@ public:
         {
 #pragma omp critical 
           {
-            //checkmates.push_back(currentBoard);
+            checkmates.push_back(currentBoard);
           }
         }
         
@@ -81,7 +81,7 @@ public:
         {
 #pragma omp critical
           {
-            //checkmates.push_back(currentBoard);
+            checkmates.push_back(currentBoard);
           }
         }
 
