@@ -9,7 +9,28 @@
 #include <vector>
 #include <regex> //TODO: remove unnecessary includes
 
-// TODO: might be good to wrap some of these functions in a namespace like "SCUtils::" or smth
+enum class tribool {REQUIRED, PROHIBITED, OPTIONAL};
+
+// When you need a comma within a parameter of a preprocessor macro (that is not expanded again)
+// e.g. std::pair<int COMMA int>
+#define COMMA ,
+
+// USAGE: FORMAT(foo << bar << ... << baz) returns a std::string
+// This macro lets us make std::string analogous to
+// std::cout << foo << bar << baz
+// Credit to Mr.Ree https://stackoverflow.com/questions/303562/c-format-macro-inline-ostringstream
+#define FORMAT(ITEMS) \
+    ( ( dynamic_cast<std::ostringstream &> ( \
+        std::ostringstream() . std::ostream::seekp( 0, std::ios_base::cur ) << ITEMS ) \
+    ) . str() )
+
+// USAGE: returns a string describing where in the source code this macro is.
+#define WHERE (FORMAT("\tFile: " << __FILE__ << "\n\tLine: " << __LINE__ << std::endl))
+
+/* --- EVERYTHING BELOW THIS IS SELECTION CHESS CODE, PROBABLY NOT NEEDED --- */
+
+
+// TODO: might be good to wrap some of these functions in a namespace like "Utils::" or smth
 
 /* ---------------------------- Debugging Macros ---------------------------- */
 // Control where dlog is sent to
@@ -73,22 +94,6 @@
     #define dlogEnd(...) (void*)0
 #endif
 
-// When you need a comma within a parameter of a preprocessor macro (that is not expanded again)
-// e.g. std::pair<int COMMA int>
-#define COMMA ,
-
-// USAGE: FORMAT(foo << bar << ... << baz) returns a std::string
-// This macro lets us make std::string analogous to
-// std::cout << foo << bar << baz
-// Credit to Mr.Ree https://stackoverflow.com/questions/303562/c-format-macro-inline-ostringstream
-#define FORMAT(ITEMS) \
-    ( ( dynamic_cast<std::ostringstream &> ( \
-        std::ostringstream() . std::ostream::seekp( 0, std::ios_base::cur ) << ITEMS ) \
-    ) . str() )
-
-// USAGE: returns a string describing where in the source code this macro is.
-#define WHERE (FORMAT("\tFile: " << __FILE__ << "\n\tLine: " << __LINE__ << std::endl))
-
 /* ---------------------------------- Misc ---------------------------------- */
 
 std::vector<std::string> split(const std::string str, const std::string regex_str);
@@ -115,27 +120,5 @@ inline std::ostream& operator<<(std::ostream& _stream, const std::pair<T,U>& _co
     _stream << "(" << _coords.first << ", " << _coords.second << ")";
     return _stream;
 }
-
-// // Define element-wise arithmetic on std::pairs. // TODO: deprecated since coords.hpp, but keeping around for a bit just in case
-// template <typename T, typename U, typename X, typename Y>
-// std::pair<T,U>& operator+=(std::pair<T,U>& _lhs, const std::pair<X,Y>& _rhs) {
-//     _lhs.first += _rhs.first;
-//     _lhs.second += _rhs.second;
-//     return _lhs;
-// }
-// template <typename T, typename U, typename X, typename Y>
-// std::pair<T,U> operator+(std::pair<T,U> _lhs, const std::pair<X,Y>& _rhs) {
-//     return _lhs += _rhs;
-// }
-// template <typename T, typename U, typename X, typename Y>
-// std::pair<T,U>& operator-=(std::pair<T,U>& _lhs, const std::pair<X,Y>& _rhs) {
-//     _lhs.first -= _rhs.first;
-//     _lhs.second -= _rhs.second;
-//     return _lhs;
-// }
-// template <typename T, typename U, typename X, typename Y>
-// std::pair<T,U> operator-(std::pair<T,U> _lhs, const std::pair<X,Y>& _rhs) {
-//     return _lhs -= _rhs;
-// }
 
 #endif
