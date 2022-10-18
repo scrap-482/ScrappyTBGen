@@ -1,5 +1,3 @@
-// TODO: Matt reduce code duplication in symmetry functions
-
 #ifndef PERMUTATION_GENERATOR_HPP_ 
 #define PERMUTATION_GENERATOR_HPP_
 
@@ -8,6 +6,7 @@
 // fallback for optional function templating
 struct null_type {};
 
+// false function default for symmetry analysis
 struct false_fn
 {
   bool operator()(const std::vector<unsigned char>& T) { return false; }
@@ -20,6 +19,7 @@ class PermutationEvaluator
 {
    HorizontalSymFn m_hSymFn;
    VerticalSymFn m_vSymFn;
+   IsValidBoardFn m_isValidBoardFn;
   
    // TODO: add these to constructor
    ::std::size_t m_rowSz;
@@ -29,13 +29,15 @@ class PermutationEvaluator
    bool m_isVSym;
 
 public:
-  constexpr PermutationEvaluator(HorizontalSymFn hSymFn = false_fn{}, 
-      VerticalSymFn vSymFn = false_fn{})
+  constexpr PermutationEvaluator(HorizontalSymFn hSymFn = {}, 
+      VerticalSymFn vSymFn = {}, IsValidBoardFn isValidBoardFn = {})
     : m_hSymFn(hSymFn),
       m_vSymFn(vSymFn),
+      m_isValidBoardFn(isValidBoardFn),
       m_isHSym(false),
-      m_isVSym(true)
+      m_isVSym(false)
   {
+    // TODO: remove this
     m_colSz = 4;
     if constexpr (!::std::is_same<false_fn, HorizontalSymFn>::value)
       m_isHSym = true;
@@ -53,7 +55,7 @@ public:
     ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
     
     // currently generates checkmates from 2 to n
-    for (::std::size_t k_permute = 4; k_permute != pieceSet.size() + 1; ++k_permute)
+    for (::std::size_t k_permute = 3; k_permute != pieceSet.size() + 1; ++k_permute)
     {
       do 
       {
@@ -99,7 +101,7 @@ public:
     ::std::size_t mid = indexPermutations[indexPermutations.size() / 2];
     
     // currently generates checkmates from 2 to n
-    for (::std::size_t k_permute = 4; k_permute != pieceSet.size() + 1; ++k_permute)
+    for (::std::size_t k_permute = 3; k_permute != pieceSet.size() + 1; ++k_permute)
     {
       do 
       {
@@ -143,7 +145,7 @@ public:
         {
 #pragma omp critical 
           {
-            // checkmates.push_back(currentBoard);
+            checkmates.push_back(currentBoard);
           }
         }
         
@@ -153,7 +155,7 @@ public:
         {
 #pragma omp critical
           {
-            // checkmates.push_back(currentBoard);
+            checkmates.push_back(currentBoard);
           }
         }
 

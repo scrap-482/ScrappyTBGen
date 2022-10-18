@@ -12,57 +12,11 @@
 #include "state.hpp"
 #include "permutation_generator.hpp"
 
-// Generate all permutations of up to n-man board positions, enumerating the checkmate states
-// Permutations generator from https://stackoverflow.com/questions/28711797/generating-n-choose-k-permutations-in-c
-template<::std::size_t FlattenedSz, typename CheckmateEvalFn, class IsValidBoardFn = null_type>
-void
-parallelCheckmateGenerator(::std::vector<BoardState<FlattenedSz>>& checkmates,
-    const ::std::vector<piece_label_t>& pieceSet,
-    CheckmateEvalFn checkmateEval,
-    IsValidBoardFn boardValidityEval = {})
-{
-  ::std::array<::std::size_t, FlattenedSz> indexPermutations;
-  ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
-  
-  // currently generates checkmates from 2 to n
-  for (::std::size_t k_permute = 2; k_permute != pieceSet.size() + 1; ++k_permute)
-  {
-    do 
-    {
-      BoardState<FlattenedSz> currentBoard;
-      for (::std::size_t i = 0; i != k_permute; ++i)
-        currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
-
-      if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
-        if (!IsValidBoardFn(currentBoard))
-          continue;
-
-      if (checkmateEval(currentBoard))
-      {
-#pragma omp critical 
-        {
-          checkmates.push_back(currentBoard);
-        }
-      }
-      
-      currentBoard.m_player.set();
-
-      if (checkmateEval(currentBoard))
-      {
-#pragma omp critical
-        {
-          checkmates.push_back(currentBoard);
-        }
-      }
-
-      ::std::reverse(indexPermutations.begin() + k_permute, indexPermutations.end());
-    } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
-  }
-}
-
-template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn> // need to add null type
+template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn,
+  typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn, typename IsValidBoardFn = null_type>
 auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset, 
-    const ::std::vector<piece_label_t>& royaltyPieceset, CheckmateEvalFn eval)
+    const ::std::vector<piece_label_t>& royaltyPieceset, CheckmateEvalFn eval,
+    HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, IsValidBoardFn isValidBoardFn={})
 {
   ::std::vector<BoardState<FlattenedSz>> checkmates;
   constexpr auto remaining_N = N - 2; // 2 kings must be present 
@@ -106,12 +60,13 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
     }
 
   } while (::std::prev_permutation(bitmask.begin(), bitmask.end()));
-
+  
   // permute the states in parallel
 #pragma omp parallel for 
   for (::std::size_t i = 0; i < configsToProcess.size(); ++i)
   {
-    PermutationEvaluator<FlattenedSz, CheckmateEvalFn /* add other function templates*/> evaluator;
+    PermutationEvaluator<FlattenedSz, CheckmateEvalFn, 
+      HorizontalSymFn, VerticalSymFn, IsValidBoardFn> evaluator(hzSymFn, vSymFn, isValidBoardFn);
     evaluator(checkmates, configsToProcess[i], eval);
   }
 
