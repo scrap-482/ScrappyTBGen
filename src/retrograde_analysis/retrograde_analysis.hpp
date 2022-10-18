@@ -4,6 +4,7 @@
 #include <utility>
 #include <tuple>
 #include <unordered_map>
+#include <deque>
 #include "state.hpp"
 
 #ifdef MULTI_NODE_
@@ -24,43 +25,108 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet
     CheckmateEvalFn checkmateEval)
 {
 	//todo nick you moron
-  ::std::vector<BoardState<FlattenedSz>> wins;
-  ::std::vector<BoardState<FlattenedSz>> losses;
+   ::std::vector<BoardState<FlattenedSz>> wins;
+   ::std::vector<BoardState<FlattenedSz>> losses;
 
   //identify checkmate positions
+  // TODO: Matt fix
+  //auto [wins, losses] = generateAllCheckmates(fullPieceSet, checkmateEval);
 
-  ::std::vector<BoardState<FlattenedSz>> checkmates = generateAllCheckmates(fullPieceSet, checkmateEval);
-
+  // TODO: consider more intelligent data structure. Matt thinks heap ordering
+  // states in a convenient way for reducing computation.
+  ::std::deque<BoardState<FlattenedSz>> winFrontier;
+  ::std::deque<BoardState<FlattenedSz>> loseFrontier;
+  
+  // T(p) : BoardState -> int
   ::std::unordered_map<BoardState<FlattenedSz>, int> position;
+  for (const auto& w : wins)
+  {
+	auto preds = generatePredecessors(w);
+	// TODO: need to actually append
+	// winFrontier.push_back(preds);
+	position[w] = 0;
+  }
+  
+  for (const auto& l : losses)
+  {
+	auto preds = generatePredecessors(l);
+	// TODO: needs to be append
+	// loseFrontier.push_back(preds);
+	position[l] = 0;
+  }
 
   for(int v = 1; v > 0; v++){
-
 	bool updateW = false;
-	for(int b = 0; b < wins.size(); b++){ //identify win moves
-		::std::vector<BoardState<FlattenedSz>> prev = generatePredecessors(wins[b]);
-		for(int i = 0; i < prev.size(); i++){
-			if(::std::count(losses.begin(), losses.end(), prev[i]) && position[prev[i]] == (v-1)){
-				wins.push_back(wins[b]);
-				position[wins[b]] = v;
-				updateW = true;
+	for (::std::size_t i = 0; i < loseFrontier.size(); ++i) // win iteration
+	{
+		if (wins.find(loseFrontier[i]) != wins.end()) {
+			wins.insert(loseFrontier[i]);
+			position[loseFrontier[i]] = v;
+			updateW = true;
+			auto preds = generatePredecessors(loseFrontier[i]);
+
+			for (const auto& prev : preds)
+			{
+				if (wins.find(prev) == wins.end() && loseFrontier.find(prev) == losses.end())
+				{
+					winFrontier.push_back(preds[i]);
+				}
 			}
 		}
+		loseFrontier.erase(loseFrontier.begin() + i);
+		--i;
 	}
 	if(updateW == false){
 		return ::std::make_tuple(wins, losses);
 	}
 
 	bool updateL = false;
-	for(int b = 0; b < losses.size(); b++){ //identify loss moves
-		::std::vector<BoardState<FlattenedSz>> prev = generatePredecessors(losses[b]);
-		for(int i = 0; i < prev.size(); i++){
-			if(::std::count(wins.begin(), wins.end(), prev[i]) && position[losses[b]] <= v){
-				losses.push_back(losses[b]);
-				position[losses[b]] = v;
+	for (::std::size_t i = 0; i < winFrontier.size(); ++i)
+	{
+		if (wins.find(winFrontier[i]) != wins.end() && losses.find(winFrontier[i]) == losses.end())
+		{
+			// TODO: Think if more optimized. maybe use ideas from the parallel algorithm or
+			// more intelligent checking.
+			auto succs = generateSuccessors(winFrontier[i]);
+			bool allWins = true;
+			for (const auto& succ : succs)
+			{
+				if (wins.find(succ) == wins.end())
+				{
+					allWins = false;
+				}
+				if (losses.find(succ) != losses.end())
+				{
+					loseFrontier.push_back(winFrontier[i]);
+					winFrontier.erase(winFrontier.begin() + i)
+					--i;
+				}
+			}
+			if (allWins)
+			{
+				losses.insert(winFrontier[i]);
 				updateL = true;
+				auto preds = generatePredecessors(winsFrontier[i]);
+
+				for (const auto& prev : preds)
+				{
+					if (wins.find(prev) == wins.end() && loseFrontier.find(prev) == losses.end())
+					{
+						loseFrontier.push_back(preds[i]);
+					}
+				}
+				
+				winFrontier.erase(winFrontier.begin() + i)
+				--i;
 			}
 		}
+		else 
+		{
+			winFrontier.erase(winFrontier.begin() + i);
+			--i;
+		}
 	}
+	// TODO: maybe just check queue 
 	if(updateL == false){
 		return ::std::make_tuple(wins, losses);
 	}
