@@ -2,7 +2,6 @@
 #define CHECKMATE_GENERATION_HPP_ 
 
 #include <unordered_set>
-#include <iostream>
 
 #include "state.hpp"
 #include "permutation_generator.hpp"
