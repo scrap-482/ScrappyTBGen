@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <deque>
 #include "state.hpp"
+#include "state_transition.hpp"
 
 #ifdef MULTI_NODE_
 # include "mpi.h"
@@ -20,8 +21,13 @@ enum class MachineType
 // TODO: MPI implementation
 auto retrogradeAnalysisClusterImpl();
 
-template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn>
+template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn,
+  typename MoveGenerator, typename ReverseMoveGenerator,
+  typename ::std::enable_if<::std::is_base_of<GenerateForwardMoves, MoveGenerator>::value>::type* = nullptr,
+  typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves, ReverseMoveGenerator>::value>::type* = nullptr>
 auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet, 
+    const& MoveGenerator generateSuccessors,
+    const& ReverseMoveGenerator generatePredecessors,
     CheckmateEvalFn checkmateEval)
 {
 	//todo nick you moron
