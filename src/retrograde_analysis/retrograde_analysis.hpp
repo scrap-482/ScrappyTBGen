@@ -20,7 +20,7 @@ enum class MachineType
 // TODO: MPI implementation
 auto retrogradeAnalysisClusterImpl();
 
-template<::std::size_t FlattenedSz, ::std::size_t N, typename CheckmateEvalFn,
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, typename CheckmateEvalFn,
   typename MoveGenerator, typename ReverseMoveGenerator,
   typename ::std::enable_if<::std::is_base_of<GenerateForwardMoves<FlattenedSz>, MoveGenerator>::value>::type* = nullptr,
   typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves<FlattenedSz>, ReverseMoveGenerator>::value>::type* = nullptr>
@@ -30,8 +30,8 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet
     CheckmateEvalFn checkmateEval)
 {
 	//todo nick you moron
-   ::std::vector<BoardState<FlattenedSz>> wins;
-   ::std::vector<BoardState<FlattenedSz>> losses;
+   ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> wins;
+   ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> losses;
 
   //identify checkmate positions
   // TODO: Matt fix
@@ -39,11 +39,11 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& fullPieceSet
 
   // TODO: consider more intelligent data structure. Matt thinks heap ordering
   // states in a convenient way for reducing computation.
-  ::std::deque<BoardState<FlattenedSz>> winFrontier;
-  ::std::deque<BoardState<FlattenedSz>> loseFrontier;
+  ::std::deque<BoardState<FlattenedSz, NonPlacementDataType>> winFrontier;
+  ::std::deque<BoardState<FlattenedSz, NonPlacementDataType>> loseFrontier;
   
   // T(p) : BoardState -> int
-  ::std::unordered_map<BoardState<FlattenedSz>, int> position;
+  ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, int> position;
   for (const auto& w : wins)
   {
 	auto preds = generatePredecessors(w);
@@ -151,8 +151,8 @@ auto retrograde_analysis(Args&&... args)
     return retrograde_analysis_cluster_impl(::std::forward<Args>(args)...);
 }
 
-template<::std::size_t FlattenedSz>
-bool operator==(const BoardState<FlattenedSz>& x, const BoardState<FlattenedSz>& y){
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+bool operator==(const BoardState<FlattenedSz, NonPlacementDataType>& x, const BoardState<FlattenedSz, NonPlacementDataType>& y){
 	return x.m_board == y.m_board;
 }
 

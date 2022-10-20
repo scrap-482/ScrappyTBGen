@@ -21,7 +21,7 @@ struct false_fn
 };
 
 // permutation generator functor. This exploits symmetry if present 
-template <::std::size_t FlattenedSz, ::std::size_t m_rowSz, ::std::size_t m_colSz, typename EvalFn, 
+template <::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t m_rowSz, ::std::size_t m_colSz, typename EvalFn, 
          typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn, typename IsValidBoardFn = null_type>
 class PermutationEvaluator
 {
@@ -49,8 +49,8 @@ public:
   }
   
   // thread safe function for generating permutations
-  void inline generatePermutations(::std::vector<BoardState<FlattenedSz>>& whiteWins,
-    ::std::vector<BoardState<FlattenedSz>>& whiteLosses,
+  void inline generatePermutations(::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteWins,
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteLosses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -64,7 +64,7 @@ public:
     // TODO: consider how to store smaller checkmates. Do we keep in storage somewhere?
     do 
     {
-      BoardState<FlattenedSz> currentBoard;
+      BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
       for (::std::size_t i = 0; i != kPermute; ++i)
         currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
 
@@ -98,8 +98,8 @@ public:
   
   // thread safe function for generating permutations exploiting symmetry for 
   // horizontal, vertical, (and by extension diagonal) symmetries.
-  void inline generateSymPermutations(::std::vector<BoardState<FlattenedSz>>& whiteWins,
-    ::std::vector<BoardState<FlattenedSz>>& whiteLosses,
+  void inline generateSymPermutations(::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteWins,
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteLosses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -112,7 +112,7 @@ public:
     
     do 
     {
-      BoardState<FlattenedSz> currentBoard;
+      BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
       for (::std::size_t i = 0; i != kPermute; ++i)
         currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
       
@@ -178,8 +178,8 @@ public:
   }
   
   // makes class a functor that evaluates the permutations 
-  auto operator()(::std::vector<BoardState<FlattenedSz>>& whiteWins,
-    ::std::vector<BoardState<FlattenedSz>>& whiteLosses, 
+  auto operator()(::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteWins,
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteLosses, 
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn eval,
     IsValidBoardFn boardValidityEval = {})
