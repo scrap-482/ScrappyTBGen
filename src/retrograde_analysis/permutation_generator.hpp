@@ -9,7 +9,7 @@
 
 #include <omp.h>
 
-#include "state.hpp"
+#include "state_transition.hpp"
 
 // fallback for optional function templating - takes 1 byte of space
 struct null_type {};
@@ -49,7 +49,8 @@ public:
   }
   
   // thread safe function for generating permutations
-  void inline generatePermutations(::std::vector<BoardState<FlattenedSz>>& checkmates,
+  void inline generatePermutations(::std::vector<BoardState<FlattenedSz>>& whiteWins,
+    ::std::vector<BoardState<FlattenedSz>>& whiteLosses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -71,21 +72,23 @@ public:
         if (!IsValidBoardFn(currentBoard))
           continue;
       
+      // checking if black loses (white wins) 
       if (checkmateEval(currentBoard))
       {
 #pragma omp critical 
         {
-          checkmates.push_back(currentBoard);
+          whiteWins.push_back(currentBoard);
         }
       }
       
       currentBoard.m_player.set();
-
+      
+      // checking if white loses (black wins)
       if (checkmateEval(currentBoard))
       {
 #pragma omp critical
         {
-          checkmates.push_back(currentBoard);
+          whiteLosses.push_back(currentBoard);
         }
       }
 
@@ -95,7 +98,8 @@ public:
   
   // thread safe function for generating permutations exploiting symmetry for 
   // horizontal, vertical, (and by extension diagonal) symmetries.
-  void inline generateSymPermutations(::std::vector<BoardState<FlattenedSz>>& checkmates,
+  void inline generateSymPermutations(::std::vector<BoardState<FlattenedSz>>& whiteWins,
+    ::std::vector<BoardState<FlattenedSz>>& whiteLosses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -149,12 +153,13 @@ public:
       if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
         if (!IsValidBoardFn(currentBoard))
           continue;
-
+      
+      // checking if black loses (white wins)
       if (checkmateEval(currentBoard))
       {
 #pragma omp critical 
         {
-          checkmates.push_back(currentBoard);
+          whiteWins.push_back(currentBoard);
         }
       }
       
@@ -164,7 +169,7 @@ public:
       {
 #pragma omp critical
         {
-          checkmates.push_back(currentBoard);
+          whiteLosses.push_back(currentBoard);
         }
       }
 
@@ -173,7 +178,8 @@ public:
   }
   
   // makes class a functor that evaluates the permutations 
-  auto operator()(::std::vector<BoardState<FlattenedSz>>& checkmates,
+  auto operator()(::std::vector<BoardState<FlattenedSz>>& whiteWins,
+    ::std::vector<BoardState<FlattenedSz>>& whiteLosses, 
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn eval,
     IsValidBoardFn boardValidityEval = {})
@@ -198,12 +204,12 @@ public:
     // If piece set is vertically and/or horizontally symmetric
     if (pieceVSym || pieceHzSym)
     {
-      generateSymPermutations(checkmates, pieceSet, eval,
+      generateSymPermutations(whiteWins, whiteLosses, pieceSet, eval,
         boardValidityEval);
     }
     else // generate all permutations 
     {
-      generatePermutations(checkmates, pieceSet, eval,
+      generatePermutations(whiteWins, whiteLosses, pieceSet, eval,
         boardValidityEval);
     }
   }
