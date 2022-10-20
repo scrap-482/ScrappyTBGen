@@ -7,16 +7,16 @@
 #include "permutation_generator.hpp"
 
 // generate all checkmates for given game
-template<::std::size_t FlattenedSz, ::std::size_t N, ::std::size_t rowSz, ::std::size_t colSz, typename CheckmateEvalFn,
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, ::std::size_t rowSz, ::std::size_t colSz, typename CheckmateEvalFn,
   typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn, typename IsValidBoardFn = null_type,
-  typename ::std::enable_if<::std::is_base_of<CheckmateEvaluator<FlattenedSz>, CheckmateEvalFn>::value>::type* = nullptr>
+  typename ::std::enable_if<::std::is_base_of<CheckmateEvaluator<FlattenedSz, NonPlacementDataType>, CheckmateEvalFn>::value>::type* = nullptr>
 auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset, 
     const ::std::vector<piece_label_t>& royaltyPieceset, CheckmateEvalFn eval, 
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
     IsValidBoardFn isValidBoardFn={})
 {
-  ::std::vector<BoardState<FlattenedSz>> whiteWins;
-  ::std::vector<BoardState<FlattenedSz>> whiteLosses;
+  ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> whiteWins;
+  ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> whiteLosses;
   constexpr auto remaining_N = N - 2; // assumed that 2 royalty must be present 
   
   // https://rosettacode.org/wiki/Combinations#C.2B.2B
@@ -64,7 +64,7 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
 #pragma omp parallel for 
   for (::std::size_t i = 0; i < configsToProcess.size(); ++i)
   {
-    PermutationEvaluator<FlattenedSz, rowSz, colSz, CheckmateEvalFn, 
+    PermutationEvaluator<FlattenedSz, NonPlacementDataType, rowSz, colSz, CheckmateEvalFn, 
       HorizontalSymFn, VerticalSymFn, IsValidBoardFn> evaluator(hzSymFn, vSymFn, isValidBoardFn);
     evaluator(whiteWins, whiteLosses, configsToProcess[i], eval);
   }

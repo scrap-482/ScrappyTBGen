@@ -7,25 +7,25 @@
 
 #include "state.hpp"
 
-template<::std::size_t FlattenedSz>
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class GenerateForwardMoves 
 {
-  virtual ::std::vector<BoardState<FlattenedSz>> 
-  operator()(const BoardState<FlattenedSz>& b) = 0;
+  virtual ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
+  operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
-template<::std::size_t FlattenedSz>
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class GenerateReverseMoves 
 {
-  virtual ::std::vector<BoardState<FlattenedSz>> 
-  operator()(const BoardState<FlattenedSz>& b) = 0;
+  virtual ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
+  operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
-template<::std::size_t FlattenedSz>
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class CheckmateEvaluator
 {
   virtual bool
-  operator()(const BoardState<FlattenedSz>& b) = 0;
+  operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
 #endif 
