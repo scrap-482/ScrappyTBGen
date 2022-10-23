@@ -13,7 +13,7 @@ struct BoardState
 {
   // 1 for white move. 0 for black move
   ::std::bitset<1> m_player;
-  ::std::array<piece_label_t, FlattenedSz> m_board;
+  ::std::array<piece_label_t, FlattenedSz> m_board{};
   NonPlacementDataType nonPlacementData;
 };
 
@@ -27,6 +27,11 @@ struct BoardStateHasher
     return ::std::hash<::std::string>{}(stringifiedBoard); 
   }
 };
+
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+bool operator==(const BoardState<FlattenedSz, NonPlacementDataType>& x, const BoardState<FlattenedSz, NonPlacementDataType>& y){
+	return x.m_board == y.m_board;
+}
 #else // TODO: Potential future bitboard optimization 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t NumUniquePieces>
 struct bb_state
