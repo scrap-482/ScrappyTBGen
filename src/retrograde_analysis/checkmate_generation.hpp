@@ -15,8 +15,8 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
     IsValidBoardFn isValidBoardFn={})
 {
-  ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> whiteWins;
-  ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> whiteLosses;
+  ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> whiteWins;
+  ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> whiteLosses;
   constexpr auto remaining_N = N - 2; // assumed that 2 royalty must be present 
   
   // https://rosettacode.org/wiki/Combinations#C.2B.2B

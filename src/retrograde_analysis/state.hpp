@@ -3,6 +3,7 @@
 
 #include <array>
 #include <bitset>
+#include <functional>
 
 using piece_label_t = unsigned char;
 
@@ -14,6 +15,17 @@ struct BoardState
   ::std::bitset<1> m_player;
   ::std::array<piece_label_t, FlattenedSz> m_board;
   NonPlacementDataType nonPlacementData;
+};
+
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+struct BoardStateHasher
+{
+  auto operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) const
+  {
+    ::std::string stringifiedBoard(b.m_board.begin(), b.m_board.end());
+    
+    return ::std::hash<::std::string>{}(stringifiedBoard); 
+  }
 };
 #else // TODO: Potential future bitboard optimization 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t NumUniquePieces>

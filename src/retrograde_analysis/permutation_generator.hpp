@@ -49,8 +49,8 @@ public:
   }
   
   // thread safe function for generating permutations
-  void inline generatePermutations(::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteWins,
-    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteLosses,
+  void inline generatePermutations(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteWins,
+    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteLosses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -77,7 +77,7 @@ public:
       {
 #pragma omp critical 
         {
-          whiteWins.push_back(currentBoard);
+          whiteWins.insert(currentBoard);
         }
       }
       
@@ -88,7 +88,7 @@ public:
       {
 #pragma omp critical
         {
-          whiteLosses.push_back(currentBoard);
+          whiteLosses.insert(currentBoard);
         }
       }
 
@@ -98,8 +98,8 @@ public:
   
   // thread safe function for generating permutations exploiting symmetry for 
   // horizontal, vertical, (and by extension diagonal) symmetries.
-  void inline generateSymPermutations(::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteWins,
-    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteLosses,
+  void inline generateSymPermutations(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteWins,
+    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteLosses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -159,7 +159,7 @@ public:
       {
 #pragma omp critical 
         {
-          whiteWins.push_back(currentBoard);
+          whiteWins.insert(currentBoard);
         }
       }
       
@@ -169,7 +169,7 @@ public:
       {
 #pragma omp critical
         {
-          whiteLosses.push_back(currentBoard);
+          whiteLosses.insert(currentBoard);
         }
       }
 
@@ -178,8 +178,8 @@ public:
   }
   
   // makes class a functor that evaluates the permutations 
-  auto operator()(::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteWins,
-    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>& whiteLosses, 
+  auto operator()(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteWins,
+    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteLosses, 
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn eval,
     IsValidBoardFn boardValidityEval = {})
