@@ -60,10 +60,11 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
     loseFrontier.insert(::std::end(loseFrontier), ::std::begin(preds), ::std::end(preds)); 
 	  position[l] = 0;
   }
-
+  
   for(int v = 1; v > 0; v++) {
+    // 2. Win iteration
 	  bool updateW = false;
-	  for (::std::size_t i = 0; i < loseFrontier.size(); ++i) // win iteration
+	  for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
 	  {
 	  	if (wins.find(loseFrontier[i]) == wins.end()) {
 	  		wins.insert(loseFrontier[i]);
@@ -82,6 +83,8 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
 	  	loseFrontier.erase(loseFrontier.begin() + i);
 	  	--i;
 	  }
+
+    // 3. Lose iteration
 	  if(updateW == false){
 	  	return ::std::make_tuple(wins, losses);
 	  }
@@ -150,11 +153,6 @@ auto retrograde_analysis(Args&&... args)
 
   else
     return retrograde_analysis_cluster_impl(::std::forward<Args>(args)...);
-}
-
-template<::std::size_t FlattenedSz, typename NonPlacementDataType>
-bool operator==(const BoardState<FlattenedSz, NonPlacementDataType>& x, const BoardState<FlattenedSz, NonPlacementDataType>& y){
-	return x.m_board == y.m_board;
 }
 
 #endif
