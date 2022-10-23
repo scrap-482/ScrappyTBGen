@@ -21,7 +21,32 @@ public:
   ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b)
   {
-    return {};
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> reverseMoves;
+    for(::std::size_t i = 0; i != b.size(); ++i){
+      if(b.m_board[i] == "Q"){ //Queen
+        reverseMoves.push_back({"Q", "", "", "", "", "", "", "", "", "", "K", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "Q", "", "", "", "", "", "", "", "", "K", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "", "Q", "", "", "", "", "K", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "", "", "Q", "", "", "", "K", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "", "", "", "Q", "", "", "K", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "", "", "", "", "Q", "", "K", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "", "", "", "", "", "Q", "K", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "", "", "", "", "", "", "K", "", "k", "", "Q", ""});
+      }
+
+      if(b.m_board[i] == "K"){ //King
+        reverseMoves.push_back({"", "", "", "", "Q", "K", "", "", "", "", "", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "Q", "", "K", "", "", "", "", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "Q", "", "", "K", "", "", "", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "K", "", "", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "K", "k", "", "", ""});
+        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "", "k", "K", "", ""});
+        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "", "k", "", "K", ""});
+        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "", "k", "", "", "K"});
+      }
+    }
+
+    return reverseMoves;
   }
 };
 

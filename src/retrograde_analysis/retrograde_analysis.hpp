@@ -57,7 +57,7 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
   for (const auto& l : losses)
   {
 	  auto preds = generatePredecessors(l);
-    winFrontier.insert(::std::end(loseFrontier), ::std::begin(preds), ::std::end(preds)); 
+    loseFrontier.insert(::std::end(loseFrontier), ::std::begin(preds), ::std::end(preds)); 
 	  position[l] = 0;
   }
 
@@ -65,7 +65,7 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
 	  bool updateW = false;
 	  for (::std::size_t i = 0; i < loseFrontier.size(); ++i) // win iteration
 	  {
-	  	if (wins.find(loseFrontier[i]) != wins.end()) {
+	  	if (wins.find(loseFrontier[i]) == wins.end()) {
 	  		wins.insert(loseFrontier[i]);
 	  		position[loseFrontier[i]] = v;
 	  		updateW = true;
@@ -89,7 +89,7 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
 	  bool updateL = false;
 	  for (::std::size_t i = 0; i < winFrontier.size(); ++i)
 	  {
-	  	if (wins.find(winFrontier[i]) != wins.end() && losses.find(winFrontier[i]) == losses.end())
+	  	if (wins.find(winFrontier[i]) == wins.end() && losses.find(winFrontier[i]) == losses.end())
 	  	{
 	  		// TODO: Think if more optimized. maybe use ideas from the parallel algorithm or
 	  		// more intelligent checking.
@@ -111,6 +111,7 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
 	  		if (allWins)
 	  		{
 	  			losses.insert(winFrontier[i]);
+				position[winFrontier[i]] = v;
 	  			updateL = true;
 	  			auto preds = generatePredecessors(winFrontier[i]);
 
