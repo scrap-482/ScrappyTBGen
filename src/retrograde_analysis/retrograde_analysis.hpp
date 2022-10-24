@@ -9,7 +9,7 @@
 #include "checkmate_generation.hpp"
 
 #ifdef MULTI_NODE_
-# include "mpi.h"
+# include <mpi.h>
 #endif
 
 enum class MachineType 
@@ -20,6 +20,24 @@ enum class MachineType
 
 // TODO: MPI implementation
 auto retrogradeAnalysisClusterImpl();
+
+template<typename... Args>
+auto retrogradeAnalysisClusterInvoker(Args&&... args)
+{
+  // 1. initialization
+  MPI_Init(NULL, NULL);
+  
+  // number of active processes
+  int globalSz = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &globalRank); 
+  
+  // corresponds to a specific partition. Need to determine the partition
+  int globalId = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &globalId);
+  
+  // auto results
+  MPI_Finalize();
+}
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
   ::std::size_t rowSz, ::std::size_t colSz, typename CheckmateEvalFn,
@@ -64,6 +82,7 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
   for(int v = 1; v > 0; v++) {
     // 2. Win iteration
 	  bool updateW = false;
+    // TODO: make this parallel for loop 
 	  for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
 	  {
 	  	if (wins.find(loseFrontier[i]) != wins.end()) {
@@ -90,6 +109,7 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
 	  }
 
 	  bool updateL = false;
+    // TODO: make this a parallel for loop
 	  for (::std::size_t i = 0; i < winFrontier.size(); ++i)
 	  {
 	  	if (wins.find(winFrontier[i]) != wins.end() && losses.find(winFrontier[i]) == losses.end())
@@ -151,7 +171,7 @@ auto retrograde_analysis(Args&&... args)
     return retrogradeAnalysisBaseImpl(::std::forward<Args>(args)...);
 
   else
-    return retrograde_analysis_cluster_impl(::std::forward<Args>(args)...);
+    return retrogradeAnalysisClusterInvoker(::std::forward<Args>(args)...);
 }
 
 #endif
