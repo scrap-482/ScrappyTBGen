@@ -1,5 +1,6 @@
 #include "retrograde_analysis.hpp"
 #include "state_transition.hpp"
+#include <iostream>
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class TestForwardMove 
@@ -9,10 +10,88 @@ public:
   ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b)
   {
-    return {};
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> possible_rev_moves;
+    if (b.m_player == 1)
+    {
+      for (int i = 0; i != b.m_board.size(); ++i)
+      {
+        if (b.m_board[i] == 'K')
+        {
+          ::std::array<int, 8> possible_moves = 
+            { i + 4, i - 4, i + 3, i - 3, i + 5, i - 5, i + 1, i - 1 };
+          
+          for (auto pos : possible_moves)
+          {
+            if ((i >= 0 && i <= 15) && b.m_board[pos] != 'R' && b.m_board[pos] != 'k')
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 0;
+              next_move.m_board[i] = {};
+              next_move.m_board[pos] = 'K';
+
+              possible_rev_moves.push_back(next_move);
+            }
+          }
+        }
+        if (b.m_board[i] == 'R')
+        {
+          int row = i / 4;
+          int col = i % 4;
+          
+          for (int j = 0; j < 4; ++j)
+          {
+            if (b.m_board[row*4 + j] != 'K' && b.m_board[row*4 + j] != 'R' && b.m_board[row*4 + j] != 'k') 
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 0;
+              next_move.m_board[row*4 + j] = 'R';
+              next_move.m_board[i] = {};
+
+              possible_rev_moves.push_back(next_move);
+            }
+            if (b.m_board[4*j + col] != 'K' && b.m_board[4*j + col] != 'R' && b.m_board[4*j + col] != 'k')
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 0;
+              next_move.m_board[col + j*4] = 'R';
+              next_move.m_board[i] = {};
+
+              possible_rev_moves.push_back(next_move);
+            }
+          }
+        }
+
+      }
+    }
+    else
+    {
+      for (int i = 0; i != b.m_board.size(); ++i)
+      {
+        if (b.m_board[i] == 'k')
+        {
+          ::std::array<int, 1> possible_moves = 
+            { 12 };
+          
+          for (auto pos : possible_moves)
+          {
+            if (i >= 0 && i <= 15)
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 1;
+              next_move.m_board[i] = {};
+              next_move.m_board[pos] = 'k';
+
+              possible_rev_moves.push_back(next_move);
+            }
+          }
+        }
+      }
+    }
+    return possible_rev_moves;
   }
 };
 
+// this is essentially hardcoded for correctness
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class TestReverseMove
   : public GenerateReverseMoves<FlattenedSz, NonPlacementDataType>
@@ -21,32 +100,83 @@ public:
   ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b)
   {
-    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> reverseMoves;
-    for(::std::size_t i = 0; i != b.size(); ++i){
-      if(b.m_board[i] == "Q"){ //Queen
-        reverseMoves.push_back({"Q", "", "", "", "", "", "", "", "", "", "K", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "Q", "", "", "", "", "", "", "", "", "K", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "", "Q", "", "", "", "", "K", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "", "", "Q", "", "", "", "K", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "", "", "", "Q", "", "", "K", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "", "", "", "", "Q", "", "K", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "", "", "", "", "", "Q", "K", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "", "", "", "", "", "", "K", "", "k", "", "Q", ""});
-      }
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> possible_rev_moves;
+    if (b.m_player == 0)
+    {
+      for (int i = 0; i != b.m_board.size(); ++i)
+      {
+        if (b.m_board[i] == 'K')
+        {
+          ::std::array<int, 8> possible_moves = 
+            { i + 4, i - 4, i + 3, i - 3, i + 5, i - 5, i + 1, i - 1 };
+          
+          for (auto pos : possible_moves)
+          {
+            if ((pos >= 0 && pos <= 15) && b.m_board[pos] != 'R' && b.m_board[pos] != 'k')
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 1;
+              next_move.m_board[i] = {};
+              next_move.m_board[pos] = 'K';
 
-      if(b.m_board[i] == "K"){ //King
-        reverseMoves.push_back({"", "", "", "", "Q", "K", "", "", "", "", "", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "Q", "", "K", "", "", "", "", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "Q", "", "", "K", "", "", "", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "K", "", "", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "K", "k", "", "", ""});
-        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "", "k", "K", "", ""});
-        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "", "k", "", "K", ""});
-        reverseMoves.push_back({"", "", "", "", "Q", "", "", "", "", "", "", "", "k", "", "", "K"});
+              possible_rev_moves.push_back(next_move);
+            }
+          }
+        }
+        if (b.m_board[i] == 'R')
+        {
+          int row = i / 4;
+          int col = i % 4;
+          
+          for (int j = 0; j < 4; ++j)
+          {
+            if (b.m_board[row*4 + j] != 'K' && b.m_board[row*4 + j] != 'R' && b.m_board[row*4 + j] != 'k') 
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 1;
+              next_move.m_board[row*4 + j] = 'R';
+              next_move.m_board[i] = {};
+
+              possible_rev_moves.push_back(next_move);
+            }
+            if (b.m_board[4*j + col] != 'K' && b.m_board[4*j + col] != 'R' && b.m_board[4*j + col] != 'k')
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 1;
+              next_move.m_board[col + j*4] = 'R';
+              next_move.m_board[i] = {};
+
+              possible_rev_moves.push_back(next_move);
+            }
+          }
+        }
       }
     }
+    else
+    {
+      for (int i = 0; i != b.m_board.size(); ++i)
+      {
+        if (b.m_board[i] == 'k')
+        {
+          ::std::array<int, 8> possible_moves = 
+            { i + 4, i - 4, i + 3, i - 3, i + 5, i - 5, i + 1, i - 1 };
+          
+          for (auto pos : possible_moves)
+          {
+            if (pos >= 0 && pos <= 15)
+            {
+              BoardState<FlattenedSz, NonPlacementDataType> next_move = b;
+              next_move.m_player = 0;
+              next_move.m_board[i] = {};
+              next_move.m_board[pos] = 'k';
 
-    return reverseMoves;
+              possible_rev_moves.push_back(next_move);
+            }
+          }
+        }
+      }
+    }
+    return possible_rev_moves;
   }
 };
 
@@ -54,12 +184,6 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class TestCheckmateEvaluator
   : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType>
 {
-  //const ::std::vector<piece_label_t>& m_royaltyPieceset;
-
-  //TestCheckmateEvaluator(const ::std::vector<piece_label_t>& royaltyPieceset)
-  //  : m_royaltyPieceset(royaltyPieceset)
-  //{ }
-
 public:
   bool operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b)
   {
@@ -79,7 +203,7 @@ int main()
   TestReverseMove<16, null_type> backward;
   TestCheckmateEvaluator<16, null_type> evaluator;
 
-  auto results = retrogradeAnalysisBaseImpl<16, null_type, 3, 
+  auto [wins, losses] = retrogradeAnalysisBaseImpl<16, null_type, 3, 
     4, 4, decltype(evaluator), decltype(forward), decltype(backward)>(noRoyaltyPieceset, royaltyPieceset,
       forward, backward, evaluator);
 }
