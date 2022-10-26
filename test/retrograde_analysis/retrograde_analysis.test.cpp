@@ -1,5 +1,9 @@
-#include "retrograde_analysis.hpp"
-#include "state_transition.hpp"
+// Matt's hardcoded validation before rulesets are implemented. 
+// Mess around with this file to observe retrograde analysis' behavior 
+// requires the hardcoding of checkmates.
+// this will be obsolete once we have an actual ruleset
+#include "../../src/retrograde_analysis/retrograde_analysis.hpp"
+#include "../../src/retrograde_analysis/state_transition.hpp"
 #include <iostream>
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>

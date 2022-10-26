@@ -1,3 +1,6 @@
+// this is currently a benchmark used by matt to see how fast we 
+// are permuting through the states of a chess game
+
 #include <iostream>
 #include <random>
 
