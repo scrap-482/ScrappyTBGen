@@ -77,31 +77,38 @@ auto retrogradeAnalysisClusterImpl();
 
 // This function is the base implementation for the single-node implementation
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
-  ::std::size_t rowSz, ::std::size_t colSz, typename CheckmateEvalFn,
+  ::std::size_t rowSz, ::std::size_t colSz,
   typename MoveGenerator, typename ReverseMoveGenerator, typename HorizontalSymFn=false_fn, 
   typename VerticalSymFn=false_fn, typename IsValidBoardFn=null_type, 
   typename ::std::enable_if<::std::is_base_of<GenerateForwardMoves<FlattenedSz, NonPlacementDataType>, 
     MoveGenerator>::value>::type* = nullptr,
   typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves<FlattenedSz, NonPlacementDataType>, 
     ReverseMoveGenerator>::value>::type* = nullptr>
-auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPieceset, 
-    const ::std::vector<piece_label_t>& royaltyPieceset,
+auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> checkmates,
     MoveGenerator generateSuccessors,
     ReverseMoveGenerator generatePredecessors,
-    CheckmateEvalFn checkmateEval,
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
     IsValidBoardFn isValidBoardFn={})
 {
+  using board_set_t = ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
+        BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
+  
+  // TODO: consider more intelligent data structure. Matt thinks heap ordering
+  // states in a convenient way for reducing computation.
+  using frontier_t = ::std::deque<BoardState<FlattenedSz, NonPlacementDataType>>;
+  using board_map_t = ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, int, 
+    BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
+
   // the commented code below is currently validation by manually entering checkmate states. this will be removed once rulesets
   // are fully implemented and can be ignored for now.
 #if 1
   // 1. identify checkmate positions
-  auto [wins, losses] = generateAllCheckmates<FlattenedSz, NonPlacementDataType, N, rowSz, colSz,
-       decltype(checkmateEval)>(noRoyaltyPieceset, royaltyPieceset, checkmateEval);
+  board_set_t wins;
+  board_set_t losses = ::std::move(checkmates);
 #else
   // matt's hardcoded validation test
-  ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> wins;
-  ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> losses;
+  board_set_t wins;
+  board_set_t losses;
   BoardState<FlattenedSz, NonPlacementDataType> b;
   b.m_board[4] = 'R';
   b.m_board[10] = 'K';
@@ -109,23 +116,11 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
   b.m_player = 0;
   losses.insert(b);
 #endif
-
-  // TODO: consider more intelligent data structure. Matt thinks heap ordering
-  // states in a convenient way for reducing computation.
-  ::std::deque<BoardState<FlattenedSz, NonPlacementDataType>> winFrontier;
-  ::std::deque<BoardState<FlattenedSz, NonPlacementDataType>> loseFrontier;
+  frontier_t winFrontier;
+  frontier_t loseFrontier;
   
   // T(p) : BoardState -> int
-  ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, int, 
-    BoardStateHasher<FlattenedSz, NonPlacementDataType>> position;
-  
-  for (const auto& w : wins)
-  {
-	  auto preds = generatePredecessors(w);
-    winFrontier.insert(::std::end(winFrontier), ::std::begin(preds), ::std::end(preds)); 
-	  position[w] = 0;
-  }
-  
+  board_map_t position;
   for (const auto& l : losses)
   {
 	  auto preds = generatePredecessors(l);
@@ -142,7 +137,6 @@ auto retrogradeAnalysisBaseImpl(const ::std::vector<piece_label_t>& noRoyaltyPie
 #ifdef TRACK_RETROGRADE_ANALYSIS
         print_win(loseFrontier[i], v);
 #endif
-
 	  		wins.insert(loseFrontier[i]);
 	  		position[loseFrontier[i]] = v;
 	  		updateW = true;

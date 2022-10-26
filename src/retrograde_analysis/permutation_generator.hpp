@@ -1,3 +1,8 @@
+/*
+ * This header constitutes the permutation generator utilized
+ * during checkmate generation. The generator has the capability to exploit 
+ * symmetry given a callback functor
+ */
 #ifndef PERMUTATION_GENERATOR_HPP_ 
 #define PERMUTATION_GENERATOR_HPP_
 
@@ -11,7 +16,7 @@
 
 #include "state_transition.hpp"
 
-// fallback for optional function templating - takes 1 byte of space
+// fallback for optional function templating 
 struct null_type {};
 
 // false function default for symmetry analysis
@@ -49,8 +54,8 @@ public:
   }
   
   // thread safe function for generating permutations
-  void inline generatePermutations(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteWins,
-    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteLosses,
+  // todo: remove the white wins
+  void inline generatePermutations(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& losses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -75,10 +80,7 @@ public:
       // checking if black loses (white wins) 
       if (checkmateEval(currentBoard))
       {
-#pragma omp critical 
-        {
-          whiteWins.insert(currentBoard);
-        }
+        losses.insert(currentBoard);
       }
       
       currentBoard.m_player.set();
@@ -86,10 +88,7 @@ public:
       // checking if white loses (black wins)
       if (checkmateEval(currentBoard))
       {
-#pragma omp critical
-        {
-          whiteLosses.insert(currentBoard);
-        }
+        losses.insert(currentBoard);
       }
 
       ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
@@ -98,8 +97,7 @@ public:
   
   // thread safe function for generating permutations exploiting symmetry for 
   // horizontal, vertical, (and by extension diagonal) symmetries.
-  void inline generateSymPermutations(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteWins,
-    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteLosses,
+  void inline generateSymPermutations(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& losses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -157,20 +155,14 @@ public:
       // checking if black loses (white wins)
       if (checkmateEval(currentBoard))
       {
-#pragma omp critical 
-        {
-          whiteWins.insert(currentBoard);
-        }
+        losses.insert(currentBoard);
       }
       
       currentBoard.m_player.set();
 
       if (checkmateEval(currentBoard))
       {
-#pragma omp critical
-        {
-          whiteLosses.insert(currentBoard);
-        }
+        losses.insert(currentBoard);
       }
 
       ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
@@ -178,8 +170,7 @@ public:
   }
   
   // makes class a functor that evaluates the permutations 
-  auto operator()(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteWins,
-    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& whiteLosses, 
+  auto operator()(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& losses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn eval,
     IsValidBoardFn boardValidityEval = {})
@@ -204,12 +195,12 @@ public:
     // If piece set is vertically and/or horizontally symmetric
     if (pieceVSym || pieceHzSym)
     {
-      generateSymPermutations(whiteWins, whiteLosses, pieceSet, eval,
+      generateSymPermutations(losses, pieceSet, eval,
         boardValidityEval);
     }
     else // generate all permutations 
     {
-      generatePermutations(whiteWins, whiteLosses, pieceSet, eval,
+      generatePermutations(losses, pieceSet, eval,
         boardValidityEval);
     }
   }

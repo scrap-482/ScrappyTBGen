@@ -17,12 +17,14 @@ struct BoardState
   NonPlacementDataType nonPlacementData;
 };
 
+// TODO: hash the NonPlacementType? 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct BoardStateHasher
 {
   auto operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) const
   {
     ::std::string stringifiedBoard(b.m_board.begin(), b.m_board.end());
+    stringifiedBoard += static_cast<char>(b.m_player.to_ulong());
     
     return ::std::hash<::std::string>{}(stringifiedBoard); 
   }
@@ -45,10 +47,5 @@ struct bb_state
   NonPlacementDataType nonPlacementData;
 };
 #endif
-
-// TODO: "unmove" operations 
-template<::std::size_t FlattenedSz, typename NonPlacementDataType>
-auto
-generatePredecessors(const BoardState<FlattenedSz, NonPlacementDataType>& board);
 
 #endif

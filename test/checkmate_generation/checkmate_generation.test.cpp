@@ -4,8 +4,8 @@
 #include <iostream>
 #include <random>
 
-#include "state_transition.hpp"
-#include "checkmate_generation.hpp"
+#include "../../src/retrograde_analysis/state_transition.hpp"
+#include "../../src/retrograde_analysis/checkmate_generation.hpp"
 
 // Non-placement data
 struct StandardChessNPD {
@@ -50,7 +50,6 @@ int main()
                                                    'R', 'R', 'B', 'B', 'N', 'N', 'Q', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 'Q', 'Q', 'N', 'R', 'B'};
   std::vector<piece_label_t> royaltyPieceset = { 'k', 'K' };
   
-  // need to fix
   auto symFn = [](const std::vector<piece_label_t>& v)
   {
     for (const auto& c : v)
@@ -67,7 +66,13 @@ int main()
 
   
   auto c = cm_function<64, StandardChessNPD>(rd, m_distribution, m_engine);
-  auto [white_wins, white_losses] = generateAllCheckmates<64, StandardChessNPD, 3, 8, 8, decltype(c),
+  auto losses = generateAllCheckmates<64, StandardChessNPD, 4, 8, 8, decltype(c),
        decltype(symFn), decltype(symFn)>(noRoyaltyPieceset, royaltyPieceset, c, symFn, symFn);
-  std::cout << white_wins.size() + white_losses.size() << std::endl;
+  
+  int total_cms = 0;
+  for (const auto& [config, cm_set] : losses)
+  {
+    total_cms += cm_set.size(); 
+  }
+  std::cout << total_cms << std::endl;
 }

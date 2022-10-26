@@ -207,7 +207,11 @@ int main()
   TestReverseMove<16, null_type> backward;
   TestCheckmateEvaluator<16, null_type> evaluator;
 
+  auto checkmates = generateAllCheckmates<16, null_type, 3, 4, 4,
+       decltype(evaluator)>(noRoyaltyPieceset, royaltyPieceset, evaluator);
+  auto [config, checkmates_0] = checkmates[0];
+
   auto [wins, losses] = retrogradeAnalysisBaseImpl<16, null_type, 3, 
-    4, 4, decltype(evaluator), decltype(forward), decltype(backward)>(noRoyaltyPieceset, royaltyPieceset,
-      forward, backward, evaluator);
+    4, 4, decltype(forward), decltype(backward)>(::std::move(checkmates_0),
+      forward, backward);
 }
