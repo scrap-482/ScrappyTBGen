@@ -73,26 +73,22 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
 {
   using board_set_t = ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
         BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
+  ::std::vector<::std::tuple<::std::vector<piece_label_t>, board_set_t>> checkmates;
 
   // Generate state permutations parallelizing over the board configurations
   auto configsToProcess = 
     generateAllConfigs<FlattenedSz, NonPlacementDataType, N, rowSz, colSz, CheckmateEvalFn, HorizontalSymFn, VerticalSymFn, IsValidBoardFn>
     (noRoyaltyPieceset, royaltyPieceset, eval, hzSymFn, vSymFn, isValidBoardFn);
   
-  ::std::vector<::std::tuple<::std::vector<piece_label_t>, board_set_t>> checkmates;
-  checkmates.reserve(configsToProcess.size());
+  for (const auto& c : configsToProcess)
+    checkmates.emplace_back(c, board_set_t{});
+
 #pragma omp parallel for 
   for (::std::size_t i = 0; i < configsToProcess.size(); ++i)
   {
-    board_set_t losses;
     PermutationEvaluator<FlattenedSz, NonPlacementDataType, rowSz, colSz, CheckmateEvalFn, 
       HorizontalSymFn, VerticalSymFn, IsValidBoardFn> evaluator(hzSymFn, vSymFn, isValidBoardFn);
-    evaluator(losses, configsToProcess[i], eval);
-
-#pragma omp critical
-    {
-      checkmates.push_back(::std::make_tuple(configsToProcess[i], losses));
-    }
+    evaluator(::std::get<1>(checkmates[i]), configsToProcess[i], eval);
   }
   return checkmates;
 }
