@@ -8,7 +8,7 @@
 #include <iostream>
 
 template <::std::size_t FlattenedSz>
-class KBoardPartition
+class KStateSpacePartition
 {
   // inclusive range
   ::std::bitset<FlattenedSz> m_lowerRange;
@@ -45,7 +45,6 @@ class KBoardPartition
     assert(base2Log > 0);
 
     m_partitionSzLog = FlattenedSz - base2Log;
-    std::cout << base2Log << " " << FlattenedSz << " " << m_partitionSzLog << std::endl;
     ::std::bitset<FlattenedSz> bitAdd;
     bitAdd.set(m_partitionSzLog);
 
@@ -59,8 +58,8 @@ class KBoardPartition
   }
 
 public:
-  KBoardPartition(void) = default;
-  KBoardPartition(const ::std::size_t& id, 
+  KStateSpacePartition(void) = default;
+  KStateSpacePartition(const ::std::size_t& id, 
     const ::std::size_t& k)
     : m_id(id),
       m_k(k)

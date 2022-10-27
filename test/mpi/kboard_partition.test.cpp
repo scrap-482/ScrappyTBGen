@@ -9,7 +9,7 @@ int main()
   
   for (std::size_t i = 0; i < num_processes; ++i)
   {
-    KBoardPartition<BoardSz> board(i, num_processes);
+    KStateSpacePartition<BoardSz> board(i, num_processes);
     auto [lower, upper] = board.getRange(); 
 
     std::cout << "id: " << i << " lower range: " << lower << " upper range: " << upper << std::endl;
