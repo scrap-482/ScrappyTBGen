@@ -10,6 +10,7 @@
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class GenerateForwardMoves 
 {
+public:
   virtual ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
@@ -17,6 +18,7 @@ class GenerateForwardMoves
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class GenerateReverseMoves 
 {
+public:
   virtual ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
@@ -24,6 +26,7 @@ class GenerateReverseMoves
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class CheckmateEvaluator
 {
+public:
   virtual bool
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
