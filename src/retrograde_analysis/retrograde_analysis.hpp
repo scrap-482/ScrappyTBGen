@@ -21,7 +21,7 @@
 #endif
 
 #ifdef MULTI_NODE_
-# include <mpi.h>
+# include "cluster_support.hpp"
 #endif
 
 // used to deduce implementation to invoke at compile time
@@ -31,6 +31,7 @@ enum class MachineType
   MULTI_NODE
 };
 
+#ifdef TRACK_RETROGRADE_ANALYSIS
 // helper function when tracking board win states
 void print_win(auto w, int v)
 {
@@ -70,6 +71,26 @@ void print_loss(auto l, int v)
     if (count % 4 == 0)
       std::cout << std::endl;
   }
+}
+
+#endif
+
+template<typename... Args>
+auto retrogradeAnalysisClusterInvoker(Args&&... args)
+{
+  // 1. initialization
+  MPI_Init(NULL, NULL);
+
+  // number of active processes
+  int globalSz = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &globalRank);
+
+  // corresponds to a specific partition. Need to determine the partition
+  int globalId = 0;
+  MPI_Comm_rank(MPI_COMM_WORLD, &globalId);
+
+  // auto results
+  MPI_Finalize();
 }
 
 // TODO: MPI implementation
