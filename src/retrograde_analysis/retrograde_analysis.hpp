@@ -144,96 +144,96 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
   board_map_t position;
   for (const auto& l : losses)
   {
-	  auto preds = generatePredecessors(l);
+    auto preds = generatePredecessors(l);
     loseFrontier.insert(::std::end(loseFrontier), ::std::begin(preds), ::std::end(preds)); 
-	  position[l] = 0;
+    position[l] = 0;
   }
   
   for(int v = 1; v > 0; v++) {
     // 2. Win iteration - add immediate wins (at least one successor is a loss for the opposing player) to the win set
-	  bool updateW = false;
-	  for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
-	  {
-	  	if (wins.find(loseFrontier[i]) == wins.end()) {
+    bool updateW = false;
+    for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
+    {
+      if (wins.find(loseFrontier[i]) == wins.end()) {
 #ifdef TRACK_RETROGRADE_ANALYSIS
         print_win(loseFrontier[i], v);
 #endif
-	  		wins.insert(loseFrontier[i]);
-	  		position[loseFrontier[i]] = v;
-	  		updateW = true;
-	  		auto preds = generatePredecessors(loseFrontier[i]);
+        wins.insert(loseFrontier[i]);
+        position[loseFrontier[i]] = v;
+        updateW = true;
+        auto preds = generatePredecessors(loseFrontier[i]);
 
-	  		for (const auto& prev : preds)
-	  		{
-	  			if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO check
-	  			{
-	  				winFrontier.push_back(preds[i]);
-	  			}
-	  		}
-	  	}
-	  	loseFrontier.erase(loseFrontier.begin() + i);
-	  	--i;
-	  }
+        for (const auto& prev : preds)
+        {
+          if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO check
+          {
+            winFrontier.push_back(preds[i]);
+          }
+        }
+      }
+      loseFrontier.erase(loseFrontier.begin() + i);
+      --i;
+    }
 
     // 3. Lose iteration - add immediate losses (all successors are win for opponent) to the lose set
-	  if(updateW == false){
-	  	return ::std::make_tuple(wins, losses);
-	  }
+    if(updateW == false){
+      return ::std::make_tuple(wins, losses);
+    }
 
-	  bool updateL = false;
-	  for (::std::size_t i = 0; i < winFrontier.size(); ++i)
-	  {
-	  	if (wins.find(winFrontier[i]) == wins.end() && losses.find(winFrontier[i]) == losses.end())
-	  	{
-	  		// TODO: Think about better optimization. maybe use ideas from the parallel algorithm or
-	  		// more intelligent checking.
-	  		auto succs = generateSuccessors(winFrontier[i]);
-	  		bool allWins = true;
-	  		for (const auto& succ : succs)
-	  		{
-	  			if (wins.find(succ) == wins.end())
-	  			{
-	  				allWins = false;
-	  			}
-	  			if (losses.find(succ) != losses.end())
-	  			{
-	  				loseFrontier.push_back(winFrontier[i]);
-	  				winFrontier.erase(winFrontier.begin() + i);
-	  				--i;
-	  			}
-	  		}
-	  		if (allWins)
-	  		{
+    bool updateL = false;
+    for (::std::size_t i = 0; i < winFrontier.size(); ++i)
+    {
+      if (wins.find(winFrontier[i]) == wins.end() && losses.find(winFrontier[i]) == losses.end())
+      {
+        // TODO: Think about better optimization. maybe use ideas from the parallel algorithm or
+        // more intelligent checking.
+        auto succs = generateSuccessors(winFrontier[i]);
+        bool allWins = true;
+        for (const auto& succ : succs)
+        {
+          if (wins.find(succ) == wins.end())
+          {
+            allWins = false;
+          }
+          if (losses.find(succ) != losses.end())
+          {
+            loseFrontier.push_back(winFrontier[i]);
+            winFrontier.erase(winFrontier.begin() + i);
+            --i;
+          }
+        }
+        if (allWins)
+        {
 #ifdef TRACK_RETROGRADE_ANALYSIS
           print_loss(winFrontier[i], v);
 #endif
 
-	  			losses.insert(winFrontier[i]);
-				  position[winFrontier[i]] = v;
-	  			updateL = true;
-	  			auto preds = generatePredecessors(winFrontier[i]);
+          losses.insert(winFrontier[i]);
+          position[winFrontier[i]] = v;
+          updateL = true;
+          auto preds = generatePredecessors(winFrontier[i]);
 
-	  			for (const auto& prev : preds)
-	  			{
-	  				if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO: reason about
-	  				{
-	  					loseFrontier.push_back(preds[i]);
-	  				}
-	  			}
-	  			
-	  			winFrontier.erase(winFrontier.begin() + i);
-	  			--i;
-	  		}
-	  	}
-	  	else 
-	  	{
-	  		winFrontier.erase(winFrontier.begin() + i);
-	  		--i;
-	  	}
-	  }
-	  if(updateL == false) {
-	  	return ::std::make_tuple(wins, losses);
-	  }
+          for (const auto& prev : preds)
+          {
+            if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO: reason about
+            {
+              loseFrontier.push_back(preds[i]);
+            }
+          }
+          
+          winFrontier.erase(winFrontier.begin() + i);
+          --i;
+        }
+      }
+      else 
+      {
+        winFrontier.erase(winFrontier.begin() + i);
+        --i;
+      }
+    }
+    if(updateL == false) {
+      return ::std::make_tuple(wins, losses);
+    }
   }
   return ::std::make_tuple(wins, losses);
 }
