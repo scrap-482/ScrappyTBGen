@@ -12,7 +12,8 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct BoardState
 {
   // 1 for white move. 0 for black move
-  ::std::bitset<1> m_player;
+  //::std::bitset<1> m_player;
+  bool m_player;
   ::std::array<piece_label_t, FlattenedSz> m_board{};
   NonPlacementDataType nonPlacementData;
 };

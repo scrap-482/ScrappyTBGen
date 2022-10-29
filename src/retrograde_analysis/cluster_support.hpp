@@ -6,7 +6,121 @@
 #include <cmath>
 #include <cassert>
 #include <iostream>
+#include <cstddef>
 
+#include <mpi.h>
+
+#include "state.hpp"
+
+MPI_Datatype MPI_NodeCommData;
+MPI_Datatype MPI_NonPlacementDataType;
+MPI_Datatype MPI_BoardState;
+
+template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
+struct NodeCommData 
+{
+  bool isWin;
+  // D(k) in algorithm
+  int depthToEnd;
+  // M(k) in algorithm
+  int remainingValidMoves;
+  int G;
+
+  // TODO: does this need to be sent?
+  BoardState<FlattenedSz, NonPlacementDataType> b; 
+};
+
+template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
+void initialize_comm_structs(void)
+{
+  {
+    // C++ preprocessor does not understand template syntax so this is necessary
+    typedef BoardState<FlattenedSz, NonPlacementDataType> board_state_t;
+
+    int count = 3;
+    int blocklengths[] = { 1, FlattenedSz, 1 };
+
+    MPI_Aint displacements[] = 
+    { 
+      offsetof(board_state_t, m_player), 
+      offsetof(board_state_t, m_board),
+      offsetof(board_state_t, nonPlacementData)
+    };
+    
+    // TODO: may need to change the MPI_CHAR pending the chu shogi representation changes
+    MPI_Datatype types[] = { MPI_C_BOOL, MPI_CHAR, MPI_NonPlacementDataType };
+    
+    MPI_Datatype tmp;
+    MPI_Aint lowerBound;
+    MPI_Aint extent;
+
+    MPI_Type_create_struct(count, blocklengths, displacements, types,
+      &tmp);
+
+    MPI_Type_get_extent(tmp, &lowerBound, &extent);
+    MPI_Type_create_resized(tmp, lowerBound, extent, &MPI_BoardState);
+    MPI_Type_commit(&MPI_BoardState);
+  }
+
+  { 
+    // C++ preprocessor does not understand template syntax so this is necessary
+    typedef NodeCommData<FlattenedSz, NonPlacementDataType> node_comm_data_t;
+
+    int count = 5;
+    int blocklengths[] = { 1, 1, 1, 1, 1 };
+
+    MPI_Aint displacements[] = 
+    { 
+      offsetof(node_comm_data_t, isWin),
+      offsetof(node_comm_data_t, depthToEnd), 
+      offsetof(node_comm_data_t, remainingValidMoves), 
+      offsetof(node_comm_data_t, G), 
+      offsetof(node_comm_data_t, b)
+    };
+
+    MPI_Datatype types[] = { MPI_C_BOOL, MPI_INT, MPI_INT, MPI_INT, MPI_BoardState };
+    
+    MPI_Datatype tmp;
+    MPI_Aint lowerBound;
+    MPI_Aint extent;
+
+    MPI_Type_create_struct(count, blocklengths, displacements, types,
+      &tmp);
+    MPI_Type_get_extent(tmp, &lowerBound, &extent);
+    MPI_Type_create_resized(tmp, lowerBound, extent, &MPI_NodeCommData);
+    MPI_Type_commit(&MPI_NodeCommData);
+  }
+}
+
+template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
+auto findNode(const BoardState<FlattenedSz, NonPlacementDataType>& b)
+{
+}
+
+#if 0
+template <::std::size_t FlattenedSz, ::std::size_t N>
+class KStateSpacePartition
+{
+  ::std::array<::std::size_t, N> m_gatheredIndices;
+  ::std::size_t m_id;
+  ::std::size_t m_k;
+
+  void initRange()
+  { }
+
+public:
+  KStateSpacePartition(void) = default;
+  KStateSpacePartition(const ::std::size_t& id, 
+    const ::std::size_t& k)
+    : m_id(id),
+      m_k(k)
+  {
+    initRange();
+  }
+};
+
+#else
+// TODO: use a scatter gather scheme
 template <::std::size_t FlattenedSz>
 class KStateSpacePartition
 {
@@ -70,5 +184,6 @@ public:
   auto getRange(void)
   { return ::std::make_tuple(m_lowerRange, m_upperRange); }
 };
+#endif 
 
 #endif

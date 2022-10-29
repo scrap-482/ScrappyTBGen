@@ -4,8 +4,8 @@
 
 int main()
 {
-  constexpr std::size_t BoardSz = 16;
-  std::size_t num_processes = 4;
+  constexpr std::size_t BoardSz = 64;
+  std::size_t num_processes = 16;
   
   for (std::size_t i = 0; i < num_processes; ++i)
   {
