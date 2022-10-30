@@ -92,35 +92,38 @@ void initialize_comm_structs(void)
   }
 }
 
-template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
-auto findNode(const BoardState<FlattenedSz, NonPlacementDataType>& b)
-{
-}
-
-#if 0
-template <::std::size_t FlattenedSz, ::std::size_t N>
+#if 1
+// uses modulo partitioning on the sum of the gathered indices
+// Matt TODO: Generate an unordered map of indices s.t. they corresond 
+// to a pseudorandom number. Take the sum (or some other function) of the pseudorandom
+// numbers mod the number of nodes to achieve a more even distribution. Nodes 
+// would have to generate a random number for themselves and then broadcast to all other nodes first.
+template <::std::size_t FlattenedSz, int K, typename BoardType>
 class KStateSpacePartition
 {
-  ::std::array<::std::size_t, N> m_gatheredIndices;
-  ::std::size_t m_id;
-  ::std::size_t m_k;
-
-  void initRange()
-  { }
-
 public:
   KStateSpacePartition(void) = default;
-  KStateSpacePartition(const ::std::size_t& id, 
-    const ::std::size_t& k)
-    : m_id(id),
-      m_k(k)
+  
+  // Matt TODO:  Suspect that this results in a heavily skewed distribution. see above
+  // returns the rank of the node reponsible for this board state
+  int operator()(const BoardType& b)
   {
-    initRange();
+    int sum = 0;
+    int idx = 0;
+
+    // gather indices
+    for (const auto& c : b.m_board)
+    {
+      if (c != '\0')
+        sum += idx;
+      ++idx;
+    }
+    return sum % K;
   }
 };
 
-#else
-// TODO: use a scatter gather scheme
+// TODO: remove this 
+#else 
 template <::std::size_t FlattenedSz>
 class KStateSpacePartition
 {

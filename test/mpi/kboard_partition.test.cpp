@@ -1,19 +1,24 @@
 #include "../../src/retrograde_analysis/cluster_support.hpp"
-
 #include <iostream>
 
+struct null_type {};
+
+// TODO: asses distribution of this scheme
 int main()
 {
   constexpr std::size_t BoardSz = 64;
-  std::size_t num_processes = 16;
+  constexpr std::size_t num_processes = 16;
   
-  for (std::size_t i = 0; i < num_processes; ++i)
-  {
-    KStateSpacePartition<BoardSz> board(i, num_processes);
-    auto [lower, upper] = board.getRange(); 
+  BoardState<BoardSz, null_type> b;
+  b.m_board[32] = 'K';
+  b.m_board[17] = 'k';
+  b.m_board[1] = 'P';
+  b.m_board[63] = 'N';
+  b.m_board[45] = 'n';
+  
+  KStateSpacePartition<BoardSz, num_processes, decltype(b)> partitioner;
 
-    std::cout << "id: " << i << " lower range: " << lower << " upper range: " << upper << std::endl;
-  }
+  std::cout << "Board corresponds to node " << partitioner(b) << std::endl;
 
   return 0;
 }
