@@ -46,9 +46,5 @@ int main()
   revMoveGenerator(INIT_BOARD_STATE);
   winCondEvaluator(INIT_BOARD_STATE);
 
-  std::cout << "eep." << std::endl;
   std::cout << "Done." << std::endl;
-
-
-
 }

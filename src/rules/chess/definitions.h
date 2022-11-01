@@ -9,6 +9,7 @@
 
 // Non-placement data
 struct ChessNPD {
+    // Column number that piece just double-jumped in. -1 if none.
     int enpassantRights;
     // We do not consider castling rights because it has negligable effect on end game.
 };
