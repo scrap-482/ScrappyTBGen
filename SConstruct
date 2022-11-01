@@ -40,10 +40,12 @@ def compile():
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
     elif env['platform'] == "linux":
-        if env['target'] == 'debug':
-            env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
-        else:
-            env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
+        env.Append(CCFLAGS = ['-fopenmp', '-std=c++2a'])
+        env.Append(LINKFLAGS = ['-fopenmp', '-std=c++2a'])
+        # if env['target'] == 'debug':
+        #     env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
+        # else:
+        #     env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
 
     elif env['platform'] == "windows":
         # This makes sure to keep the session environment variables on windows,
@@ -59,9 +61,10 @@ def compile():
     # if env['target'] == 'debug':
     #     env.Append(CPPDEFINES=['DEBUG'])
 
-    # make sure these strings have trailing space so multiline string doesn't merge last item of this line with first item of next line
-    sources = Glob('src/chess/*.cpp')
+    sources = Glob('src/rules/chess/*.cpp')
+    sources.extend(Glob('src/core/*.cpp'))
     sources.extend(Glob('src/utils/*.cpp'))
+    sources.extend(['src/test.cpp'])
 
     env.Program(compiled_path + 'scrappytbgen', sources)
 
