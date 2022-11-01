@@ -19,5 +19,9 @@ class ChessCheckmateEvaluator : public CheckmateEvaluator<64, ChessNPD> {
   bool operator()(const ChessBoardState& b);
 };
 
+class ChessBoardPrinter : public BoardPrinter<64, ChessNPD> {
+  public:
+  ::std::string operator()(const ChessBoardState& b);
+};
 
 #endif

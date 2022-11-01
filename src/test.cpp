@@ -38,6 +38,9 @@ int main()
   auto fwdMoveGenerator = ChessGenerateForwardMoves();
   auto revMoveGenerator = ChessGenerateReverseMoves();
   auto winCondEvaluator = ChessCheckmateEvaluator();
+  auto boardPrinter = ChessBoardPrinter();
+
+  std::cout << boardPrinter(INIT_BOARD_STATE) << std::endl;;
 
   fwdMoveGenerator(INIT_BOARD_STATE);
   revMoveGenerator(INIT_BOARD_STATE);

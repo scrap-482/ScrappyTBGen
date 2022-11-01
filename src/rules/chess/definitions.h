@@ -15,6 +15,9 @@ struct ChessNPD {
 
 // Board State for Standard Chess
 using ChessBoardState = BoardState<64, ChessNPD>;
+// Since this is a rectangular board
+const size_t BOARD_WIDTH = 8;
+const size_t BOARD_HEIGHT = 8;
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType>
@@ -44,14 +47,14 @@ const PieceType PIECE_TYPE_DATA[] = {
 namespace encapsulate_this_lol {
   // TODO: check if vertical/horizontal direction of this array is correct
   const ::std::array<piece_label_t, 64> CHESS_ARRAY = {
-    'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r',
-    'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 
+    'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R',
+    'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 
     '\0','\0','\0','\0','\0','\0','\0','\0',
     '\0','\0','\0','\0','\0','\0','\0','\0',
     '\0','\0','\0','\0','\0','\0','\0','\0',
     '\0','\0','\0','\0','\0','\0','\0','\0',
     'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 
-    'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'
+    'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'
   };
 };
 const ChessBoardState INIT_BOARD_STATE = {::std::bitset<1>(), encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
