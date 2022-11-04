@@ -83,7 +83,7 @@ public:
         losses.insert(currentBoard);
       }
       
-      currentBoard.m_player.set();
+      currentBoard.m_player = true;
       
       // checking if white loses (black wins)
       if (checkmateEval(currentBoard))
@@ -158,7 +158,7 @@ public:
         losses.insert(currentBoard);
       }
       
-      currentBoard.m_player.set();
+      currentBoard.m_player = true;
 
       if (checkmateEval(currentBoard))
       {

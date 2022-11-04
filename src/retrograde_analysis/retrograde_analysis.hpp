@@ -7,9 +7,11 @@
 #ifndef RETROGRADE_ANALYSIS_H_
 #define RETROGRADE_ANALYSIS_H_
 
+#include <iostream>
 #include <utility>
 #include <cstdlib>
 #include <tuple>
+#include <ranges>
 #include <unordered_map>
 #include <deque>
 
@@ -35,46 +37,53 @@ enum class MachineType
 // helper function when tracking board win states
 void print_win(auto w, int v)
 {
-  std::cout << "found win at v=" << v << std::endl;
-  std::cout << "Player: " << w.m_player << std::endl;
-  auto b = w.m_board;
-  
-  int count = 0;
-  for (auto c : b)
+#pragma omp critical
   {
-    if (c == '\0')
-      std::cout << "x ";
-    else
-      std::cout << c << " ";
-    ++count;
-    if (count % 4 == 0)
-      std::cout << std::endl;
+    std::cout << "found win at v=" << v << std::endl;
+    std::cout << "Player: " << w.m_player << std::endl;
+    auto b = w.m_board;
+    
+    int count = 0;
+    for (auto c : b)
+    {
+      if (c == '\0')
+        std::cout << "x ";
+      else
+        std::cout << c << " ";
+      ++count;
+      if (count % 4 == 0)
+        std::cout << std::endl;
+    }
   }
 }
 
 // helper function when tracking board loss states
 void print_loss(auto l, int v)
 {
-  std::cout << "found loss at v=" << v << std::endl;
-  std::cout << "Player: " << l.m_player << std::endl;
-  
-  auto b = l.m_board;
-  
-  int count = 0;
-  for (auto c : b)
+#pragma omp critical
   {
-    if (c == '\0')
-      std::cout << "x ";
-    else
-      std::cout << c << " ";
-    ++count;
-    if (count % 4 == 0)
-      std::cout << std::endl;
+    std::cout << "found loss at v=" << v << std::endl;
+    std::cout << "Player: " << l.m_player << std::endl;
+    
+    auto b = l.m_board;
+    
+    int count = 0;
+    for (auto c : b)
+    {
+      if (c == '\0')
+        std::cout << "x ";
+      else
+        std::cout << c << " ";
+      ++count;
+      if (count % 4 == 0)
+        std::cout << std::endl;
+    }
   }
 }
 
 #endif
 
+#if 0
 template<typename... Args>
 auto retrogradeAnalysisClusterInvoker(Args&&... args)
 {
@@ -92,6 +101,7 @@ auto retrogradeAnalysisClusterInvoker(Args&&... args)
   // auto results
   MPI_Finalize();
 }
+#endif
 
 // TODO: MPI implementation
 auto retrogradeAnalysisClusterImpl();
@@ -116,7 +126,7 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
   
   // TODO: consider more intelligent data structure. Matt thinks heap ordering
   // states in a convenient way for reducing computation.
-  using frontier_t = ::std::deque<BoardState<FlattenedSz, NonPlacementDataType>>;
+  using frontier_t = ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>;
   using board_map_t = ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, int, 
     BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
 
@@ -152,85 +162,118 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
   for(int v = 1; v > 0; v++) {
     // 2. Win iteration - add immediate wins (at least one successor is a loss for the opposing player) to the win set
     bool updateW = false;
-    for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
-    {
-      if (wins.find(loseFrontier[i]) == wins.end()) {
-#ifdef TRACK_RETROGRADE_ANALYSIS
-        print_win(loseFrontier[i], v);
-#endif
-        wins.insert(loseFrontier[i]);
-        position[loseFrontier[i]] = v;
-        updateW = true;
-        auto preds = generatePredecessors(loseFrontier[i]);
 
-        for (const auto& prev : preds)
-        {
-          if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO check
+    // TODO: https://stackoverflow.com/questions/18669296/c-openmp-parallel-for-loop-alternatives-to-stdvector
+#pragma omp parallel
+    {
+      frontier_t localWins;
+      frontier_t localPreds;
+
+      // parallel for loop to collect in local buckets 
+      // identify win states and generate predecessors
+#pragma omp for nowait
+      for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
+      {
+        if (wins.find(loseFrontier[i]) == wins.end()) {
+#ifdef TRACK_RETROGRADE_ANALYSIS
+          print_win(loseFrontier[i], v);
+#endif
+          wins.insert(loseFrontier[i]);
+          position[loseFrontier[i]] = v;
+
+          if (!updateW)
           {
-            winFrontier.push_back(preds[i]);
+#pragma omp critical
+            {
+              updateW = true;
+            }
           }
+          auto preds = generatePredecessors(loseFrontier[i]);
+          localPreds.insert(::std::end(localPreds), ::std::begin(preds), ::std::end(preds));
         }
       }
-      loseFrontier.erase(loseFrontier.begin() + i);
-      --i;
+
+    // critical section - each thread adds to win buffer
+#pragma omp critical
+      {
+        for (const auto& prev : localPreds)
+        {
+          if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO check
+            winFrontier.push_back(prev);
+        }
+        for (const auto& localWin : localWins)
+        {
+          wins.insert(localWin);
+          position[localWin] = v;
+        }
+      }
     }
 
-    // 3. Lose iteration - add immediate losses (all successors are win for opponent) to the lose set
+    loseFrontier.clear(); 
+
     if(updateW == false){
       return ::std::make_tuple(wins, losses);
     }
-
     bool updateL = false;
-    for (::std::size_t i = 0; i < winFrontier.size(); ++i)
+    // 3. Lose iteration - add immediate losses (all successors are win for opponent) to the lose set
+#pragma omp parallel
     {
-      if (wins.find(winFrontier[i]) == wins.end() && losses.find(winFrontier[i]) == losses.end())
+      frontier_t localLosses;
+      frontier_t localPreds;
+      for (::std::size_t i = 0; i < winFrontier.size(); ++i)
       {
-        // TODO: Think about better optimization. maybe use ideas from the parallel algorithm or
-        // more intelligent checking.
-        auto succs = generateSuccessors(winFrontier[i]);
-        bool allWins = true;
-        for (const auto& succ : succs)
+        if (wins.find(winFrontier[i]) == wins.end() && losses.find(winFrontier[i]) == losses.end())
         {
-          if (wins.find(succ) == wins.end())
+          // omp start parallel section
+          // TODO: Think about better optimization. maybe use ideas from the parallel algorithm or
+          // more intelligent checking.
+          auto succs = generateSuccessors(winFrontier[i]);
+          bool allWins = true;
+          for (const auto& succ : succs) // omp parallel loop
           {
-            allWins = false;
-          }
-          if (losses.find(succ) != losses.end())
-          {
-            loseFrontier.push_back(winFrontier[i]);
-            winFrontier.erase(winFrontier.begin() + i);
-            --i;
-          }
-        }
-        if (allWins)
-        {
-#ifdef TRACK_RETROGRADE_ANALYSIS
-          print_loss(winFrontier[i], v);
-#endif
-
-          losses.insert(winFrontier[i]);
-          position[winFrontier[i]] = v;
-          updateL = true;
-          auto preds = generatePredecessors(winFrontier[i]);
-
-          for (const auto& prev : preds)
-          {
-            if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO: reason about
+            if (wins.find(succ) == wins.end())
             {
-              loseFrontier.push_back(preds[i]);
+              allWins = false;
             }
+            // this hurts parallelization - think
+            //if (losses.find(succ) != losses.end())
+            //{
+            //  loseFrontier.push_back(winFrontier[i]);
+            //  winFrontier.erase(winFrontier.begin() + i);
+            //  --i;
+            //}
           }
-          
-          winFrontier.erase(winFrontier.begin() + i);
-          --i;
+          // omp barrier
+          if (allWins)
+          {
+#ifdef TRACK_RETROGRADE_ANALYSIS
+            print_loss(winFrontier[i], v);
+#endif
+            localLosses.push_back(winFrontier[i]);
+            // losses.insert(winFrontier[i]);
+            // position[winFrontier[i]] = v;
+            // TODO: Replace with std::move scheme
+            auto preds = generatePredecessors(winFrontier[i]);
+            localPreds.insert(::std::end(localPreds), ::std::begin(preds), ::std::end(preds));
+          }
         }
       }
-      else 
+#pragma omp critical
       {
-        winFrontier.erase(winFrontier.begin() + i);
-        --i;
+        for (const auto& prev : localPreds)
+        {
+          if (wins.find(prev) == wins.end() /*&& loseFrontier.find(prev) == losses.end()*/) // TODO check
+            loseFrontier.push_back(prev);
+        }
+        for (const auto& localLoss : localLosses)
+        {
+          losses.insert(localLoss);
+          position[localLoss] = v;
+        }
       }
     }
+    // clear the whole win frontier
+    winFrontier.clear();
     if(updateL == false) {
       return ::std::make_tuple(wins, losses);
     }

@@ -12,10 +12,12 @@
 
 #include "state.hpp"
 
+// Global MPI type definitions. Must be initialized in main
 MPI_Datatype MPI_NodeCommData;
 MPI_Datatype MPI_NonPlacementDataType;
 MPI_Datatype MPI_BoardState;
 
+// Data sent between MPI nodes
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
 struct NodeCommData 
 {
@@ -105,7 +107,8 @@ public:
   KStateSpacePartition(void) = default;
   
   // Matt TODO:  Suspect that this results in a heavily skewed distribution. see above
-  // returns the rank of the node reponsible for this board state
+  // returns the rank of the node reponsible for this board state.
+  // TODO: exploit locality?  
   int operator()(const BoardType& b)
   {
     int sum = 0;

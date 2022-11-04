@@ -25,7 +25,7 @@ struct BoardStateHasher
   auto operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) const
   {
     ::std::string stringifiedBoard(b.m_board.begin(), b.m_board.end());
-    stringifiedBoard += static_cast<char>(b.m_player.to_ulong());
+    stringifiedBoard += static_cast<char>(b.m_player);
     
     return ::std::hash<::std::string>{}(stringifiedBoard); 
   }
