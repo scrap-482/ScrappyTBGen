@@ -3,6 +3,7 @@
 #include "retrograde_analysis/checkmate_generation.hpp"
 
 #include "rules/chess/interface.h"
+#include "rules/chess/chess_pmo.h"
 
 /* -------------------------------------------------------------------------- */
 // Test file for rulesets
@@ -12,7 +13,7 @@ int main()
   std::vector<piece_label_t> noRoyaltyPieceset;
   for (int i=0; i < NUM_PIECE_TYPES; i++) {
     if (i == KING) continue;
-    noRoyaltyPieceset.push_back(tolower(PIECE_TYPE_DATA[i].letter));
+    noRoyaltyPieceset.push_back(tolower(PIECE_TYPE_DATA[i].letter)); // FIXME: assumes upper and lowercase separate white/black. Need towhite/toblack function
     noRoyaltyPieceset.push_back(toupper(PIECE_TYPE_DATA[i].letter));
   }
   std::vector<piece_label_t> royaltyPieceset = { 'k', 'K' };
@@ -42,7 +43,15 @@ int main()
 
   std::cout << boardPrinter(INIT_BOARD_STATE) << std::endl;;
 
-  fwdMoveGenerator(INIT_BOARD_STATE);
+  auto fwdMoves = fwdMoveGenerator(INIT_BOARD_STATE);
+  std::cout << "num forward moves: " << fwdMoves.size() << std::endl;
+  if (fwdMoves.size() > 0) {
+    // random selection. Yes I know this is biased, no I do not care.
+    std::vector<ChessBoardState>::iterator randIt = fwdMoves.begin();
+    std::advance(randIt, std::rand() % fwdMoves.size());
+    std::cout << "example forward move:\n" << boardPrinter(*randIt) << std::endl;
+  }
+
   revMoveGenerator(INIT_BOARD_STATE);
   winCondEvaluator(INIT_BOARD_STATE);
 

@@ -61,9 +61,12 @@ def compile():
     # if env['target'] == 'debug':
     #     env.Append(CPPDEFINES=['DEBUG'])
 
+    # Change this to choose which variant
     sources = Glob('src/rules/chess/*.cpp')
+    # Core source code
     sources.extend(Glob('src/core/*.cpp'))
     sources.extend(Glob('src/utils/*.cpp'))
+    # Main file
     sources.extend(['src/test.cpp'])
 
     env.Program(compiled_path + 'scrappytbgen', sources)

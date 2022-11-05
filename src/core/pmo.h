@@ -1,55 +1,50 @@
 #ifndef PMO_H_
 #define PMO_H_
-
+// TODO: rename this to .hpp
 #include "region.h"
 // #include "piece_type.h" // caution! circularity approaching
 
 #include "../utils/utils.h"
-#include "../utils/coords.hpp"
+#include "../core/coords_grid.hpp"
+#include "../retrograde_analysis/state.hpp"
 
-#include <optional>
-#include <bitset>
-
-// How the piece's movement is affected by the precense of other pieces in its path.
-// E.g. Rooks are sliding, Knights are leaping, Xiangqi Cannons are Cannon
-enum class LocomotionMode {SLIDING, LEAPING, CANNON}; // More can, and probably will need to be added
-
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename CoordsType>
 class PMO {
-    // like how en passant or castling affect flags in board state
-    void* affectFlag; // type probably will be POD of which flag, function reference
+    // takes a board state and the piece's current position and returns a list of new possible board states
+    virtual ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
+    getForwards(const BoardState<FlattenedSz, NonPlacementDataType>& b, CoordsType piecePos) = 0;
+
+    // takes a board state and the piece's current position and returns a list of possible board states that could have resulted in it
+    virtual ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
+    getReverses(const BoardState<FlattenedSz, NonPlacementDataType>& b, CoordsType piecePos) = 0;
 };
 
-// // All other PMOs lol
-// class StdPMO : public PMO {
-//     std::vector<Region> allowedStartingRegions;
-//     std::vector<Region> allowedEndingRegions;
-//     LocomotionMode locomotionMode;
+/* -------- Below are some PMO templates that may be useful extending ------- */
 
-//     tribool canCapture;
+// Any move that takes a piece and moves it somewhere else. Exposes displacement of moves to make complex move implementation easier.
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename CoordsType>
+class DisplacementPMO : public PMO<FlattenedSz, NonPlacementDataType, CoordsType> {
 
-//     // changes the PieceType
-//     std::optional<std::vector<PieceType>> promoteOptions;
-//     // Can on 
-//     std::optional<std::vector<PieceType>> captureWhitelist;
+    // takes a board state and the piece's current position and returns a list of new possible board states 
+    // AND a parallel vector of the displacements of the moving piece 
+    virtual ::std::pair<::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>, ::std::vector<CoordsType>>
+    getForwardsWithDisplacement(const BoardState<FlattenedSz, NonPlacementDataType>& b, CoordsType piecePos) = 0;
 
-//     // move geometry
-//     std::vector<Coords> moveVector;
-//     std::bitset<4> moveDirection;
-//     // for knights, horses, etc.
-//     std::optional<std::vector<Coords>> secondMoveVector;
-//     std::optional<std::bitset<4>> relativeSecondMoveDirection;
+    // takes a board state and the piece's current position and returns a list of possible board states that could have resulted in it
+    // AND a parallel vector of the displacements of the moving piece 
+    virtual ::std::pair<::std::vector<BoardState<FlattenedSz, NonPlacementDataType>>, ::std::vector<CoordsType>>
+    getReversesWithDisplacement(const BoardState<FlattenedSz, NonPlacementDataType>& b, CoordsType piecePos) = 0;
 
-// };
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
+    getForwards(const BoardState<FlattenedSz, NonPlacementDataType>& b, CoordsType piecePos) {
+        return getForwardsWithDisplacement(b, piecePos).first;
+    };
 
-// // like castling
-// class FixedPMO : public PMO {
-//     struct tileConditions {
-//         Coords coord; 
-//         std::optional<PieceType> piece; // TODO: does this need to be a set of pieces? I don't think so right now
-//         tribool underAttack;
-//     }; 
-//     std::vector<tileConditions> conditions;
-// };
-
+    ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
+    getReverses(const BoardState<FlattenedSz, NonPlacementDataType>& b, CoordsType piecePos) {
+        return getReversesWithDisplacement(b, piecePos).first;
+    };
+};
+// TODO: generalize chess classes to interfaces that can be put here
 
 #endif
