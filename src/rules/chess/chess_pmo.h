@@ -14,9 +14,9 @@ class SlidePMO : public ChessDisplacementPMO {
 
 public:
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getForwardsWithDisplacement(const ChessBoardState& b, Coords piecePos) override;
+    getForwardsWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) override;
+    getReversesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
     SlidePMO(::std::vector<Coords> _moveOffsets) 
         : moveOffsets(_moveOffsets) { }
@@ -29,9 +29,9 @@ class JumpPMO : public ChessDisplacementPMO {
 
 public:
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getForwardsWithDisplacement(const ChessBoardState& b, Coords piecePos) override;
+    getForwardsWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) override;
+    getReversesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
     JumpPMO(::std::vector<Coords> _moveOffsets) 
         : moveOffsets(_moveOffsets) { }
@@ -41,9 +41,9 @@ public:
 // JumpPMO but moveOffsets are negated for black.
 class DirectedJumpPMO : public JumpPMO {
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getForwardsWithDisplacement(const ChessBoardState& b, Coords piecePos) override;
+    getForwardsWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) override;
+    getReversesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 };
 
 // TODO: remake this class as a restriction

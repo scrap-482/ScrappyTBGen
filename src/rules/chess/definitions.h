@@ -9,6 +9,7 @@
 #include "../../retrograde_analysis/state_transition.hpp"
 
 #include <cctype> // For tolower() and toupper()
+#include <map>
 
 // Non-placement data
 struct ChessNPD {
@@ -27,8 +28,9 @@ using ChessPMO = PMO<64, ChessNPD, Coords>;
 using ChessDisplacementPMO = DisplacementPMO<64, ChessNPD, Coords>;
 using ChessPieceType = PieceType<64, ChessNPD, Coords>;
 
-#define flatten(file, rank) (file + rank*BOARD_WIDTH)
-#define unflatten(index) (Coords(index % file, index / rank))
+#define flatten(file, rank) ((file + rank*BOARD_WIDTH))
+#define flattenCoords(coords) ((coords.file + coords.rank*BOARD_WIDTH))
+#define unflatten(index) (Coords(index % BOARD_WIDTH, index / BOARD_WIDTH))
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType>
@@ -44,9 +46,17 @@ const int NUM_FLIPPABLE_PIECES = 0; // for shogi-like variants
 // flipped, then just add NUM_FLIPPABLE_PIECES to get new PIECE_TYPE_ENUM enum. Also note that this does not exclude chess-
 // like promotion.
 
+const std::map<piece_label_t, const PIECE_TYPE_ENUM> LABEL_T_TO_TYPE_ENUM_MAP = {
+  {'p', PAWN},
+  {'r', ROOK},
+  {'n', KNIGHT},
+  {'b', BISHOP},
+  {'q', QUEEN},
+  {'k', KING}
+  };
+
 // Define a namespace so that this doesn't get accidentally used. Probably not the best practice.
 namespace encapsulate_this_lol {
-  // TODO: check if vertical/horizontal direction of this array is correct
   const ::std::array<piece_label_t, 64> CHESS_ARRAY = {
     'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R',
     'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 
@@ -64,5 +74,23 @@ const ChessBoardState INIT_BOARD_STATE = {::std::bitset<1>(), encapsulate_this_l
 const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {QUEEN};
 // const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {ROOK, KNIGHT, BISHOP, QUEEN};
 
+/* ------------------------- piece_label_t functions ------------------------ */
+inline piece_label_t toBlack(piece_label_t letter) {
+  return tolower(letter);
+}
+inline piece_label_t toWhite(piece_label_t letter) {
+  return toupper(letter);
+}
+inline bool isEmpty(piece_label_t letter) {
+  return letter == '\0';
+}
+inline bool isWhite(piece_label_t letter) {
+  return isupper(letter);
+}
+inline PIECE_TYPE_ENUM getTypeEnumFromPieceLabel(piece_label_t letter) {
+  return LABEL_T_TO_TYPE_ENUM_MAP.at(letter);
+}
 
+
+// Note: PIECE_TYPE_DATA[] is in chess_pmo.h because need of PMO definitions
 #endif
