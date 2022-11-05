@@ -5,7 +5,7 @@
 // #include "../../retrograde_analysis/state_transition.hpp"
 #include "../../core/coords_grid.hpp"
 #include "../../core/piece_type.h"
-#include "../../core/pmo.h"
+#include "../../core/pmo.hpp"
 #include "../../retrograde_analysis/state_transition.hpp"
 
 #include <cctype> // For tolower() and toupper()

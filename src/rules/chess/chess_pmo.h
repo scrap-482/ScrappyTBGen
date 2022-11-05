@@ -1,7 +1,7 @@
 #ifndef STANDARD_PMO_H_
 #define STANDARD_PMO_H_
 
-#include "../../core/pmo.h"
+#include "../../core/pmo.hpp"
 #include "definitions.h"
 
 #include <bitset>
