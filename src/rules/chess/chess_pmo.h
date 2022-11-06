@@ -7,6 +7,7 @@
 #include <bitset>
 #include <optional>
 #include <array>
+#include <memory.h>
 
 class SlidePMO : public ChessDisplacementPMO {
     // the increment in each direction, stored as flattened coordinates.
@@ -17,6 +18,10 @@ public:
     getForwardsWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getReversesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
+
+    // hack to allow getReverses to call this. Same as before but plays for person not moving.
+    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>
+    getForwardsWithDisplacement(const ChessBoardState& b,  Coords piecePos, bool otherPlayer) const;
 
     SlidePMO(::std::vector<Coords> _moveOffsets) 
         : moveOffsets(_moveOffsets) { }
@@ -32,6 +37,10 @@ public:
     getForwardsWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getReversesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
+
+    // hack to allow getReverses to call this. Same as before but plays for person not moving.
+    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
+    getForwardsWithDisplacement(const ChessBoardState& b, Coords piecePos, bool otherPlayer) const;
 
     JumpPMO(::std::vector<Coords> _moveOffsets) 
         : moveOffsets(_moveOffsets) { }
@@ -96,4 +105,14 @@ const ChessPieceType PIECE_TYPE_DATA[] = {
     {'q', ChessPMOs::queenPMOs,  ChessPMOs::queenPMOsCount,  false},
     {'k', ChessPMOs::kingPMOs,   ChessPMOs::kingPMOsCount,   true }
 };
+
+// Consider allowed uncaptures by count and position of uncaptured piece.
+// Returns bitset corresponding to PIECE_TYPE_ENUM, where 1 means uncapture of this type allowed.
+std::bitset<NUM_PIECE_TYPES> allowedUncapturesByPosAndCount(const ChessBoardState& b,  Coords piecePos);
+// Consider allowed uncaptures purely by number of pieces on the board
+// Returns bitset corresponding to PIECE_TYPE_ENUM, where 1 means uncapture of this type allowed.
+std::bitset<NUM_PIECE_TYPES> allowedUncapturesByCount(const ChessBoardState& b);
+
+std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const ChessBoardState& b);
+
 #endif

@@ -39,6 +39,7 @@ struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType
   { return true; }
 };
 
+// mnemonic to remember this order: pawn first, king last, order remaining pieces from outside in of starting position.
 enum PIECE_TYPE_ENUM {PAWN=0, ROOK, KNIGHT, BISHOP, QUEEN, KING};
 const int NUM_PIECE_TYPES = KING + 1;
 const int NUM_FLIPPABLE_PIECES = 0; // for shogi-like variants
@@ -54,6 +55,7 @@ const std::map<piece_label_t, const PIECE_TYPE_ENUM> LABEL_T_TO_TYPE_ENUM_MAP = 
   {'q', QUEEN},
   {'k', KING}
   };
+const std::array<piece_label_t, NUM_PIECE_TYPES> TYPE_ENUM_TO_LABEL_T = {'p', 'r', 'n', 'b', 'q', 'k'};
 
 // Define a namespace so that this doesn't get accidentally used. Probably not the best practice.
 namespace encapsulate_this_lol {
@@ -74,6 +76,15 @@ const ChessBoardState INIT_BOARD_STATE = {::std::bitset<1>(), encapsulate_this_l
 const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {QUEEN};
 // const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {ROOK, KNIGHT, BISHOP, QUEEN};
 
+/* -------- Specify max number of pieces for reverse move generation -------- */
+// assumes use of toColoredTypeIndex
+// TODO: What are good values for these? Obvi there can only be 1 king and 8 pawns, but what about the rest? E.g. how many queens should we limit our search to?
+const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1};
+
+// inclusive limit of number of total pieces on board, e.g. 5-man tablebase
+// TODO: we can probably take this in from the command line.
+const size_t MAN_LIMIT = 5;
+
 /* ------------------------- piece_label_t functions ------------------------ */
 inline piece_label_t toBlack(piece_label_t letter) {
   return tolower(letter);
@@ -88,9 +99,17 @@ inline bool isWhite(piece_label_t letter) {
   return isupper(letter);
 }
 inline PIECE_TYPE_ENUM getTypeEnumFromPieceLabel(piece_label_t letter) {
-  return LABEL_T_TO_TYPE_ENUM_MAP.at(letter);
+  return LABEL_T_TO_TYPE_ENUM_MAP.at(toBlack(letter));
 }
-
+/* -------------------------------------------------------------------------- */
+// The number of pieces if we distguish black and white
+const size_t NUM_PIECE_TYPES_COLORED = 2*NUM_PIECE_TYPES;
+inline size_t toColoredTypeIndex(bool colorIsWhite, PIECE_TYPE_ENUM uncoloredType) {
+  return uncoloredType + (colorIsWhite? 0 : NUM_PIECE_TYPES);
+}
+inline size_t toColoredTypeIndex(piece_label_t p) {
+  return toColoredTypeIndex(isWhite(p), getTypeEnumFromPieceLabel(p));
+}
 
 // Note: PIECE_TYPE_DATA[] is in chess_pmo.h because need of PMO definitions
 #endif

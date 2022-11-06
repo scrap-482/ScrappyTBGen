@@ -26,8 +26,9 @@
     for (size_t flatStartPos = 0; flatStartPos < 64; ++flatStartPos) {
         piece_label_t thisPiece = b.m_board.at(flatStartPos);
         if (isEmpty(thisPiece)) continue;
-        // Check if thisPiece is not the color of the player whose turn it is
-        if (isWhite(thisPiece) != !!b.m_player[0]) continue;
+        // Check if thisPiece is not the color of the player whose turn it was.
+        // Note that since we are going in reverse, the player to unmove is opposite of the player to move.
+        if (isWhite(thisPiece) == !!b.m_player[0]) continue;
         PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
 
         for (size_t i = 0; i < PIECE_TYPE_DATA[type].pmoListSize; ++i) {
@@ -57,6 +58,8 @@ std::string ChessBoardPrinter::operator()(const ChessBoardState& b) {
         }
         ret += "\n";
     }
+    /* --------------------------- Print player's turn -------------------------- */
+    ret += (b.m_player[0]? "White to move\n" : "Black to move\n");
     /* -------------------------------- Print NPD ------------------------------- */
     ret += "En passant rights: ";
     ret += (b.nonPlacementData.enpassantRights == -1)? "no" : ::std::to_string(b.nonPlacementData.enpassantRights);
