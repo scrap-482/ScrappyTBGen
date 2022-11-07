@@ -106,6 +106,9 @@ const ChessPieceType PIECE_TYPE_DATA[] = {
     {'k', ChessPMOs::kingPMOs,   ChessPMOs::kingPMOsCount,   true }
 };
 
+// Give res as non-capturing unmoves, this adds legal uncaptures to it.
+void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>& res);
+
 // Consider allowed uncaptures by count and position of uncaptured piece.
 // Returns bitset corresponding to PIECE_TYPE_ENUM, where 1 means uncapture of this type allowed.
 std::bitset<NUM_PIECE_TYPES> allowedUncapturesByPosAndCount(const ChessBoardState& b,  Coords piecePos);

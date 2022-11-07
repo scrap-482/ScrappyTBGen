@@ -43,9 +43,7 @@
     return std::make_pair(std::move(resultStates), std::move(resultDisplacements));
 }
 
-::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> SlidePMO::getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
-    // non-capture unmoves are same as forward moves, but with opposite person playing.
-    auto res = getForwardsWithDisplacement(b, piecePos, true); 
+void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>& res) {
 
     auto allowedUncapturesPieces = allowedUncapturesByPosAndCount(b, piecePos);
     auto loopLimit = res.first.size(); // specify this here since we are adding to vector.
@@ -66,7 +64,14 @@
             res.second.push_back(res.second.at(i)); // displacement of actual piece is the same
         }
     }
-    return res;
+}
+
+::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> SlidePMO::getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
+    // non-capture unmoves are same as forward moves, but with opposite person playing
+    auto unmoves = getForwardsWithDisplacement(b, piecePos, true);
+    addUncaptures(b, piecePos, unmoves);
+    // then just add uncaptures
+    return unmoves;
 }
 
 ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> JumpPMO::getForwardsWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
@@ -104,8 +109,11 @@
 }
 
 ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> JumpPMO::getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
-    // TODO: un-captures
-    return getForwardsWithDisplacement(b, piecePos);
+    // non-capture unmoves are same as forward moves, but with opposite person playing
+    auto unmoves = getForwardsWithDisplacement(b, piecePos, true);
+    addUncaptures(b, piecePos, unmoves);
+    // then just add uncaptures
+    return unmoves;
 }
 
 std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const ChessBoardState& b) {
