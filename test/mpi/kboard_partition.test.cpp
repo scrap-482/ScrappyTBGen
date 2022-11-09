@@ -1,7 +1,5 @@
-#include "../../src/retrograde_analysis/cluster_support.hpp"
+#include "../../src/retrograde_analysis/multi_node_impl.hpp"
 #include <iostream>
-
-struct null_type {};
 
 // TODO: asses distribution of this scheme
 int main()
@@ -11,12 +9,12 @@ int main()
   
   BoardState<BoardSz, null_type> b;
   b.m_board[32] = 'K';
-  b.m_board[17] = 'k';
+  b.m_board[63] = 'k';
   b.m_board[1] = 'P';
   b.m_board[63] = 'N';
   b.m_board[45] = 'n';
   
-  KStateSpacePartition<BoardSz, num_processes, decltype(b)> partitioner;
+  KStateSpacePartition<BoardSz, decltype(b)> partitioner('k', num_processes);
 
   std::cout << "Board corresponds to node " << partitioner(b) << std::endl;
 

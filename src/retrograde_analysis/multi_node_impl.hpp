@@ -1,5 +1,5 @@
-#ifndef CLUSTER_SUPPORT_H_
-#define CLUSTER_SUPPORT_H_
+#ifndef MULTI_NODE_IMPL_HPP_ 
+#define MULTI_NODE_IMPL_HPP_
 
 #include <tuple>
 #include <bitset>
@@ -11,8 +11,9 @@
 #include <mpi.h>
 
 #include "state.hpp"
+#include "checkmate_generation.hpp"
 
-// Global MPI type definitions. Must be initialized in main
+// Global MPI type definitions. Must be initialized in main with initialize_comm_structs
 MPI_Datatype MPI_NodeCommData;
 MPI_Datatype MPI_NonPlacementDataType;
 MPI_Datatype MPI_BoardState;
@@ -22,9 +23,9 @@ template <::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct NodeCommData 
 {
   bool isWin;
-  // D(k) in algorithm
+  // D(k) in algorithm - can remove from mpi send
   int depthToEnd;
-  // M(k) in algorithm
+  // M(k) in algorithm - can remove from mpi send
   int remainingValidMoves;
   int G;
 
@@ -32,8 +33,9 @@ struct NodeCommData
   BoardState<FlattenedSz, NonPlacementDataType> b; 
 };
 
+// TODO: serialize NonPlacementDataType
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
-void initialize_comm_structs(void)
+void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> MPI_Datatype*/)
 {
   {
     // C++ preprocessor does not understand template syntax so this is necessary
@@ -95,37 +97,39 @@ void initialize_comm_structs(void)
 }
 
 #if 1
-// uses modulo partitioning on the sum of the gathered indices
-// Matt TODO: Generate an unordered map of indices s.t. they corresond 
-// to a pseudorandom number. Take the sum (or some other function) of the pseudorandom
-// numbers mod the number of nodes to achieve a more even distribution. Nodes 
-// would have to generate a random number for themselves and then broadcast to all other nodes first.
-template <::std::size_t FlattenedSz, int K, typename BoardType>
+// contingent on the location of a single piece on the board. each 
+// process is assigned all positions dependent on position of one piece
+template <::std::size_t FlattenedSz, typename BoardType>
 class KStateSpacePartition
 {
+  piece_label_t m_toTrack;
+  int m_segLength;
+
 public:
-  KStateSpacePartition(void) = default;
+  KStateSpacePartition(const piece_label_t& toTrack, int K)
+    : m_toTrack(toTrack),
+      m_segLength(FlattenedSz / K)
+  {
+    // with this partitioning scheme, cannot have more nodes than max board size.
+    assert(FlattenedSz > K);
+  }
   
-  // Matt TODO:  Suspect that this results in a heavily skewed distribution. see above
-  // returns the rank of the node reponsible for this board state.
-  // TODO: exploit locality?  
+  // Contingent on tracked piece location 
   int operator()(const BoardType& b)
   {
-    int sum = 0;
     int idx = 0;
-
-    // gather indices
+    
     for (const auto& c : b.m_board)
     {
-      if (c != '\0')
-        sum += idx;
+      if (c == m_toTrack)
+        break;
+
       ++idx;
     }
-    return sum % K;
+    return idx / m_segLength;
   }
 };
 
-// TODO: remove this 
 #else 
 template <::std::size_t FlattenedSz>
 class KStateSpacePartition
@@ -191,5 +195,38 @@ public:
   { return ::std::make_tuple(m_lowerRange, m_upperRange); }
 };
 #endif 
+
+// This function is the base implementation for the single-node implementation
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
+  ::std::size_t rowSz, ::std::size_t colSz,
+  typename MoveGenerator, typename ReverseMoveGenerator, typename HorizontalSymFn=false_fn, 
+  typename VerticalSymFn=false_fn, typename IsValidBoardFn=null_type, 
+  typename ::std::enable_if<::std::is_base_of<GenerateForwardMoves<FlattenedSz, NonPlacementDataType>, 
+    MoveGenerator>::value>::type* = nullptr,
+  typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves<FlattenedSz, NonPlacementDataType>, 
+    ReverseMoveGenerator>::value>::type* = nullptr>
+auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner,
+    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> checkmates,
+    MoveGenerator generateSuccessors,
+    ReverseMoveGenerator generatePredecessors,
+    HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
+    IsValidBoardFn isValidBoardFn={})
+{
+
+}
+
+template<typename... Args>
+auto retrogradeAnalysisClusterInvoker(Args&&... args)
+{
+  // 1. initialization
+  MPI_Init(NULL, NULL);
+
+  // number of active processes
+  int globalSz = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &globalSz);
+
+  //auto results = retrogradeAnalysisClusterImpl(
+  MPI_Finalize();
+}
 
 #endif
