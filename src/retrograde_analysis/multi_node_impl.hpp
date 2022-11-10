@@ -29,7 +29,6 @@ struct NodeCommData
   int remainingValidMoves;
   int G;
 
-  // TODO: does this need to be sent?
   BoardState<FlattenedSz, NonPlacementDataType> b; 
 };
 
@@ -51,7 +50,6 @@ void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> M
       offsetof(board_state_t, nonPlacementData)
     };
     
-    // TODO: may need to change the MPI_CHAR pending the chu shogi representation changes
     MPI_Datatype types[] = { MPI_C_BOOL, MPI_CHAR, MPI_NonPlacementDataType };
     
     MPI_Datatype tmp;
@@ -196,6 +194,89 @@ public:
 };
 #endif 
 
+template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename WinSet,
+  typename PredecessorGen, typename BoardMap>
+inline auto do_majorIteration(int id, int v, const Partitioner& p, 
+    BoardMap&& boardMap, const auto& LoseFrontier l, WinFrontier&& w,
+    WinSet&& wins, PredecessorGen predFn)
+{  
+  // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
+  // MPI processes)
+  bool b_winFound = false;
+  for (::std::size_t i = 0; i < l.size(); ++i)
+  {
+    if (wins.find(loseFrontier[i]) == wins.end())
+    {
+      if (!b_winFound)
+        b_winFound = true;
+
+      auto preds = predFn(loseFrontier[i]);
+      wins.insert(loseFrontier[i]);
+
+      for (auto&& pred : prds)
+      {
+        // TODO: construct NodeCommStruct type. Figure out best way to persist until the 
+        // MPI send is consumed 
+        auto targetId = p(pred);
+        if (targetID == id)
+          winFrontier.push_back(std::move(pred));
+        else
+        {
+          // be careful about the address
+          // perform MPI send from current to targetId
+        }
+      }
+    }
+  }
+  return ::std::make_tuple(b_winFound,::std::move(w), ::std::move(wins));
+}
+
+template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename LoseSet, 
+  typename PredecessorGen, typename SuccessorGen, typename BoardMap>
+inline auto do_minorIteration(int id, int v, const Partitioner& p, 
+    BoardMap&& boardMap, LoseFrontier&& l, const WinFrontier& w,
+    LoseSet&& losses, PredecessorGen predFn, SuccessorGen succFn)
+{
+  // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
+  // MPI processes)
+  bool b_lossFound = false;
+  for (::std::size_t i = 0; i < w.size(); ++i)
+  {
+    if (losses.find(winFrontier[i]) == losses.end() && wins.find(winFrontier[i]) == wins.end()) 
+    {
+      if (!b_lossFound)
+        b_lossFound = true;
+      auto succs = succFn(winFrontier[i]);
+      bool allWins = true;
+      for (const auto& succ : succs)
+      {
+        if (wins.find(succ) == wins.end())
+        {
+          allWins = false;
+          break;
+        }
+      }
+      if (allWins)
+      {
+        // localLosses.push_back(winFrontier[i]);
+        auto preds = predFn(winFrontier[i]);
+        for (auto&& pred : predecessors)
+        {
+          auto targetId = p(pred);
+          if (targetId == id)
+            loseFrontier.push_back(::std::move(pred));
+          else
+          {
+            // be careful about the address
+            // perform MPI send from current to targetId
+          }
+        }
+      }
+    }
+  }
+  return ::std::make_tuple(b_lossFound, ::std::move(l), ::std::move(losses));
+}
+
 // This function is the base implementation for the single-node implementation
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
   ::std::size_t rowSz, ::std::size_t colSz,
@@ -205,14 +286,78 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t
     MoveGenerator>::value>::type* = nullptr,
   typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves<FlattenedSz, NonPlacementDataType>, 
     ReverseMoveGenerator>::value>::type* = nullptr>
-auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner,
+auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, int id,
     ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> checkmates,
     MoveGenerator generateSuccessors,
     ReverseMoveGenerator generatePredecessors,
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
     IsValidBoardFn isValidBoardFn={})
 {
+  using board_set_t = ::std::unordered_set<NodeCommData<FlattenedSz, NonPlacementDataType>, 
+    BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
+  using frontier_t = ::std::vector<NodeCommData<FlattenedSz, NonPlacementDataType>>;
+  
+  // Estimate data during search - more expensive than omp implementation 
+  // BoardState b -> (M b, D b) 
+  using board_map_t = 
+    ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, 
+    ::std::tuple<short, short, short>, // really want to compress data. 
+    BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
 
+  board_set_t wins;
+  board_set_t losses = ::std::move(checkmates);
+  
+  frontier_t winFrontier;
+  frontier_t loseFrontier;
+  
+  board_map_t estimateData;
+  
+  // ultimately invoke additional iteration
+  for (const auto& l : losses)
+  {
+    auto preds = generatePredecessors(l);
+
+    for (const auto& pred : preds)
+    {
+      auto target_id = partitioner(pred);
+      if (target_id != id) // different node processes this
+      {
+        // mpi isend to target
+      }
+      else
+      {
+        loseFrontier.push_back(pred);
+      }
+    }
+  }
+
+  for (int v = 1; v > 0; ++v)
+  {
+    bool b_mark{};
+
+    // 1. Invoke major iteration
+    ::std::tie(b_mark, estimateData, winFrontier, wins) = do_majorIteration(id, v, partitioner, 
+        ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), 
+        ::std::move(wins), generatePredecessors);
+    
+    // TODO: Synchronization routine
+    
+    loseFrontier.clear(); // must wait until after at the moment
+    if (!b_mark)
+      break;
+
+    // 2. Invoke minor iteration
+    
+    ::std::tie(b_mark, estimateData, loseFrontier, losses) = do_minorIteration(id, v, partitioner,
+      ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
+      ::std::move(losses), generatePredecessors, generateSuccessors);
+    // TODO: Synchronization routine
+
+    if (!b_mark)
+      break; 
+  }
+
+  return ::std::make_tuple(wins, losses);
 }
 
 template<typename... Args>
