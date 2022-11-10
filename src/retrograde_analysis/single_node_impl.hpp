@@ -134,8 +134,8 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
 #ifdef TRACK_RETROGRADE_ANALYSIS
           print_win(loseFrontier[i], v);
 #endif
-          wins.insert(loseFrontier[i]);
-          position[loseFrontier[i]] = v;
+          //wins.insert(loseFrontier[i]);
+          //position[loseFrontier[i]] = v;
 
           if (!updateW)
           {
@@ -181,8 +181,6 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
         if (wins.find(winFrontier[i]) == wins.end() && losses.find(winFrontier[i]) == losses.end())
         {
           // omp start parallel section
-          // TODO: Think about better optimization. maybe use ideas from the parallel algorithm or
-          // more intelligent checking.
           auto succs = generateSuccessors(winFrontier[i]);
           bool allWins = true;
           for (const auto& succ : succs) // omp parallel loop
@@ -190,6 +188,7 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
             if (wins.find(succ) == wins.end())
             {
               allWins = false;
+              break;
             }
             // this hurts parallelization - think
             //if (losses.find(succ) != losses.end())
