@@ -21,7 +21,7 @@
 enum class MachineType 
 {
   SINGLE_NODE,
-  MULTI_NODE
+  CLUSTER 
 };
 
 // chooses correct internal implementation at compile time 

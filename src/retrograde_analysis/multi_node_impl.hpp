@@ -1,5 +1,4 @@
-#ifndef MULTI_NODE_IMPL_HPP_ 
-#define MULTI_NODE_IMPL_HPP_
+#ifndef MULTI_NODE_IMPL_HPP_
 
 #include <tuple>
 #include <bitset>
@@ -7,6 +6,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstddef>
+#include <algorithm>
 
 #include <mpi.h>
 
@@ -22,15 +22,28 @@ MPI_Datatype MPI_BoardState;
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
 struct NodeCommData 
 {
-  bool isWin;
+  bool winLabel;
   // D(k) in algorithm - can remove from mpi send
-  int depthToEnd;
+  // int depthToEnd;
   // M(k) in algorithm - can remove from mpi send
-  int remainingValidMoves;
+  // int remainingValidMoves;
   int G;
 
   BoardState<FlattenedSz, NonPlacementDataType> b; 
 };
+
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+struct NodeCommHasher 
+{
+  auto operator()(const NodeCommData<FlattenedSz, NonPlacementDataType>& board) const
+  {
+    ::std::string stringifiedBoard(board.b.m_board.begin(), board.b.m_board.end());
+    stringifiedBoard += static_cast<char>(board.b.m_player);
+    
+    return ::std::hash<::std::string>{}(stringifiedBoard); 
+  }
+};
+
 
 // TODO: serialize NonPlacementDataType
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
@@ -95,6 +108,7 @@ void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> M
 }
 
 #if 1
+// todo better scheme in future.
 // contingent on the location of a single piece on the board. each 
 // process is assigned all positions dependent on position of one piece
 template <::std::size_t FlattenedSz, typename BoardType>
@@ -113,7 +127,7 @@ public:
   }
   
   // Contingent on tracked piece location 
-  int operator()(const BoardType& b)
+  int operator()(const BoardType& b) const
   {
     int idx = 0;
     
@@ -125,6 +139,17 @@ public:
       ++idx;
     }
     return idx / m_segLength;
+  }
+
+  auto getRange(int k)
+  {
+    return ::std::make_tuple(k * m_segLength, ::std::max((k+1) * m_segLength, static_cast<int>(FlattenedSz)));
+  }
+  
+  inline bool checkInRange(const ::std::vector<int>& startBoard, 
+      const ::std::vector<int>& currentBoard)
+  {
+    return (currentBoard[0] - startBoard[0]) < m_segLength; 
   }
 };
 
@@ -194,59 +219,60 @@ public:
 };
 #endif 
 
-template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename WinSet,
+template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
 inline auto do_majorIteration(int id, int v, const Partitioner& p, 
-    BoardMap&& boardMap, const auto& LoseFrontier l, WinFrontier&& w,
-    WinSet&& wins, PredecessorGen predFn)
-{  
+    BoardMap&& boardMap, const LoseFrontier& loseFrontier, WinFrontier&& winFrontier,
+    const EndGameSet& losses, EndGameSet&& wins, PredecessorGen predFn)
+{
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
   // MPI processes)
   bool b_winFound = false;
-  for (::std::size_t i = 0; i < l.size(); ++i)
+  for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
   {
-    if (wins.find(loseFrontier[i]) == wins.end())
+    if (wins.find(loseFrontier[i].b) == wins.end())
     {
       if (!b_winFound)
         b_winFound = true;
 
-      auto preds = predFn(loseFrontier[i]);
-      wins.insert(loseFrontier[i]);
+      auto preds = predFn(loseFrontier[i].b);
+      wins.insert(loseFrontier[i].b);
 
-      for (auto&& pred : prds)
+      for (auto& pred : preds)
       {
-        // TODO: construct NodeCommStruct type. Figure out best way to persist until the 
-        // MPI send is consumed 
         auto targetId = p(pred);
-        if (targetID == id)
-          winFrontier.push_back(std::move(pred));
+        if (targetId == id)
+          winFrontier.push_back({{}, {}, std::move(pred)});
         else
         {
-          // be careful about the address
           // perform MPI send from current to targetId
+          MPI_Request r; // TODO: this is not safe
+          MPI_Isend(&loseFrontier[i], 1, MPI_NodeCommData, targetId, 0, // need to send a 1 if it is the last msg
+            MPI_COMM_WORLD, &r);
         }
       }
     }
   }
-  return ::std::make_tuple(b_winFound,::std::move(w), ::std::move(wins));
+  return ::std::make_tuple(b_winFound, boardMap, ::std::move(winFrontier), ::std::move(wins));
 }
 
-template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename LoseSet, 
+template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet, 
   typename PredecessorGen, typename SuccessorGen, typename BoardMap>
 inline auto do_minorIteration(int id, int v, const Partitioner& p, 
-    BoardMap&& boardMap, LoseFrontier&& l, const WinFrontier& w,
-    LoseSet&& losses, PredecessorGen predFn, SuccessorGen succFn)
+    BoardMap&& boardMap, LoseFrontier&& loseFrontier, const WinFrontier& winFrontier,
+    EndGameSet&& losses, const EndGameSet& wins, PredecessorGen predFn, SuccessorGen succFn)
 {
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
   // MPI processes)
   bool b_lossFound = false;
-  for (::std::size_t i = 0; i < w.size(); ++i)
+  for (::std::size_t i = 0; i < winFrontier.size(); ++i)
   {
-    if (losses.find(winFrontier[i]) == losses.end() && wins.find(winFrontier[i]) == wins.end()) 
+    if (losses.find(winFrontier[i].b) == losses.end() 
+        && wins.find(winFrontier[i].b) == wins.end())
     {
       if (!b_lossFound)
         b_lossFound = true;
-      auto succs = succFn(winFrontier[i]);
+      auto succs = succFn(winFrontier[i].b);
       bool allWins = true;
       for (const auto& succ : succs)
       {
@@ -259,12 +285,12 @@ inline auto do_minorIteration(int id, int v, const Partitioner& p,
       if (allWins)
       {
         // localLosses.push_back(winFrontier[i]);
-        auto preds = predFn(winFrontier[i]);
-        for (auto&& pred : predecessors)
+        auto preds = predFn(winFrontier[i].b);
+        for (auto&& pred : preds)
         {
           auto targetId = p(pred);
           if (targetId == id)
-            loseFrontier.push_back(::std::move(pred));
+            loseFrontier.push_back({{}, {}, ::std::move(pred)});
           else
           {
             // be careful about the address
@@ -274,7 +300,7 @@ inline auto do_minorIteration(int id, int v, const Partitioner& p,
       }
     }
   }
-  return ::std::make_tuple(b_lossFound, ::std::move(l), ::std::move(losses));
+  return ::std::make_tuple(b_lossFound, boardMap, ::std::move(loseFrontier), ::std::move(losses));
 }
 
 // This function is the base implementation for the single-node implementation
@@ -293,7 +319,7 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
     IsValidBoardFn isValidBoardFn={})
 {
-  using board_set_t = ::std::unordered_set<NodeCommData<FlattenedSz, NonPlacementDataType>, 
+  using board_set_t = ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
     BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
   using frontier_t = ::std::vector<NodeCommData<FlattenedSz, NonPlacementDataType>>;
   
@@ -302,10 +328,10 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
   using board_map_t = 
     ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, 
     ::std::tuple<short, short, short>, // really want to compress data. 
-    BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
+    BoardState<FlattenedSz, NonPlacementDataType>>;
 
   board_set_t wins;
-  board_set_t losses = ::std::move(checkmates);
+  board_set_t losses; //= ::std::move(checkmates);
   
   frontier_t winFrontier;
   frontier_t loseFrontier;
@@ -322,11 +348,12 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
       auto target_id = partitioner(pred);
       if (target_id != id) // different node processes this
       {
-        // mpi isend to target
+        // mpi isend to target. should the predecessor also be sent? in the mark?
+        // matt thinks yes but this doubles the size of the total send. think alternatives
       }
       else
       {
-        loseFrontier.push_back(pred);
+        loseFrontier.push_back({{}, {}, pred });
       }
     }
   }
@@ -337,26 +364,27 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
 
     // 1. Invoke major iteration
     ::std::tie(b_mark, estimateData, winFrontier, wins) = do_majorIteration(id, v, partitioner, 
-        ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), 
+        ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
         ::std::move(wins), generatePredecessors);
     
     // TODO: Synchronization routine
     
-    loseFrontier.clear(); // must wait until after at the moment
+    loseFrontier.clear(); // must wait until after synchronization
     if (!b_mark)
       break;
 
     // 2. Invoke minor iteration
-    
     ::std::tie(b_mark, estimateData, loseFrontier, losses) = do_minorIteration(id, v, partitioner,
       ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
-      ::std::move(losses), generatePredecessors, generateSuccessors);
+      ::std::move(losses), wins, generatePredecessors, generateSuccessors);
+  
     // TODO: Synchronization routine
-
+    // do ... while loop until reduction condition is met 
+    
+    winFrontier.clear(); // must wait until after synchronization 
     if (!b_mark)
       break; 
   }
-
   return ::std::make_tuple(wins, losses);
 }
 
@@ -369,8 +397,9 @@ auto retrogradeAnalysisClusterInvoker(Args&&... args)
   // number of active processes
   int globalSz = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &globalSz);
-
-  //auto results = retrogradeAnalysisClusterImpl(
+  
+  KStateSpacePartition<64, null_type>
+  retrogradeAnalysisClusterImpl(::std::forward<Args>(args)...);
   MPI_Finalize();
 }
 
