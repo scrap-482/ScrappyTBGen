@@ -211,7 +211,9 @@ int main()
        decltype(evaluator)>(noRoyaltyPieceset, royaltyPieceset, evaluator);
   auto [config, checkmates_0] = checkmates[0];
 
-  auto [wins, losses] = retrogradeAnalysisBaseImpl<16, null_type, 3, 
-    4, 4, decltype(forward), decltype(backward)>(::std::move(checkmates_0),
+  KStateSpacePartition<16, BoardState<16, null_type>> p('k', 4);
+
+  auto [wins, losses] = retrogradeAnalysisClusterImpl<16, null_type, 3, 
+    4, 4, decltype(forward), decltype(backward)>(p, 2, ::std::move(checkmates_0),
       forward, backward);
 }

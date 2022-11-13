@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstddef>
 #include <algorithm>
+#include <memory>
 
 #include <mpi.h>
 
@@ -221,13 +222,14 @@ public:
 
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
-inline auto do_majorIteration(int id, int v, const Partitioner& p, 
+inline auto do_majorIteration(int id, int v, int numProcs, const Partitioner& p, 
     BoardMap&& boardMap, const LoseFrontier& loseFrontier, WinFrontier&& winFrontier,
     const EndGameSet& losses, EndGameSet&& wins, PredecessorGen predFn)
 {
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
   // MPI processes)
   bool b_winFound = false;
+  ::std::vector<MPI_Request*> sendRequests;
   for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
   {
     if (wins.find(loseFrontier[i].b) == wins.end())
@@ -238,7 +240,7 @@ inline auto do_majorIteration(int id, int v, const Partitioner& p,
       auto preds = predFn(loseFrontier[i].b);
       wins.insert(loseFrontier[i].b);
 
-      for (auto& pred : preds)
+      for (auto&& pred : preds)
       {
         auto targetId = p(pred);
         if (targetId == id)
@@ -246,25 +248,39 @@ inline auto do_majorIteration(int id, int v, const Partitioner& p,
         else
         {
           // perform MPI send from current to targetId
-          MPI_Request r; // TODO: this is not safe
+          MPI_Request* r = new MPI_Request(); // receiver responsible for knowing 
+          sendRequests.push_back(r);
           MPI_Isend(&loseFrontier[i], 1, MPI_NodeCommData, targetId, 0, // need to send a 1 if it is the last msg
-            MPI_COMM_WORLD, &r);
+            MPI_COMM_WORLD, r);
         }
       }
     }
   }
-  return ::std::make_tuple(b_winFound, boardMap, ::std::move(winFrontier), ::std::move(wins));
+  // currently use null board. can be extended in the future to pack the last message
+  for (int i = 0; i < numProcs; ++i)
+  {
+    if (i != id)
+    {
+      MPI_Request* r = new MPI_Request();
+      sendRequests.push_back(r);
+      MPI_Isend(&loseFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
+        MPI_COMM_WORLD, r);
+    }
+  }
+  return ::std::make_tuple(b_winFound, sendRequests,
+    ::std::move(boardMap), ::std::move(winFrontier), ::std::move(wins));
 }
 
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet, 
   typename PredecessorGen, typename SuccessorGen, typename BoardMap>
-inline auto do_minorIteration(int id, int v, const Partitioner& p, 
+inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p, 
     BoardMap&& boardMap, LoseFrontier&& loseFrontier, const WinFrontier& winFrontier,
     EndGameSet&& losses, const EndGameSet& wins, PredecessorGen predFn, SuccessorGen succFn)
 {
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
   // MPI processes)
   bool b_lossFound = false;
+  ::std::vector<MPI_Request*> sendRequests;
   for (::std::size_t i = 0; i < winFrontier.size(); ++i)
   {
     if (losses.find(winFrontier[i].b) == losses.end() 
@@ -284,7 +300,6 @@ inline auto do_minorIteration(int id, int v, const Partitioner& p,
       }
       if (allWins)
       {
-        // localLosses.push_back(winFrontier[i]);
         auto preds = predFn(winFrontier[i].b);
         for (auto&& pred : preds)
         {
@@ -293,14 +308,59 @@ inline auto do_minorIteration(int id, int v, const Partitioner& p,
             loseFrontier.push_back({{}, {}, ::std::move(pred)});
           else
           {
-            // be careful about the address
-            // perform MPI send from current to targetId
+            MPI_Request* r = new MPI_Request();
+            sendRequests.push_back(r);
+            MPI_Isend(&loseFrontier[i], 1, MPI_NodeCommData, targetId, 0, 
+              MPI_COMM_WORLD, r);
           }
         }
       }
     }
   }
-  return ::std::make_tuple(b_lossFound, boardMap, ::std::move(loseFrontier), ::std::move(losses));
+  // communicate finished message
+  for (int i = 0; i < numProcs; ++i)
+  {
+    if (i != id)
+    {
+      MPI_Request* r = new MPI_Request();
+      sendRequests.push_back(r);
+      MPI_Isend(&loseFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
+        MPI_COMM_WORLD, r);
+    }
+  }
+  return ::std::make_tuple(b_lossFound, sendRequests, ::std::move(boardMap), 
+    ::std::move(loseFrontier), ::std::move(losses));
+}
+
+// TODO: Consider more efficient communication scheme with MPI groups
+template<bool isMajorIteration, typename BoardMap, typename Frontier> 
+auto do_syncAndFree(int numNodes,
+    ::std::vector<MPI_Request*> sendRequests,
+    BoardMap&& boardMap, Frontier&& frontier)
+{
+  // initially, we only know that the current node is complete with computation
+  int finishedNodes = 1;
+
+  typename ::std::remove_reference<decltype(frontier)>::type::value_type recvBuf;
+  // 1. Process all receives for the current node
+  MPI_Status status;
+  do 
+  {
+    MPI_Recv(&recvBuf, 1, MPI_NodeCommData, MPI_ANY_SOURCE,
+        MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    finishedNodes += status.MPI_TAG;
+  } while(finishedNodes != numNodes);
+  
+  ::std::vector<MPI_Status> statuses(sendRequests.size());
+  // 2. Wait for requests and free memory - Cannot use MPI_Waitall due to 
+  // how requests are stored.
+  for (::std::size_t i = 0; i < sendRequests.size(); ++i)
+  {
+    MPI_Wait(sendRequests[i], &status);
+    delete sendRequests[i];
+  }
+
+  return ::std::make_tuple(::std::move(boardMap), ::std::move(frontier));
 }
 
 // This function is the base implementation for the single-node implementation
@@ -357,31 +417,40 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
       }
     }
   }
-
+  
+  ::std::vector<MPI_Request*> sendRequests;
+  int numProcs = 16;
   for (int v = 1; v > 0; ++v)
   {
     bool b_mark{};
 
     // 1. Invoke major iteration
-    ::std::tie(b_mark, estimateData, winFrontier, wins) = do_majorIteration(id, v, partitioner, 
-        ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
+    ::std::tie(b_mark, sendRequests, estimateData, winFrontier, wins) = do_majorIteration(id, v, numProcs,
+        partitioner, ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
         ::std::move(wins), generatePredecessors);
     
     // TODO: Synchronization routine
+    ::std::tie(estimateData, winFrontier) = do_syncAndFree<true>(numProcs, sendRequests, 
+        ::std::move(estimateData), ::std::move(winFrontier));
     
+    sendRequests.clear();
     loseFrontier.clear(); // must wait until after synchronization
+
     if (!b_mark)
       break;
 
     // 2. Invoke minor iteration
-    ::std::tie(b_mark, estimateData, loseFrontier, losses) = do_minorIteration(id, v, partitioner,
-      ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
+    ::std::tie(b_mark, sendRequests, estimateData, loseFrontier, losses) = do_minorIteration(id, v, numProcs,
+      partitioner, ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
       ::std::move(losses), wins, generatePredecessors, generateSuccessors);
   
     // TODO: Synchronization routine
-    // do ... while loop until reduction condition is met 
+    ::std::tie(estimateData, loseFrontier) = do_syncAndFree<false>(numProcs, sendRequests, 
+        ::std::move(estimateData), ::std::move(loseFrontier));
     
+    sendRequests.clear();
     winFrontier.clear(); // must wait until after synchronization 
+
     if (!b_mark)
       break; 
   }
