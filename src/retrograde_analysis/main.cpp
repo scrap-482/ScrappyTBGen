@@ -12,7 +12,7 @@ HZ_SYM_CHECK hzSymmetryCheck;
 VT_SYM_CHECK vtSymmetryCheck;
 //invoke retrograde analysis and checkmate generator with paramaters passed
 generateAllCheckmates<FLATTENEDSZ, NON_PLACEMENT_DATATYPE, N, ROWSZ, COLSZ, CheckmateEvalFn>(); 
-retrograde_analysis<FLATTENEDSZ, ROWSZ, COLSZ>();
+retrograde_analysis<FLATTENEDSZ, NON_PLACEMENT_DATATYPE, N, ROWSZ, COLSZ, forward, reverse>();
 #else
 assert(false);
 #endif
