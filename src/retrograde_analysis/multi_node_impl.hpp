@@ -33,6 +33,13 @@ struct NodeCommData
   BoardState<FlattenedSz, NonPlacementDataType> b; 
 };
 
+struct NodeEstimateData
+{
+  short T;
+  short M;
+  short C;
+};
+
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct NodeCommHasher 
 {
@@ -223,7 +230,7 @@ public:
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
 inline auto do_majorIteration(int id, int v, int numProcs, const Partitioner& p, 
-    BoardMap&& boardMap, const LoseFrontier& loseFrontier, WinFrontier&& winFrontier,
+    BoardMap&& boardMap, LoseFrontier& loseFrontier, WinFrontier&& winFrontier,
     const EndGameSet& losses, EndGameSet&& wins, PredecessorGen predFn)
 {
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
@@ -240,16 +247,26 @@ inline auto do_majorIteration(int id, int v, int numProcs, const Partitioner& p,
       auto preds = predFn(loseFrontier[i].b);
       wins.insert(loseFrontier[i].b);
 
+      if (boardMap.find(loseFrontier[i].b) == boardMap.end())
+      {
+        boardMap[loseFrontier[i].b] = { static_cast<short>(v), {}, {} }; // last two fields are only relevant to potentially lost states.  
+      }
+      else
+      {
+        boardMap[loseFrontier[i].b].T = v; 
+      }
+
       for (auto&& pred : preds)
       {
         auto targetId = p(pred);
         if (targetId == id)
-          winFrontier.push_back({{}, {}, std::move(pred)});
+          winFrontier.push_back({true, v, std::move(pred)}); // tell the predecessor that the current state wins in v moves.
         else
         {
           // perform MPI send from current to targetId
           MPI_Request* r = new MPI_Request(); // receiver responsible for knowing 
           sendRequests.push_back(r);
+          loseFrontier[i].G = v;
           MPI_Isend(&loseFrontier[i], 1, MPI_NodeCommData, targetId, 0, // need to send a 1 if it is the last msg
             MPI_COMM_WORLD, r);
         }
@@ -274,13 +291,14 @@ inline auto do_majorIteration(int id, int v, int numProcs, const Partitioner& p,
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet, 
   typename PredecessorGen, typename SuccessorGen, typename BoardMap>
 inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p, 
-    BoardMap&& boardMap, LoseFrontier&& loseFrontier, const WinFrontier& winFrontier,
+    BoardMap&& boardMap, LoseFrontier&& loseFrontier, WinFrontier& winFrontier,
     EndGameSet&& losses, const EndGameSet& wins, PredecessorGen predFn, SuccessorGen succFn)
 {
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
   // MPI processes)
   bool b_lossFound = false;
   ::std::vector<MPI_Request*> sendRequests;
+  int g = v - 1;
   for (::std::size_t i = 0; i < winFrontier.size(); ++i)
   {
     if (losses.find(winFrontier[i].b) == losses.end() 
@@ -288,29 +306,49 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
     {
       if (!b_lossFound)
         b_lossFound = true;
-      auto succs = succFn(winFrontier[i].b);
-      bool allWins = true;
-      for (const auto& succ : succs)
+      
+      ////Replaced with new scheme
+      //bool allWins = true;
+      //for (const auto& succ : succs)
+      //{
+      //  if (wins.find(succ) == wins.end())
+      //  {
+      //    allWins = false;
+      //    break;
+      //  }
+      //}
+      
+      if (boardMap.find(winFrontier[i].b) == boardMap.end()) // replace these static casts
       {
-        if (wins.find(succ) == wins.end())
-        {
-          allWins = false;
-          break;
-        }
+        auto succs = succFn(winFrontier[i].b);
+        boardMap[winFrontier[i].b] = 
+        { 0, static_cast<short>(winFrontier[i].G), static_cast<short>(succs.size() - 1) }; 
       }
-      if (allWins)
+
+      else // decrement remaining moves by 1 
+      {
+        --(boardMap[winFrontier[i].b].C);
+        boardMap[winFrontier[i].b].M = ::std::max(boardMap[winFrontier[i].b].M, static_cast<short>(winFrontier[i].G));
+      }
+
+      short remainingPaths = boardMap[winFrontier[i].b].C;
+      if (remainingPaths == 0)
       {
         auto preds = predFn(winFrontier[i].b);
+        losses.insert(winFrontier[i].b);
+        boardMap[winFrontier[i].b].T = boardMap[winFrontier[i].b].M;
+
         for (auto&& pred : preds)
         {
           auto targetId = p(pred);
           if (targetId == id)
-            loseFrontier.push_back({{}, {}, ::std::move(pred)});
+            loseFrontier.push_back({false, boardMap[winFrontier[i].b].T, ::std::move(pred)});
           else
           {
             MPI_Request* r = new MPI_Request();
             sendRequests.push_back(r);
-            MPI_Isend(&loseFrontier[i], 1, MPI_NodeCommData, targetId, 0, 
+            winFrontier[i].G = boardMap[winFrontier[i].b].T;
+            MPI_Isend(&winFrontier[i], 1, MPI_NodeCommData, targetId, 0, 
               MPI_COMM_WORLD, r);
           }
         }
@@ -344,6 +382,7 @@ auto do_syncAndFree(int numNodes,
   typename ::std::remove_reference<decltype(frontier)>::type::value_type recvBuf;
   // 1. Process all receives for the current node
   MPI_Status status;
+  // TODO: could this result in a deadlock?
   do 
   {
     MPI_Recv(&recvBuf, 1, MPI_NodeCommData, MPI_ANY_SOURCE,
@@ -352,8 +391,8 @@ auto do_syncAndFree(int numNodes,
   } while(finishedNodes != numNodes);
   
   ::std::vector<MPI_Status> statuses(sendRequests.size());
-  // 2. Wait for requests and free memory - Cannot use MPI_Waitall due to 
-  // how requests are stored.
+
+  // 2. Wait for requests and free memory
   for (::std::size_t i = 0; i < sendRequests.size(); ++i)
   {
     MPI_Wait(sendRequests[i], &status);
@@ -387,8 +426,8 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
   // BoardState b -> (M b, D b) 
   using board_map_t = 
     ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, 
-    ::std::tuple<short, short, short>, // really want to compress data. 
-    BoardState<FlattenedSz, NonPlacementDataType>>;
+    NodeEstimateData, // really want to compress data. 
+    BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
 
   board_set_t wins;
   board_set_t losses; //= ::std::move(checkmates);
@@ -469,6 +508,7 @@ auto retrogradeAnalysisClusterInvoker(Args&&... args)
   
   KStateSpacePartition<64, null_type>
   retrogradeAnalysisClusterImpl(::std::forward<Args>(args)...);
+
   MPI_Finalize();
 }
 
