@@ -81,6 +81,7 @@ namespace ChessPMOs {
     const auto kingMove = JumpPMO(std::vector<Coords>{
         {-1, 0}, {1, 0}, {0, -1}, {0, 1},
         {-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
+    const auto noopMove = JumpPMO(std::vector<Coords>{});
 
     const size_t pawnPMOsCount = 1;
     const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&kingMove}; // {&pawnForward, &pawnAttack}; //TODO:for now, pawns move like the king.
@@ -117,5 +118,40 @@ std::bitset<NUM_PIECE_TYPES> allowedUncapturesByPosAndCount(const ChessBoardStat
 std::bitset<NUM_PIECE_TYPES> allowedUncapturesByCount(const ChessBoardState& b);
 
 std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const ChessBoardState& b);
+
+// Looping over all PMOs is common functionality, but what to do with them varies; as such, this is implemented as a 
+// template function.
+// ForEachPMOFunc is assumed to have the type (std::vector<ChessBoardState> newMoves, const ChessBoardState& b) -> bool // TODO: update description
+// TODO: move this functionality into core
+template <typename ForEachPMOFunc>
+void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO) {
+    // TODO: consider using a list of the positions of every type of piece, rather than brute-force checking all tiles
+    for (size_t flatStartPos = 0; flatStartPos < 64; ++flatStartPos) {
+        piece_label_t thisPiece = b.m_board.at(flatStartPos);
+        if (isEmpty(thisPiece)) continue;
+        // Check if thisPiece is not the color of the player whose turn it is
+        if (isWhite(thisPiece) != !!b.m_player[0]) continue;
+
+        PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
+
+        for (size_t i = 0; i < PIECE_TYPE_DATA[type].pmoListSize; ++i) {
+            auto pmo = PIECE_TYPE_DATA[type].pmoList[i];
+            // auto newMoves = pmo->getForwards(b, unflatten(flatStartPos)); // TODO: since all chess moves are DisplacementPMOs, consider using this information for speedup.
+
+            // Break if function returns false
+            // if (!onMoveFound(newMoves, b)) return;
+            if (!actOnPMO(b, pmo, flatStartPos)) return;
+        }
+    }
+    return;
+}
+
+// Determine if player isWhiteAttacking is attacking opponent's king
+bool inCheck(const ChessBoardState& b, bool isWhiteAttacking);
+
+bool inMate(const ChessBoardState& b);
+
+std::string printBoard(const ChessBoardState& b);
+
 
 #endif

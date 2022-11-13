@@ -40,7 +40,7 @@ struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType
 };
 
 // mnemonic to remember this order: pawn first, king last, order remaining pieces from outside in of starting position.
-enum PIECE_TYPE_ENUM {PAWN=0, ROOK, KNIGHT, BISHOP, QUEEN, KING};
+enum PIECE_TYPE_ENUM {PAWN=0, ROOK, KNIGHT, BISHOP, QUEEN, KING, VACANT=-1};
 const int NUM_PIECE_TYPES = KING + 1;
 const int NUM_FLIPPABLE_PIECES = 0; // for shogi-like variants
 // For shogi-like games, non-flippable pieces should be at end of PIECE_TYPE_ENUM enum so we can use < to check if it can be 
@@ -53,7 +53,8 @@ const std::map<piece_label_t, const PIECE_TYPE_ENUM> LABEL_T_TO_TYPE_ENUM_MAP = 
   {'n', KNIGHT},
   {'b', BISHOP},
   {'q', QUEEN},
-  {'k', KING}
+  {'k', KING},
+  {'\0', VACANT}
   };
 const std::array<piece_label_t, NUM_PIECE_TYPES> TYPE_ENUM_TO_LABEL_T = {'p', 'r', 'n', 'b', 'q', 'k'};
 
