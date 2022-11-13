@@ -40,19 +40,6 @@ struct NodeEstimateData
   short C;
 };
 
-template<::std::size_t FlattenedSz, typename NonPlacementDataType>
-struct NodeCommHasher 
-{
-  auto operator()(const NodeCommData<FlattenedSz, NonPlacementDataType>& board) const
-  {
-    ::std::string stringifiedBoard(board.b.m_board.begin(), board.b.m_board.end());
-    stringifiedBoard += static_cast<char>(board.b.m_player);
-    
-    return ::std::hash<::std::string>{}(stringifiedBoard); 
-  }
-};
-
-
 // TODO: serialize NonPlacementDataType
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
 void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> MPI_Datatype*/)
@@ -116,7 +103,7 @@ void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> M
 }
 
 #if 1
-// todo better scheme in future.
+// TODO: better scheme in future.
 // contingent on the location of a single piece on the board. each 
 // process is assigned all positions dependent on position of one piece
 template <::std::size_t FlattenedSz, typename BoardType>
@@ -227,6 +214,62 @@ public:
 };
 #endif 
 
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
+  typename IsValidBoardFn=null_type>
+void inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, 
+    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& losses,
+    const ::std::vector<piece_label_t>& pieceSet,
+    EvalFn checkmateEval,
+    IsValidBoardFn boardValidityEval = {})
+{
+  ::std::array<::std::size_t, FlattenedSz> indexPermutations;
+  auto [startFirstIdx, endFirstIdx] = partitioner.getRange(k);
+  
+  indexPermutations[0] = startFirstIdx;
+  int j = 0;
+  for (::std::size_t i = 1; i < indexPermutations().size; ++i)
+  {
+    if (i == startFirstIdx)
+      ++j;
+    indexPermutations[i] = j;
+    ++j;
+  }
+
+  auto startBoard = indexPermutations;
+
+  ::std::size_t kPermute = pieceSet.size();
+  
+  // generates kPermute new checkmate positions.
+  // TODO: consider how to store smaller checkmates. Do we keep in storage somewhere?
+  do 
+  {
+    BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
+    for (::std::size_t i = 0; i != kPermute; ++i)
+      currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
+
+    if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
+      if (!IsValidBoardFn(currentBoard))
+        continue;
+    
+    // checking if black loses (white wins) 
+    if (checkmateEval(currentBoard))
+    {
+      losses.insert(currentBoard);
+    }
+    
+    currentBoard.m_player = true;
+    
+    // checking if white loses (black wins)
+    if (checkmateEval(currentBoard))
+    {
+      losses.insert(currentBoard);
+    }
+
+    ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
+    ::std::next_permutation(indexPermutations.begin(), indexPermutations.end());
+  } while (partitioner.checkInRange(startBoard, indexPermutations));
+}
+
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
 inline auto do_majorIteration(int id, int v, int numProcs, const Partitioner& p, 
@@ -306,17 +349,6 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
     {
       if (!b_lossFound)
         b_lossFound = true;
-      
-      ////Replaced with new scheme
-      //bool allWins = true;
-      //for (const auto& succ : succs)
-      //{
-      //  if (wins.find(succ) == wins.end())
-      //  {
-      //    allWins = false;
-      //    break;
-      //  }
-      //}
       
       if (boardMap.find(winFrontier[i].b) == boardMap.end()) // replace these static casts
       {
@@ -433,7 +465,7 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
     BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
 
   board_set_t wins;
-  board_set_t losses; //= ::std::move(checkmates);
+  board_set_t losses = ::std::move(checkmates);
   
   frontier_t winFrontier;
   frontier_t loseFrontier;
