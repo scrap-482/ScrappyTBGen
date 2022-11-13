@@ -371,7 +371,7 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
 }
 
 // TODO: Consider more efficient communication scheme with MPI groups
-template<bool isMajorIteration, typename BoardMap, typename Frontier> 
+template<typename BoardMap, typename Frontier> 
 auto do_syncAndFree(int numNodes,
     ::std::vector<MPI_Request*> sendRequests,
     BoardMap&& boardMap, Frontier&& frontier)
@@ -387,6 +387,9 @@ auto do_syncAndFree(int numNodes,
   {
     MPI_Recv(&recvBuf, 1, MPI_NodeCommData, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+    frontier.push_back(recvBuf);
+
     finishedNodes += status.MPI_TAG;
   } while(finishedNodes != numNodes);
   
@@ -469,7 +472,7 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
         ::std::move(wins), generatePredecessors);
     
     // TODO: Synchronization routine
-    ::std::tie(estimateData, winFrontier) = do_syncAndFree<true>(numProcs, sendRequests, 
+    ::std::tie(estimateData, winFrontier) = do_syncAndFree(numProcs, sendRequests, 
         ::std::move(estimateData), ::std::move(winFrontier));
     
     sendRequests.clear();
@@ -484,7 +487,7 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
       ::std::move(losses), wins, generatePredecessors, generateSuccessors);
   
     // TODO: Synchronization routine
-    ::std::tie(estimateData, loseFrontier) = do_syncAndFree<false>(numProcs, sendRequests, 
+    ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
         ::std::move(estimateData), ::std::move(loseFrontier));
     
     sendRequests.clear();
