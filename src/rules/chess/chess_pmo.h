@@ -131,7 +131,7 @@ void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool forPlay
         piece_label_t thisPiece = b.m_board.at(flatStartPos);
         if (isEmpty(thisPiece)) continue;
         // Ignore this piece if it is not for the player-to-move. Invert this result if forPlayerToMove=false.
-        if (isWhite(thisPiece) ^ !!b.m_player[0] ^ !forPlayerToMove) continue;
+        if (isWhite(thisPiece) ^ b.m_player ^ !forPlayerToMove) continue;
 
         PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
 

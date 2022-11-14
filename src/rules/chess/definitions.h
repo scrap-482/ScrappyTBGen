@@ -71,7 +71,7 @@ namespace encapsulate_this_lol {
     'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'
   };
 };
-const ChessBoardState INIT_BOARD_STATE = {::std::bitset<1>(), encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
+const ChessBoardState INIT_BOARD_STATE = {true, encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
 
 // Which promotions to consider. Some users may only want to consider queen promotions since another is rarely optimal.
 const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {QUEEN};

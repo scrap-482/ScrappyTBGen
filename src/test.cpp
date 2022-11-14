@@ -133,19 +133,19 @@ const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_1_1 = {
   '\0','\0','\0','\0','\0','\0','\0','k' 
 };
 
-const ChessBoardState EXAMPLE_BOARD_STATE = {::std::bitset<1>(), EXAMPLE_ARRAY, ChessNPD()};
-const ChessBoardState EXAMPLE_CHECKMATE_STATE = {::std::bitset<1>(), EXAMPLE_ARRAY_2, ChessNPD()};
-const ChessBoardState EXAMPLE_STALEMATE_STATE = {::std::bitset<1>(), EXAMPLE_ARRAY_3, ChessNPD()};
-const ChessBoardState EXAMPLE_STALEMATE_STATE_1_2 = {::std::bitset<1>(), EXAMPLE_ARRAY_3_5, ChessNPD()};
-const ChessBoardState EXAMPLE_STALEMATE_STATE_1_3 = {::std::bitset<1>(), EXAMPLE_ARRAY_3_6, ChessNPD()};
-const ChessBoardState EXAMPLE_STALEMATE_STATE_2 = {::std::bitset<1>(1), EXAMPLE_ARRAY_5, ChessNPD()};
-const ChessBoardState QUEEN_TEST_STATE = {::std::bitset<1>(1), EXAMPLE_ARRAY_4, ChessNPD()};
-const ChessBoardState EXAMPLE_CHECK_STATE_1 = {::std::bitset<1>(1), EXAMPLE_ARRAY_6, ChessNPD()};
-const ChessBoardState EXAMPLE_CHECK_STATE_2 = {::std::bitset<1>(), EXAMPLE_ARRAY_7, ChessNPD()};
-const ChessBoardState EXAMPLE_CHECK_STATE_3 = {::std::bitset<1>(), EXAMPLE_ARRAY_8, ChessNPD()};
-const ChessBoardState EXAMPLE_CHECK_STATE_4 = {::std::bitset<1>(1), EXAMPLE_ARRAY_8, ChessNPD()};
+const ChessBoardState EXAMPLE_BOARD_STATE = {false, EXAMPLE_ARRAY, ChessNPD()};
+const ChessBoardState EXAMPLE_CHECKMATE_STATE = {false, EXAMPLE_ARRAY_2, ChessNPD()};
+const ChessBoardState EXAMPLE_STALEMATE_STATE = {false, EXAMPLE_ARRAY_3, ChessNPD()};
+const ChessBoardState EXAMPLE_STALEMATE_STATE_1_2 = {false, EXAMPLE_ARRAY_3_5, ChessNPD()};
+const ChessBoardState EXAMPLE_STALEMATE_STATE_1_3 = {false, EXAMPLE_ARRAY_3_6, ChessNPD()};
+const ChessBoardState EXAMPLE_STALEMATE_STATE_2 = {true, EXAMPLE_ARRAY_5, ChessNPD()};
+const ChessBoardState QUEEN_TEST_STATE = {true, EXAMPLE_ARRAY_4, ChessNPD()};
+const ChessBoardState EXAMPLE_CHECK_STATE_1 = {true, EXAMPLE_ARRAY_6, ChessNPD()};
+const ChessBoardState EXAMPLE_CHECK_STATE_2 = {false, EXAMPLE_ARRAY_7, ChessNPD()};
+const ChessBoardState EXAMPLE_CHECK_STATE_3 = {false, EXAMPLE_ARRAY_8, ChessNPD()};
+const ChessBoardState EXAMPLE_CHECK_STATE_4 = {true, EXAMPLE_ARRAY_8, ChessNPD()};
 
-const ChessBoardState EXAMPLE_REV_CHECK_1 = {::std::bitset<1>(), EXAMPLE_ARRAY_1_1, ChessNPD()};
+const ChessBoardState EXAMPLE_REV_CHECK_1 = {false, EXAMPLE_ARRAY_1_1, ChessNPD()};
 
 
 int main()

@@ -23,7 +23,7 @@
             auto movedToContents = b.m_board.at(flattenCoords(pieceEndPos));
             if (!isEmpty(movedToContents)) {
                 // if the player-to-move's color is the same as the piece we are moving to, not allowed.
-                if (isWhite(movedToContents) == (!!b.m_player[0] ^ otherPlayer)) break;
+                if (isWhite(movedToContents) == (b.m_player ^ otherPlayer)) break;
                 // Otherwise, this is a capture
                 isCapture = true;
             } 
@@ -32,7 +32,7 @@
             newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
             newState.m_board.at(flattenCoords(piecePos)) = '\0';
             // Any time we make a move, invert turn and reset en-passant. //TODO: smells bad doing this here, separate this functionality somehow.
-            newState.m_player[0] = !newState.m_player[0]; 
+            newState.m_player = !newState.m_player; 
             // TODO: reset en passant info
 
             resultStates.push_back(newState);
@@ -56,7 +56,7 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
 
             piece_label_t uncapType = TYPE_ENUM_TO_LABEL_T[uncapTypeUncolored];
             // Uncapture white when white to move, since prior turn black moved.
-            uncapType = (b.m_player[0]? toWhite(uncapType) : toBlack(uncapType));
+            uncapType = (b.m_player? toWhite(uncapType) : toBlack(uncapType));
 
             // Write this uncapture as a new unmove
             auto newBoard = res.first.at(i); // copy
@@ -88,7 +88,7 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
             newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
             newState.m_board.at(flattenCoords(piecePos)) = '\0';
             // Any time we make a move, invert turn
-            newState.m_player[0] = !newState.m_player[0]; 
+            newState.m_player = !newState.m_player; 
 
             resultStates.push_back(newState);
             resultDisplacements.push_back(displacementMultiplier * moveOffset);
@@ -116,7 +116,7 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
         auto movedToContents = b.m_board.at(flattenCoords(pieceEndPos));
         if (!isEmpty(movedToContents)) {
             // if the player-to-move's color is the same as the piece we are moving to, not allowed.
-            if (isWhite(movedToContents) == (!!b.m_player[0] ^ otherPlayer)) continue;
+            if (isWhite(movedToContents) == (b.m_player ^ otherPlayer)) continue;
             // Otherwise, this is a capture
         } 
         ChessBoardState newState(b); // copy state.
@@ -124,7 +124,7 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
         newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
         newState.m_board.at(flattenCoords(piecePos)) = '\0';
         // Any time we make a move, invert turn and reset en-passant. //TODO: smells bad doing this here, separate this functionality somehow.
-        newState.m_player[0] = !newState.m_player[0]; 
+        newState.m_player = !newState.m_player; 
         // TODO: reset en passant info
 
         resultStates.push_back(newState);
@@ -151,7 +151,7 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
         newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
         newState.m_board.at(flattenCoords(piecePos)) = '\0';
         // Any time we make an unmove, invert turn.
-        newState.m_player[0] = !newState.m_player[0]; 
+        newState.m_player = !newState.m_player; 
 
         resultStates.push_back(newState);
         resultDisplacements.push_back(moveOffset);
@@ -186,8 +186,8 @@ std::bitset<NUM_PIECE_TYPES> allowedUncapturesByCount(const ChessBoardState& b) 
 
     // Consider when it is white's turn to play, black had the previous move and could have captured a white piece;
     // therefore we uncapture the color of the turn to play.
-    int loopStart = !!b.m_player[0]? 0               : NUM_PIECE_TYPES;
-    int loopEnd =   !!b.m_player[0]? NUM_PIECE_TYPES : 2 * NUM_PIECE_TYPES;
+    int loopStart = b.m_player? 0               : NUM_PIECE_TYPES;
+    int loopEnd =   b.m_player? NUM_PIECE_TYPES : 2 * NUM_PIECE_TYPES;
     int i = 0; // need to index of res
     for (size_t pieceType = loopStart; pieceType < loopEnd; ++pieceType) {
         if (piecesCountByType->at(pieceType) < MAX_PIECES_BY_TYPE.at(pieceType)) {
@@ -222,9 +222,9 @@ bool inCheck(const ChessBoardState& b, bool isWhiteAttacking) {
     // copy state so it is not const
     ChessBoardState bRev(b);
     // we will generate moves for side attacking
-    bRev.m_player[0] = isWhiteAttacking;
+    bRev.m_player = isWhiteAttacking;
 
-    //std::cout << "in inCheck start, after copy bRev.m_player[0]: " << bRev.m_player[0] << std::endl;
+    //std::cout << "in inCheck start, after copy bRev.m_player: " << bRev.m_player << std::endl;
 
     // Check is just saying that if the player were to move again, they could capture opponent king.
     // So check for king captures.
@@ -244,7 +244,7 @@ bool inCheck(const ChessBoardState& b, bool isWhiteAttacking) {
 
             if (getTypeEnumFromPieceLabel(bRev.m_board.at(flattenCoords(endPos))) == KING) {
             // TODO: if counting was fast, we could just use that on royal pieces, something like:
-            // size_t kingIndex = toColoredTypeIndex(!bRev.m_player[0], KING);
+            // size_t kingIndex = toColoredTypeIndex(!bRev.m_player, KING);
             // if (countPiecesOnBoard(bRev)->at(kingIndex) == 0) {
 
                 isCheck = true;
@@ -266,7 +266,7 @@ bool inMate(const ChessBoardState& b) {
         // Save all moves that do not move self into check
         for (auto newMove : newMoves) {
             // prune out moves where player-to-move checks their own king
-            if (inCheck(newMove, newMove.m_player[0])) {
+            if (inCheck(newMove, newMove.m_player)) {
                 continue;
             }
             // otherwise, we found a valid move
@@ -291,7 +291,7 @@ std::string printBoard(const ChessBoardState& b) {
         ret += "\n";
     }
     /* --------------------------- Print player's turn -------------------------- */
-    ret += (b.m_player[0]? "White to move\n" : "Black to move\n");
+    ret += (b.m_player? "White to move\n" : "Black to move\n");
     /* -------------------------------- Print NPD ------------------------------- */
     ret += "En passant rights: ";
     ret += (b.nonPlacementData.enpassantRights == -1)? "no" : ::std::to_string(b.nonPlacementData.enpassantRights);
