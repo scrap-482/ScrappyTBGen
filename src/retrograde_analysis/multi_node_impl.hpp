@@ -278,17 +278,17 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
       if (!b_lossFound)
         b_lossFound = true;
       
-      if (boardMap.find(winFrontier[i].b) == boardMap.end()) // replace these static casts
+      if (boardMap.find(winFrontier[i].b) == boardMap.end())
       {
         auto succs = succFn(winFrontier[i].b);
         boardMap[winFrontier[i].b] = 
-          { 0, static_cast<short>(winFrontier[i].G), static_cast<short>(succs.size() - 1) }; 
+          { 0, winFrontier[i].G, static_cast<short>(succs.size() - 1) }; 
       }
 
-      else // decrement remaining moves by 1 
+      else // decrement remaining moves by 1 and determine max to loss
       {
         --(boardMap[winFrontier[i].b].C);
-        boardMap[winFrontier[i].b].M = ::std::max(boardMap[winFrontier[i].b].M, static_cast<short>(winFrontier[i].G));
+        boardMap[winFrontier[i].b].M = ::std::max(boardMap[winFrontier[i].b].M, winFrontier[i].G);
       }
 
       short remainingPaths = boardMap[winFrontier[i].b].C;

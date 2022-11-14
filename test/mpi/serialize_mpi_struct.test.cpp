@@ -1,8 +1,6 @@
-#include "../../src/retrograde_analysis/cluster_support.hpp"
+#include "../../src/retrograde_analysis/multi_node_impl.hpp"
 #include <cstddef>
 #include <iostream>
-
-struct null_type {};
 
 template <typename NonPlacementDataType> 
 void initialize_nonplacement_struct()
@@ -39,7 +37,7 @@ int main()
 
   if (globalId == 0)
   {
-    n = { false, 3, 2, 1 };
+    n = { false, 2 };
     n.b.m_board[6] = 'K';
 
     MPI_Isend(&n, 1, MPI_NodeCommData, 1, 0, MPI_COMM_WORLD, &r);
@@ -55,7 +53,7 @@ int main()
 
   if (globalId == 1)
   {
-    std::cout << n.isWin << " " << n.depthToEnd << " " << n.remainingValidMoves << " " << n.G << std::endl;
+    std::cout << n.winLabel << " " << n.G << std::endl;
     std::cout << "Board at set position: " << n.b.m_board[6] << std::endl;
   }
     
