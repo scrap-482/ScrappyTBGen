@@ -170,10 +170,6 @@ int main()
     return true;
   };
   
-  auto c = cm_function<64, ChessNPD>{};
-  auto [white_wins, white_losses] = generateAllCheckmates<64, ChessNPD, 3, 8, 8, decltype(c),
-       decltype(symFn), decltype(symFn)>(noRoyaltyPieceset, royaltyPieceset, c, symFn, symFn);
-  std::cout << white_wins.size() + white_losses.size() << std::endl;
   /* -------------------------------------------------------------------------- */
 
 
