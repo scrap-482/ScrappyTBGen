@@ -1,16 +1,24 @@
 #ifndef PIECE_TYPE_H
 #define PIECE_TYPE_H
 
-#include "pmo.h"
+#include "pmo.hpp"
 #include "../utils/utils.h"
 
 // An instance of this corresponds to a type of piece, e.g. there is a single Piece instance for pawns.
-class PieceType {
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coords>
+struct PieceType {
 
     char letter;
-    std::vector<PMO> pmoList;
-    bool royalty; // TODO: does this need to encoode more than T/F?
+
+    // the array of PMOs
+    const PMO<FlattenedSz, NonPlacementDataType, Coords>* const* pmoList;
+    // length of pmoList
+    size_t pmoListSize;
+
+    bool royalty;
     // note: in Chu Shogi, Drunk Elephant promotes to Prince (which is royal)
+    // But since these are given different PieceTypes (E vs E+), the royalty is
+    // only assigned to the promoted piece's PieceType.
 
 };
 
