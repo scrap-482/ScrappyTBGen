@@ -21,24 +21,22 @@
 
 ::std::vector<ChessBoardState> ChessGenerateReverseMoves::operator()(const ChessBoardState& b) {
     std::vector<ChessBoardState> moves;
-    // TODO: consider using a list of the positions of every type of piece, rather than brute-force checking all tiles
-    for (size_t flatStartPos = 0; flatStartPos < 64; ++flatStartPos) {
-        piece_label_t thisPiece = b.m_board.at(flatStartPos);
-        if (isEmpty(thisPiece)) continue;
-        // Check if thisPiece is not the color of the player whose turn it was.
-        // Note that since we are going in reverse, the player to unmove is opposite of the player to move.
-        if (isWhite(thisPiece) == !!b.m_player[0]) continue;
-        PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
-
-        for (size_t i = 0; i < PIECE_TYPE_DATA[type].pmoListSize; ++i) {
-            auto pmo = PIECE_TYPE_DATA[type].pmoList[i];
+    loopAllPMOs(b, 
+        [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
             auto newMoves = pmo->getReverses(b, unflatten(flatStartPos));
-            moves.insert(moves.end(), newMoves.begin(), newMoves.end());
-        }
-    }
+            // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
+            for (auto newMove : newMoves) {
+                if (!inCheck(newMove, newMove.m_player[0])) {
+                    moves.push_back(newMove);
+                }
+                // else { std:: cout << "cannot do the following unmove because it moves into check:\n" << printBoard(newMove) << std::endl;}
+            }
+            // Do not break, go through all moves
+            return true;
+        // forPlayerToMove=false since we are generating unmoves for previous player-to-move, not current player.
+        }, false);
     // TODO: this is the same as fwd, but with a single line different. Maybe generalize?
     return moves;
-
 }
 
 bool ChessCheckmateEvaluator::operator()(const ChessBoardState& b) {

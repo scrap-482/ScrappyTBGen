@@ -19,7 +19,7 @@ public:
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getReversesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
-    // hack to allow getReverses to call this. Same as before but plays for person not moving.
+    // hack to allow getReverses to call this. Same as before but plays for person not moving. //TODO: remove if unused
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>
     getForwardsWithDisplacement(const ChessBoardState& b,  Coords piecePos, bool otherPlayer) const;
 
@@ -38,7 +38,7 @@ public:
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getReversesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
-    // hack to allow getReverses to call this. Same as before but plays for person not moving.
+    // hack to allow getReverses to call this. Same as before but plays for person not moving. //TODO: remove if unused
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getForwardsWithDisplacement(const ChessBoardState& b, Coords piecePos, bool otherPlayer) const;
 
@@ -122,15 +122,16 @@ std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const Che
 // Looping over all PMOs is common functionality, but what to do with them varies; as such, this is implemented as a 
 // template function.
 // ForEachPMOFunc is assumed to have the type (std::vector<ChessBoardState> newMoves, const ChessBoardState& b) -> bool // TODO: update description
+// Can generate all PMOs for the player whose turn it is (forPlayerToMove=true) or for the other.
 // TODO: move this functionality into core
 template <typename ForEachPMOFunc>
-void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO) {
+void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool forPlayerToMove=true) {
     // TODO: consider using a list of the positions of every type of piece, rather than brute-force checking all tiles
     for (size_t flatStartPos = 0; flatStartPos < 64; ++flatStartPos) {
         piece_label_t thisPiece = b.m_board.at(flatStartPos);
         if (isEmpty(thisPiece)) continue;
-        // Check if thisPiece is not the color of the player whose turn it is
-        if (isWhite(thisPiece) != !!b.m_player[0]) continue;
+        // Ignore this piece if it is not for the player-to-move. Invert this result if forPlayerToMove=false.
+        if (isWhite(thisPiece) ^ !!b.m_player[0] ^ !forPlayerToMove) continue;
 
         PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
 

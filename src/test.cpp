@@ -199,7 +199,7 @@ int main()
     std::cout << "--------------------------------------------\n" << std::endl;
 
   }
-  std::cout << "=============================================\n Reverse Move Gen Testing =============================================\n" << std::endl;
+  std::cout << "=============================================\n Reverse Move Gen Testing\n =============================================\n" << std::endl;
 
   std::cout << boardPrinter(EXAMPLE_REV_CHECK_1) << std::endl;;
   auto revMoves = revMoveGenerator(EXAMPLE_REV_CHECK_1);

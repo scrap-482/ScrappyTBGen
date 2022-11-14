@@ -27,7 +27,7 @@
                 // Otherwise, this is a capture
                 isCapture = true;
             } 
-            ChessBoardState newState(b); // copy state. //TODO: is this an appropriately deep copy?
+            ChessBoardState newState(b); // copy state
 
             newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
             newState.m_board.at(flattenCoords(piecePos)) = '\0';
@@ -43,6 +43,7 @@
     return std::make_pair(std::move(resultStates), std::move(resultDisplacements));
 }
 
+// ASSUMPTION: Pieces can only be removed from board via an opponent piece capturing them
 void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>& res) {
 
     auto allowedUncapturesPieces = allowedUncapturesByPosAndCount(b, piecePos);
@@ -66,9 +67,34 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
     }
 }
 
+// TODO: can probably shared code between fwd and backward move generators, but I don't know quite what that looks like yet.
 ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> SlidePMO::getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
-    // non-capture unmoves are same as forward moves, but with opposite person playing
-    auto unmoves = getForwardsWithDisplacement(b, piecePos, true);
+    std::vector<ChessBoardState> resultStates;
+    // parallel to resultStates, describes the displacement of the moving piece's coords
+    std::vector<Coords> resultDisplacements;
+
+    for (auto moveOffset : moveOffsets) {
+        // Keep moving in this direction until we have to stop
+        Coords pieceEndPos = piecePos;
+        for (int displacementMultiplier = 1; true; ++displacementMultiplier) {
+            pieceEndPos += moveOffset;
+
+            if (!inBounds(pieceEndPos)) break;
+
+            auto movedToContents = b.m_board.at(flattenCoords(pieceEndPos));
+            if (!isEmpty(movedToContents)) break; 
+            ChessBoardState newState(b); // copy state
+
+            newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
+            newState.m_board.at(flattenCoords(piecePos)) = '\0';
+            // Any time we make a move, invert turn
+            newState.m_player[0] = !newState.m_player[0]; 
+
+            resultStates.push_back(newState);
+            resultDisplacements.push_back(displacementMultiplier * moveOffset);
+        }
+    }
+    auto unmoves = std::make_pair(std::move(resultStates), std::move(resultDisplacements));
     addUncaptures(b, piecePos, unmoves);
     // then just add uncaptures
     return unmoves;
@@ -93,7 +119,7 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
             if (isWhite(movedToContents) == (!!b.m_player[0] ^ otherPlayer)) continue;
             // Otherwise, this is a capture
         } 
-        ChessBoardState newState(b); // copy state. //TODO: is this an appropriately deep copy?
+        ChessBoardState newState(b); // copy state.
 
         newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
         newState.m_board.at(flattenCoords(piecePos)) = '\0';
@@ -109,8 +135,30 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
 }
 
 ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> JumpPMO::getReversesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
+    std::vector<ChessBoardState> resultStates;
+    // parallel to resultStates, describes the displacement of the moving piece's coords
+    std::vector<Coords> resultDisplacements;
+
+    for (auto moveOffset : moveOffsets) {
+        Coords pieceEndPos = piecePos + moveOffset;
+        if (!inBounds(pieceEndPos)) continue;
+
+        auto movedToContents = b.m_board.at(flattenCoords(pieceEndPos));
+        // ASSUMPTION: moves leave behind empty tile
+        if (!isEmpty(movedToContents)) continue; // TODO: consider abstracting fwd and rev move to have less repetition
+        ChessBoardState newState(b); // copy state.
+
+        newState.m_board.at(flattenCoords(pieceEndPos)) = newState.m_board.at(flattenCoords(piecePos));
+        newState.m_board.at(flattenCoords(piecePos)) = '\0';
+        // Any time we make an unmove, invert turn.
+        newState.m_player[0] = !newState.m_player[0]; 
+
+        resultStates.push_back(newState);
+        resultDisplacements.push_back(moveOffset);
+    }
+    
+    auto unmoves = std::make_pair(std::move(resultStates), std::move(resultDisplacements));
     // non-capture unmoves are same as forward moves, but with opposite person playing
-    auto unmoves = getForwardsWithDisplacement(b, piecePos, true);
     addUncaptures(b, piecePos, unmoves);
     // then just add uncaptures
     return unmoves;
@@ -187,7 +235,7 @@ bool inCheck(const ChessBoardState& b, bool isWhiteAttacking) {
         auto newMovesWithDisplacement = ((ChessDisplacementPMO*) pmo)->getForwardsWithDisplacement(bRev, startPos); // Warning: cast assumes all moves are displacements
         
         for (size_t i = 0; i < newMovesWithDisplacement.first.size(); ++i) {
-            auto move = newMovesWithDisplacement.first.at(i); // FIXME: Don't actually care about move board, remove this line
+            // auto move = newMovesWithDisplacement.first.at(i);
             auto displacement = newMovesWithDisplacement.second.at(i);
 
             // Check if this move is the capture of a king
