@@ -24,12 +24,7 @@ template <::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct NodeCommData 
 {
   bool winLabel;
-  // D(k) in algorithm - can remove from mpi send
-  // int depthToEnd;
-  // M(k) in algorithm - can remove from mpi send
-  // int remainingValidMoves;
-  int G;
-
+  short G;
   BoardState<FlattenedSz, NonPlacementDataType> b; 
 };
 
@@ -40,11 +35,12 @@ struct NodeEstimateData
   short C;
 };
 
-// TODO: serialize NonPlacementDataType
+// Works under the assumption that NonPlacement DataType is already
+// serialized in the MPI_NonPlacementDataType global variable
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
-void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> MPI_Datatype*/)
+void initialize_comm_structs(void)
 {
-  {
+  { // serialize Board State
     // C++ preprocessor does not understand template syntax so this is necessary
     typedef BoardState<FlattenedSz, NonPlacementDataType> board_state_t;
 
@@ -72,23 +68,21 @@ void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> M
     MPI_Type_commit(&MPI_BoardState);
   }
 
-  { 
+  { // Serialize NodeCommData 
     // C++ preprocessor does not understand template syntax so this is necessary
     typedef NodeCommData<FlattenedSz, NonPlacementDataType> node_comm_data_t;
 
-    int count = 5;
-    int blocklengths[] = { 1, 1, 1, 1, 1 };
+    int count = 3;
+    int blocklengths[] = { 1, 1, 1 };
 
     MPI_Aint displacements[] = 
     { 
-      offsetof(node_comm_data_t, isWin),
-      offsetof(node_comm_data_t, depthToEnd), 
-      offsetof(node_comm_data_t, remainingValidMoves), 
+      offsetof(node_comm_data_t, winLabel),
       offsetof(node_comm_data_t, G), 
       offsetof(node_comm_data_t, b)
     };
 
-    MPI_Datatype types[] = { MPI_C_BOOL, MPI_INT, MPI_INT, MPI_INT, MPI_BoardState };
+    MPI_Datatype types[] = { MPI_C_BOOL, MPI_SHORT, MPI_BoardState };
     
     MPI_Datatype tmp;
     MPI_Aint lowerBound;
@@ -102,8 +96,7 @@ void initialize_comm_structs(void /* TODO: NonPlacementDataSerializer: void -> M
   }
 }
 
-#if 1
-// TODO: better scheme in future.
+// TODO: better scheme as future work.
 // contingent on the location of a single piece on the board. each 
 // process is assigned all positions dependent on position of one piece
 template <::std::size_t FlattenedSz, typename BoardType>
@@ -148,71 +141,6 @@ public:
   }
 };
 
-#else 
-template <::std::size_t FlattenedSz>
-class KStateSpacePartition
-{
-  // inclusive range
-  ::std::bitset<FlattenedSz> m_lowerRange;
-  ::std::bitset<FlattenedSz> m_upperRange;
-
-  ::std::size_t m_id;
-  ::std::size_t m_k;
-  ::std::size_t m_partitionSzLog;
-  
-  // https://www.geeksforgeeks.org/arithmetic-operations-with-stdbitset-in-c/
-  bool fullAdder(bool b1, bool b2, bool& carry)
-  {
-      bool sum = (b1 ^ b2) ^ carry;
-      carry = (b1 && b2) || (b1 && carry) || (b2 && carry);
-      return sum;
-  }
-
-  // https://www.geeksforgeeks.org/arithmetic-operations-with-stdbitset-in-c/
-  // Function to add two bitsets
-  std::bitset<FlattenedSz> bitsetAdd(std::bitset<FlattenedSz>& x, std::bitset<FlattenedSz>& y)
-  {
-      bool carry = false;
-      // bitset to store the sum of the two bitsets
-      std::bitset<FlattenedSz> ans;
-      for (int i = 0; i < FlattenedSz + 1; i++) {
-          ans[i] = fullAdder(x[i], y[i], carry);
-      }
-      return ans;
-  }
-
-  void initRange(void)
-  {
-    ::std::size_t base2Log = ::std::log2(m_k);
-    assert(base2Log > 0);
-
-    m_partitionSzLog = FlattenedSz - base2Log;
-    ::std::bitset<FlattenedSz> bitAdd;
-    bitAdd.set(m_partitionSzLog);
-
-    m_lowerRange = 0b0;
-    for (::std::size_t i = 0; i < m_id; ++i)
-    {
-      m_lowerRange = bitsetAdd(m_lowerRange, bitAdd); 
-    }
-
-    m_upperRange = bitsetAdd(m_lowerRange, bitAdd).flip();
-  }
-
-public:
-  KStateSpacePartition(void) = default;
-  KStateSpacePartition(const ::std::size_t& id, 
-    const ::std::size_t& k)
-    : m_id(id),
-      m_k(k)
-  {
-    initRange();
-  }
-
-  auto getRange(void)
-  { return ::std::make_tuple(m_lowerRange, m_upperRange); }
-};
-#endif 
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
   typename IsValidBoardFn=null_type>
@@ -272,7 +200,7 @@ void inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz
 
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
-inline auto do_majorIteration(int id, int v, int numProcs, const Partitioner& p, 
+inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& p, 
     BoardMap&& boardMap, LoseFrontier& loseFrontier, WinFrontier&& winFrontier,
     const EndGameSet& losses, EndGameSet&& wins, PredecessorGen predFn)
 {
@@ -292,7 +220,7 @@ inline auto do_majorIteration(int id, int v, int numProcs, const Partitioner& p,
 
       if (boardMap.find(loseFrontier[i].b) == boardMap.end())
       {
-        boardMap[loseFrontier[i].b] = { static_cast<short>(v), {}, {} }; // last two fields are only relevant to potentially lost states.  
+        boardMap[loseFrontier[i].b] = { v, {}, {} }; // last two fields are only relevant to potentially lost states.  
       }
       else
       {
@@ -354,7 +282,7 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
       {
         auto succs = succFn(winFrontier[i].b);
         boardMap[winFrontier[i].b] = 
-        { 0, static_cast<short>(winFrontier[i].G), static_cast<short>(succs.size() - 1) }; 
+          { 0, static_cast<short>(winFrontier[i].G), static_cast<short>(succs.size() - 1) }; 
       }
 
       else // decrement remaining moves by 1 
@@ -394,7 +322,7 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
     {
       MPI_Request* r = new MPI_Request();
       sendRequests.push_back(r);
-      MPI_Isend(&loseFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
+      MPI_Isend(&winFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
         MPI_COMM_WORLD, r);
     }
   }
@@ -446,8 +374,9 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t
     MoveGenerator>::value>::type* = nullptr,
   typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves<FlattenedSz, NonPlacementDataType>, 
     ReverseMoveGenerator>::value>::type* = nullptr>
-auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, int id,
-    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> checkmates,
+auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, int id, 
+    int numProcs, ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
+      BoardStateHasher<FlattenedSz, NonPlacementDataType>> checkmates,
     MoveGenerator generateSuccessors,
     ReverseMoveGenerator generatePredecessors,
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
@@ -471,6 +400,7 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
   frontier_t loseFrontier;
   
   board_map_t estimateData;
+  ::std::vector<MPI_Request*> sendRequests;
   
   // ultimately invoke additional iteration
   for (const auto& l : losses)
@@ -479,31 +409,45 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
 
     for (const auto& pred : preds)
     {
-      auto target_id = partitioner(pred);
-      if (target_id != id) // different node processes this
+      auto targetId = partitioner(pred);
+      if (targetId != id) // different node processes this
       {
-        // mpi isend to target. should the predecessor also be sent? in the mark?
-        // matt thinks yes but this doubles the size of the total send. think alternatives
+        MPI_Request* r = new MPI_Request();
+        winFrontier.push_back({false, 0, pred });
+        MPI_Isend(&winFrontier[winFrontier.size()-1], 1, MPI_NodeCommData, targetId, 0, 
+              MPI_COMM_WORLD, r);
       }
       else
       {
-        loseFrontier.push_back({{}, {}, pred });
+        loseFrontier.push_back({false, 0, pred });
       }
     }
   }
-  
-  ::std::vector<MPI_Request*> sendRequests;
-  int numProcs = 16;
-  for (int v = 1; v > 0; ++v)
+  for (int i = 0; i < numProcs; ++i)
   {
-    bool b_mark{};
+    if (i != id)
+    {
+      MPI_Request* r = new MPI_Request();
+      sendRequests.push_back(r);
+      MPI_Isend(&loseFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
+        MPI_COMM_WORLD, r);
+    }
+  }
 
+  bool b_mark{};
+  ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
+     ::std::move(estimateData), ::std::move(loseFrontier)); 
+
+  winFrontier.clear();
+  sendRequests.clear();
+
+  for (short v = 1; v > 0; ++v)
+  {
     // 1. Invoke major iteration
     ::std::tie(b_mark, sendRequests, estimateData, winFrontier, wins) = do_majorIteration(id, v, numProcs,
         partitioner, ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
         ::std::move(wins), generatePredecessors);
     
-    // TODO: Synchronization routine
     ::std::tie(estimateData, winFrontier) = do_syncAndFree(numProcs, sendRequests, 
         ::std::move(estimateData), ::std::move(winFrontier));
     
@@ -518,12 +462,11 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
       partitioner, ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
       ::std::move(losses), wins, generatePredecessors, generateSuccessors);
   
-    // TODO: Synchronization routine
     ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
         ::std::move(estimateData), ::std::move(loseFrontier));
     
     sendRequests.clear();
-    winFrontier.clear(); // must wait until after synchronization 
+    winFrontier.clear();
 
     if (!b_mark)
       break; 
@@ -531,6 +474,7 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
   return ::std::make_tuple(wins, losses);
 }
 
+// TODO: finish implementing this wrapper 
 template<typename... Args>
 auto retrogradeAnalysisClusterInvoker(Args&&... args)
 {
