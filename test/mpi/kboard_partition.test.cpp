@@ -8,8 +8,8 @@ int main()
   constexpr std::size_t num_processes = 16;
   
   BoardState<BoardSz, null_type> b;
-  b.m_board[32] = 'K';
-  b.m_board[63] = 'k';
+  b.m_board[21] = 'K';
+  b.m_board[32] = 'k';
   b.m_board[1] = 'P';
   b.m_board[63] = 'N';
   b.m_board[45] = 'n';

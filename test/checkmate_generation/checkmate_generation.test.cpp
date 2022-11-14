@@ -71,7 +71,7 @@ int main()
   auto losses = generateAllCheckmates<64, StandardChessNPD, 4, 8, 8, decltype(c),
        decltype(symFn), decltype(symFn)>(noRoyaltyPieceset, royaltyPieceset, c, symFn, symFn);
 #else
-  auto losses = generateAllCheckmates<64, StandardChessNPD, 4, 8, 8, decltype(c)>(noRoyaltyPieceset, royaltyPieceset, c);
+  auto losses = generateAllCheckmates<64, StandardChessNPD, 3, 8, 8, decltype(c)>(noRoyaltyPieceset, royaltyPieceset, c);
 #endif
   
   int total_cms = 0;
