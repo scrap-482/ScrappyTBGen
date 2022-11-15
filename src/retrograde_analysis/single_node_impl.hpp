@@ -120,16 +120,15 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
   for(int v = 1; v > 0; v++) {
     // 2. Win iteration - add immediate wins (at least one successor is a loss for the opposing player) to the win set
     bool updateW = false;
-    std::cout << "v=" << v << " " << winFrontier.size() << " " << loseFrontier.size() << std::endl;
 
-    // TODO: https://stackoverflow.com/questions/18669296/c-openmp-parallel-for-loop-alternatives-to-stdvector
 #pragma omp parallel
     {
       local_frontier_t localWins;
       local_frontier_t localPreds;
 
       // parallel for loop to collect in local buckets 
-      // identify win states and generate predecessors
+      // identify win states and generate predecessors.
+      // Parallelizing over std::unordered_set - https://stackoverflow.com/questions/26034642/openmp-gnu-parallel-for-an-unordered-map
 #pragma omp for nowait
       for (::std::size_t i = 0; i < loseFrontier.bucket_count(); ++i)
       for (auto bState = loseFrontier.begin(i); bState != loseFrontier.end(i); ++bState)
@@ -138,8 +137,6 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
 #ifdef TRACK_RETROGRADE_ANALYSIS
           print_win(bState, v);
 #endif
-          //wins.insert(loseFrontier[i]);
-          //position[loseFrontier[i]] = v;
           localWins.push_back(*bState);
 
           if (!updateW)
@@ -180,7 +177,7 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
     {
       local_frontier_t localLosses;
       local_frontier_t localPreds;
-      
+            
 #pragma omp for nowait
       for (::std::size_t i = 0; i < winFrontier.bucket_count(); ++i)
       for (auto bState = winFrontier.begin(i); bState != winFrontier.end(i); ++bState)
@@ -197,24 +194,13 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
               allWins = false;
               break;
             }
-            // this hurts parallelization - think
-            //if (losses.find(succ) != losses.end())
-            //{
-            //  loseFrontier.push_back(winFrontier[i]);
-            //  winFrontier.erase(winFrontier.begin() + i);
-            //  --i;
-            //}
           }
-          // omp barrier
           if (allWins)
           {
 #ifdef TRACK_RETROGRADE_ANALYSIS
             print_loss(bState, v);
 #endif
             localLosses.push_back(*bState);
-            // losses.insert(winFrontier[i]);
-            // position[winFrontier[i]] = v;
-            // TODO: Replace with std::move scheme
             auto preds = generatePredecessors(*bState);
             localPreds.insert(::std::end(localPreds), ::std::begin(preds), ::std::end(preds));
           }
@@ -241,8 +227,6 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
     if(updateL == false) {
       return ::std::make_tuple(wins, losses);
     }
-    std::cout << "finished v=" << v << std::endl;
-    std::cout << wins.size() << " " << losses.size() << std::endl;
   }
   return ::std::make_tuple(wins, losses);
 }
