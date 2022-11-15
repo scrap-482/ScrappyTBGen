@@ -44,16 +44,13 @@ bool ChessCheckmateEvaluator::operator()(const ChessBoardState& b) {
         // check, i.e. if this turn was skipped then next turn the king could be captured.
         if (inCheck(b, !b.m_player)) {
             // check and mate
-            std::cout << "LOSS" << std::endl;
             return true; // TODO: should be return LOSS
         } else {
             // mate without check is stalemate in chess
-            std::cout << "DRAW" << std::endl;
             return false; // TODO: should be return DRAW
         }
     }
     // If not a mate, game is ongoing
-    std::cout << "ONGOING" << std::endl;
     return false; // TODO: should be return ONGOING
 }
 
