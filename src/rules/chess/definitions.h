@@ -4,7 +4,7 @@
 #include "../../retrograde_analysis/state.hpp"
 // #include "../../retrograde_analysis/state_transition.hpp"
 #include "../../core/coords_grid.hpp"
-#include "../../core/piece_type.h"
+#include "../../core/piece_type.hpp"
 #include "../../core/pmo.hpp"
 #include "../../retrograde_analysis/state_transition.hpp"
 
