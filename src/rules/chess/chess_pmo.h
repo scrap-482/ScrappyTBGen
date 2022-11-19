@@ -78,9 +78,13 @@ namespace ChessPMOs {
     const ChessPMOPostModList pawnForwardPostFwdMods = {&fwdCaptureProhibitedMod};
     const ChessPMOPostModList pawnForwardPostBwdMods = {&bwdCaptureProhibitedMod};
 
+    const ChessPMOPostModList pawnAttackPostFwdMods = {&fwdCaptureRequiredMod};
+    const ChessPMOPostModList pawnAttackPostBwdMods = {&bwdCaptureRequiredMod};
+
     const auto pawnForward = DirectedJumpPMO(std::vector<Coords>{{0, 1}}
         , noPreMods, pawnForwardPostFwdMods, noPreMods, pawnForwardPostBwdMods);
-    const auto pawnAttack = DirectedJumpPMO(std::vector<Coords>{{-1, 1}, {1, 1}});
+    const auto pawnAttack = DirectedJumpPMO(std::vector<Coords>{{-1, 1}, {1, 1}}
+        , noPreMods, pawnAttackPostFwdMods, noPreMods, pawnAttackPostBwdMods);
     const auto orthoSlide = SlidePMO(std::vector<Coords>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}});
     const auto diagSlide = SlidePMO(std::vector<Coords>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto knightLeap = JumpPMO(std::vector<Coords>{
@@ -91,8 +95,8 @@ namespace ChessPMOs {
         {-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto noopMove = JumpPMO(std::vector<Coords>{});
 
-    const size_t pawnPMOsCount = 1;
-    const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&pawnForward}; //, &pawnAttack}; //TODO
+    const size_t pawnPMOsCount = 2;
+    const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&pawnForward, &pawnAttack};
     const size_t rookPMOsCount = 1;
     const ChessPMO* const rookPMOs [rookPMOsCount] = {&orthoSlide};
     const size_t bishopPMOsCount = 1;
