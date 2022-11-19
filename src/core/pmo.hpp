@@ -1,6 +1,5 @@
 #ifndef PMO_H_
 #define PMO_H_
-#include "region.hpp"
 // #include "piece_type.hpp" // caution! circularity approaching
 
 #include "../utils/utils.h"
