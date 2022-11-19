@@ -7,8 +7,9 @@ compiled_path = "./compiled/"
 opts = Variables([], ARGUMENTS)
 
 # Gets the standard flags CC, CCX, etc.
-env = Environment()
-env['CCFLAGS'] = 'g'
+AddOption('--n', dest='N', type='int', nargs=1, action='store', metavar='NUMBER', help='number of pieces')
+env = Environment(N = GetOption('N'))
+
 
 # Define our options
 opts.Add(EnumVariable('target', "Compile targets in debug or release mode", 'debug', ['debug', 'release']))
