@@ -53,7 +53,7 @@ int main()
   
   std::cout << "done with checkmates" << std::endl;
 
-  auto [wins, losses] = retrogradeAnalysisBaseImpl<64, ChessNPD, 3, ROW_SZ, 
+  auto [wins, losses, dtm] = retrogradeAnalysisBaseImpl<64, ChessNPD, 3, ROW_SZ, 
     COL_SZ, decltype(fwdMoveGenerator), decltype(revMoveGenerator)>(::std::move(checkmates),
       fwdMoveGenerator, revMoveGenerator);
   
