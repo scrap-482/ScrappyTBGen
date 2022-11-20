@@ -207,8 +207,8 @@ int main()
   constexpr ::std::size_t numRows = 4;
   constexpr ::std::size_t numCols = 4;
   
-  std::vector<piece_label_t> noRoyaltyPieceset = { 'Q' };
-  std::vector<piece_label_t> royaltyPieceset = { 'k', 'K' };
+  std::vector<piece_label_t> noRoyaltyPieceset = { 'q' };
+  std::vector<piece_label_t> royaltyPieceset = { 'k', 'q', 'K' };
   TestForwardMove<16, null_type> forward;
   TestReverseMove<16, null_type> backward;
   TestCheckmateEvaluator<16, null_type> evaluator;
@@ -224,7 +224,7 @@ int main()
     4, 4, decltype(forward), decltype(backward)>(p, 2, 16, ::std::move(checkmates_0),
       forward, backward);
 #else
-  auto [wins, losses] = retrogradeAnalysisBaseImpl<16, null_type, 3, 
+  auto [wins, losses, dtm] = retrogradeAnalysisBaseImpl<16, null_type, 3, 
     4, 4, decltype(forward), decltype(backward)>(::std::move(checkmates_0),
       forward, backward);
 #endif
