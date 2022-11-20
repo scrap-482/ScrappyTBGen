@@ -61,8 +61,9 @@ def compile():
     # if env['target'] == 'debug':
     #     env.Append(CPPDEFINES=['DEBUG'])
 
+    sources = []
     # Change this to choose which variant
-    sources = Glob('src/rules/chess/*.cpp')
+    sources.extend(Glob('src/rules/chess/*.cpp'))
     # Core source code
     sources.extend(Glob('src/core/*.cpp'))
     sources.extend(Glob('src/utils/*.cpp'))

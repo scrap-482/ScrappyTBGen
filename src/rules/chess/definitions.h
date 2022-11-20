@@ -4,7 +4,7 @@
 #include "../../retrograde_analysis/state.hpp"
 // #include "../../retrograde_analysis/state_transition.hpp"
 #include "../../core/coords_grid.hpp"
-#include "../../core/piece_type.h"
+#include "../../core/piece_type.hpp"
 #include "../../core/pmo.hpp"
 #include "../../retrograde_analysis/state_transition.hpp"
 
@@ -19,18 +19,23 @@ struct ChessNPD {
 };
 
 // Since this is a rectangular board
-using Coords = CoordsGrid<int, int>;
 const size_t BOARD_WIDTH = 8;
 const size_t BOARD_HEIGHT = 8;
+using Coords = CoordsGrid<int, int, BOARD_WIDTH>;
 
 using ChessBoardState = BoardState<64, ChessNPD>;
 using ChessPMO = PMO<64, ChessNPD, Coords>;
-using ChessDisplacementPMO = DisplacementPMO<64, ChessNPD, Coords>;
+using ChessModdablePMO = ModdablePMO<64, ChessNPD, Coords>;
 using ChessPieceType = PieceType<64, ChessNPD, Coords>;
 
-#define flatten(file, rank) ((file + rank*BOARD_WIDTH))
-#define flattenCoords(coords) ((coords.file + coords.rank*BOARD_WIDTH))
-#define unflatten(index) (Coords(index % BOARD_WIDTH, index / BOARD_WIDTH))
+using ChessPMOPreMod = PMOPreMod<64, ChessNPD, Coords>;
+using ChessPMOPostMod = PMOPostMod<64, ChessNPD, Coords>;
+using ChessPMOPreModList = std::vector<const PMOPreMod<64, ChessNPD, Coords>*>;
+using ChessPMOPostModList = std::vector<const PMOPostMod<64, ChessNPD, Coords>*>;
+
+// TODO: this is an ugly syntax, is there a better way?
+using ChessFwdCaptDepPMO = FwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
+using ChessBwdCaptDepPMO = BwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType>

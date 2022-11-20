@@ -132,6 +132,17 @@ const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_1_1 = {
   'R' ,'n' ,'\0','\0','\0','\0','\0','\0',
   '\0','\0','\0','\0','\0','\0','\0','k' 
 };
+/* -------------------------------------------------------------------------- */
+const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_2_1 = {
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','K' ,'\0','\0','\0','\0',
+  '\0','\0','\0','p' ,'\0','\0','\0','\0',
+  '\0','\0','\0','\0','P' ,'\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','k' 
+};
 
 const ChessBoardState EXAMPLE_BOARD_STATE = {false, EXAMPLE_ARRAY, ChessNPD()};
 const ChessBoardState EXAMPLE_CHECKMATE_STATE = {false, EXAMPLE_ARRAY_2, ChessNPD()};
@@ -146,6 +157,9 @@ const ChessBoardState EXAMPLE_CHECK_STATE_3 = {false, EXAMPLE_ARRAY_8, ChessNPD(
 const ChessBoardState EXAMPLE_CHECK_STATE_4 = {true, EXAMPLE_ARRAY_8, ChessNPD()};
 
 const ChessBoardState EXAMPLE_REV_CHECK_1 = {false, EXAMPLE_ARRAY_1_1, ChessNPD()};
+
+const ChessBoardState EXAMPLE_PAWN_CHECK_1 = {false, EXAMPLE_ARRAY_2_1, ChessNPD()};
+const ChessBoardState EXAMPLE_PAWN_CHECK_2 = {true, EXAMPLE_ARRAY_2_1, ChessNPD()};
 
 
 int main()
@@ -178,7 +192,9 @@ int main()
   auto winCondEvaluator = ChessCheckmateEvaluator();
   auto boardPrinter = ChessBoardPrinter();
 
-  std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4};
+  std::cout << "=============================================\n Forward Move Gen and Win Condition Testing\n =============================================\n" << std::endl;
+  std::vector<ChessBoardState> statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2};
+  // std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4};
   for (auto state : statesToTest) {
     std::cout << boardPrinter(state) << std::endl;;
     // std::cout << "In Mate= " << inMate(state) << std::endl;;
@@ -193,19 +209,22 @@ int main()
       std::cout << "example forward move:\n" << boardPrinter(*randIt) << std::endl;
     }
     std::cout << "--------------------------------------------\n" << std::endl;
-
   }
   std::cout << "=============================================\n Reverse Move Gen Testing\n =============================================\n" << std::endl;
 
-  std::cout << boardPrinter(EXAMPLE_REV_CHECK_1) << std::endl;;
-  auto revMoves = revMoveGenerator(EXAMPLE_REV_CHECK_1);
-  std::cout << "num backwards moves: " << revMoves.size() << std::endl;
-  if (revMoves.size() > 0) {
-    // random selection. Yes I know this is biased, no I do not care.
-    std::vector<ChessBoardState>::iterator randIt = revMoves.begin();
-    std::advance(randIt, std::rand() % revMoves.size());
-    std::cout << "example reverse move:\n" << boardPrinter(*randIt) << std::endl;
+  statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2};
+  // statesToTest = {EXAMPLE_REV_CHECK_1};
+  for (auto state : statesToTest) {
+    std::cout << boardPrinter(state) << std::endl;;
+    auto revMoves = revMoveGenerator(state);
+    std::cout << "num backwards moves: " << revMoves.size() << std::endl;
+    if (revMoves.size() > 0) {
+      // random selection. Yes I know this is biased, no I do not care.
+      std::vector<ChessBoardState>::iterator randIt = revMoves.begin();
+      std::advance(randIt, std::rand() % revMoves.size());
+      std::cout << "example reverse move:\n" << boardPrinter(*randIt) << std::endl;
+    }
+    std::cout << "--------------------------------------------\n" << std::endl;
   }
-
   std::cout << "Done." << std::endl;
 }

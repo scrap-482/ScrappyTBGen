@@ -5,7 +5,7 @@
     ::std::vector<ChessBoardState> moves;
     loopAllPMOs(b, 
         [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
-            auto newMoves = pmo->getForwards(b, unflatten(flatStartPos));
+            auto newMoves = pmo->getForwards(b, Coords(flatStartPos));
             // Save all moves that do not move self into check
             for (auto newMove : newMoves) {
                 if (!inCheck(newMove, newMove.m_player)) {
@@ -23,7 +23,7 @@
     std::vector<ChessBoardState> moves;
     loopAllPMOs(b, 
         [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
-            auto newMoves = pmo->getReverses(b, unflatten(flatStartPos));
+            auto newMoves = pmo->getReverses(b, Coords(flatStartPos));
             // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
             for (auto newMove : newMoves) {
                 if (!inCheck(newMove, newMove.m_player)) {
