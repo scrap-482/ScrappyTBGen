@@ -102,18 +102,6 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
   for (const auto& l : losses)
   {
     auto preds = generatePredecessors(l);
-    //for (auto& pred : preds)
-    //{
-    //  auto& b = pred.m_board;
-    //  if (b[3] == 'K' && b[17] == 'k' && b[28] == 'q')
-    //  {
-    //    auto print  = ChessBoardPrinter();
-    //    std::cout << "incorrect predecessor" << std::endl;
-    //    std::cout << print(pred) << std::endl; 
-    //    std::cout << "incorrect original" << print(l) << std::endl;
-    //    assert(!(b[3] == 'K' && b[17] == 'k' && b[28] == 'q'));
-    //  }
-    //}
     loseFrontier.insert(::std::begin(preds), ::std::end(preds)); 
     depthToMate[l] = 0;
   }
