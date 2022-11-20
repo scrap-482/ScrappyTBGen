@@ -41,8 +41,12 @@ def compile():
 
     elif env['platform'] == "linux":
         env['CXX'] = 'g++'
+        # env.Append(CCFLAGS = ['-fopenmp', '-std=c++20', '-O3', '-pg'])
+        # env.Append(LINKFLAGS = ['-fopenmp', '-std=c++20', '-O3', '-pg'])
+        
         env.Append(CCFLAGS = ['-fopenmp', '-std=c++20', '-O3'])
         env.Append(LINKFLAGS = ['-fopenmp', '-std=c++20', '-O3'])
+
         # if env['target'] == 'debug':
         #     env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
         # else:

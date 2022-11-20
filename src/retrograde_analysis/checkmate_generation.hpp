@@ -99,13 +99,14 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t
   typename ::std::enable_if<::std::is_base_of<CheckmateEvaluator<FlattenedSz, NonPlacementDataType>, CheckmateEvalFn>::value>::type* = nullptr>
 auto generateConfigCheckmates(const ::std::vector<piece_label_t>& pieceSet, 
     CheckmateEvalFn eval, 
-    HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
-    IsValidBoardFn isValidBoardFn={})
+    IsValidBoardFn isValidBoardFn={},
+    HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}) 
 {
   ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> losses;
+  
   PermutationEvaluator<FlattenedSz, NonPlacementDataType, rowSz, colSz, CheckmateEvalFn, 
     HorizontalSymFn, VerticalSymFn, IsValidBoardFn> evaluator(hzSymFn, vSymFn, isValidBoardFn);
-  evaluator(losses, pieceSet, eval);
+  evaluator(losses, pieceSet, eval, isValidBoardFn);
   return losses;
 }
 
