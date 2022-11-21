@@ -1,0 +1,24 @@
+{
+  "rowSz" : 8,
+  "colSz" : 8,
+  "N"     : 3,
+  "noRoyaltyPieceset" : ["q"],
+  "royaltyPieceset"   : ["k", "K"],
+  "fullPieceset"      : ["k", "K", "q"],
+  "srcDirs" : [
+    "~/Documents/Capstone/ScrappyTB/src/rules/chess",
+    "~/Documents/Capstone/ScrappyTB/src/core",
+    "~/Documents/Capstone/ScrappyTB/src/utils"
+  ],
+  "includeHeaders" : [
+    "~/Documents/Capstone/ScrappyTB/src/rules/chess/interface.h"
+  ],
+  "forwardMoveGenerator" : "ChessGenerateForwardMoves",
+  "reverseMoveGenerator" : "ChessGenerateReverseMoves",
+  "winCondEvaluator"     : "ChessCheckmateEvaluator",
+  "boardPrinter"         : "ChessBoardPrinter",
+  "nonPlacementDatatype" : "ChessNPD",
+  "isValidBoardFn"       : null,
+  "hzSymEvaluator"       : null,
+  "vtSymEvaluator"       : null
+}

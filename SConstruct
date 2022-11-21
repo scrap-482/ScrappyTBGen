@@ -1,5 +1,6 @@
 #!python
 import os, subprocess
+import json
 
 # This folder is where final products go
 compiled_path = "./compiled/" 
@@ -27,6 +28,25 @@ Help(opts.GenerateHelpText(env))
 if env['use_llvm']:
     env['CC'] = 'clang'
     env['CXX'] = 'clang++'
+
+# loads the json from the given configuration file
+def read_json_cc_args(fname):
+    with open(fname) as f:
+        load_dict = json.load(f)
+    return load_dict
+
+# this is not complete. some thing still need to be fully worked out but is a
+# start to show how it should be implemented
+def parse_json_cc_args(config_dict):
+    cl_args = []
+    for key, val in config_dict.items():
+        if key == 'includeHeaders':
+            for header in val:
+                cl_args.append('-include ' + header)
+        elif not (val is None):
+            cl_args.append('-D' + key + '=' + str(val)) 
+    return cl_args
+
 
 # Main function of this script
 def compile():
