@@ -1,7 +1,8 @@
 #include "retrograde_analysis.hpp"
 #include <cassert>
+#include <iostream>
 #ifdef PATH_TO_USER_HEADER
-#  include PATH_TO_USER_HEADER
+#  include <PATH_TO_USER_HEADER>
 #endif
 #ifndef HZ_SYM_CHECK
 #  define HZ_SYM_CHECK false_fn
@@ -22,7 +23,7 @@ HZ_SYM_CHECK hzSymmetryCheck;
 VT_SYM_CHECK vtSymmetryCheck;
 
 //invoke retrograde analysis and checkmate generator with paramaters passed
-#ifndef MULTI_NODE_
+#ifndef MULTI_NODE
 auto checkmates = generateAllCheckmates<FLATTENEDSZ, NON_PLACEMENT_DATATYPE, N, ROWSZ, COLSZ, CheckmateEvalFn, 
   HZ_SYM_CHECK, VT_SYM_CHECK, IS_VALID_BOARD_FN>(const ::std::vector<piece_label_t>& noRoyaltyPieceset, 
     const ::std::vector<piece_label_t>& royaltyPieceset, CheckmateEvalFn eval, 
@@ -37,6 +38,7 @@ retrograde_analysis<MachineType::MULTI_NODE, FLATTENEDSZ, NON_PLACEMENT_DATATYPE
   IS_VALID_BOARD_FN>(Args&&... args);
 #endif
 #else
+std::cerr << "ERROR: Invalid configuration file" << std::endl;
 assert(false);
 #endif
 }
