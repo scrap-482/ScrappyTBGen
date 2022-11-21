@@ -53,6 +53,7 @@ public:
 template<::std::size_t FS, typename NPDT, typename CT>
 class PMOPreMod {
 public:
+    // Return false if we should reject this PMO; return true if it passes this test (may still fail others).
     virtual bool operator()(const BoardState<FS, NPDT>& b, CT piecePos) const = 0;
 };
 
@@ -131,6 +132,23 @@ public:
     };
 };
 
+template<typename CT>
+using RegionEvalPtr = bool(*)(CT piecePos);
+
+// prohibits moves using only piece color and starting position.
+template<::std::size_t FS, typename NPDT, typename CT>
+class DirectedRegionPMOPreMod : public PMOPreMod<FS, NPDT, CT> {
+private:
+    const RegionEvalPtr<CT> whiteEval;
+    const RegionEvalPtr<CT> blackEval;
+public:
+    DirectedRegionPMOPreMod(RegionEvalPtr<CT> _whiteEval, RegionEvalPtr<CT> _blackEval) : whiteEval(_whiteEval), blackEval(_blackEval) { }
+
+    virtual bool operator()(const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        bool pieceColor = isWhite(b.m_board.at(piecePos.flatten()));
+        return (pieceColor? (*whiteEval)(piecePos) : (*blackEval)(piecePos));
+    }
+};
 
 template<::std::size_t FS, typename NPDT, typename CT>
 class ModdablePMO : public DisplacementPMO<FS, NPDT, CT> {

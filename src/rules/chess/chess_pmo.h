@@ -68,6 +68,16 @@ public:
 };
 
 namespace ChessPMOs {
+    // need these functions for pawns. //TODO: can these be lambdas or something nicer looking? Idk
+    inline bool isRank1(Coords coords) { return coords.rank == 0;}
+    inline bool isRank2(Coords coords) { return coords.rank == 1;}
+    inline bool isRank3(Coords coords) { return coords.rank == 2;}
+    inline bool isRank4(Coords coords) { return coords.rank == 3;}
+    inline bool isRank5(Coords coords) { return coords.rank == 4;}
+    inline bool isRank6(Coords coords) { return coords.rank == 5;}
+    inline bool isRank7(Coords coords) { return coords.rank == 6;}
+    inline bool isRank8(Coords coords) { return coords.rank == 7;}
+
     const auto fwdCaptureRequiredMod = ChessFwdCaptDepPMO(true);
     const auto fwdCaptureProhibitedMod = ChessFwdCaptDepPMO(false);
     const auto bwdCaptureRequiredMod = ChessBwdCaptDepPMO(true);
@@ -81,10 +91,20 @@ namespace ChessPMOs {
     const ChessPMOPostModList pawnAttackPostFwdMods = {&fwdCaptureRequiredMod};
     const ChessPMOPostModList pawnAttackPostBwdMods = {&bwdCaptureRequiredMod};
 
+
+    const ChessDirRegionMod startOnSecondRank(&isRank2, &isRank7);
+
+    const ChessPMOPreModList  pawnDJPreFwdMods = {&startOnSecondRank};
+    const ChessPMOPostModList pawnDJPostFwdMods = {&fwdCaptureProhibitedMod};
+    // const ChessPMOPreModList  pawnDJPreBwdMods = {&startOnSecondRank};
+    // const ChessPMOPostModList pawnDJPostBwdMods = {&fwdCaptureProhibitedMod};
+
     const auto pawnForward = DirectedJumpPMO(std::vector<Coords>{{0, 1}}
         , noPreMods, pawnForwardPostFwdMods, noPreMods, pawnForwardPostBwdMods);
     const auto pawnAttack = DirectedJumpPMO(std::vector<Coords>{{-1, 1}, {1, 1}}
         , noPreMods, pawnAttackPostFwdMods, noPreMods, pawnAttackPostBwdMods);
+    const auto pawnDouble = DirectedJumpPMO(std::vector<Coords>{{0, 2}}
+        , pawnDJPreFwdMods, pawnDJPostFwdMods, noPreMods, noPostMods); // TODO:
     const auto orthoSlide = SlidePMO(std::vector<Coords>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}});
     const auto diagSlide = SlidePMO(std::vector<Coords>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto knightLeap = JumpPMO(std::vector<Coords>{
@@ -95,8 +115,8 @@ namespace ChessPMOs {
         {-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto noopMove = JumpPMO(std::vector<Coords>{});
 
-    const size_t pawnPMOsCount = 2;
-    const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&pawnForward, &pawnAttack};
+    const size_t pawnPMOsCount = 1;
+    const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&pawnDouble}; // {&pawnForward, &pawnAttack};
     const size_t rookPMOsCount = 1;
     const ChessPMO* const rookPMOs [rookPMOsCount] = {&orthoSlide};
     const size_t bishopPMOsCount = 1;
@@ -106,7 +126,7 @@ namespace ChessPMOs {
     const size_t queenPMOsCount = 2;
     const ChessPMO* const queenPMOs [queenPMOsCount] = {&orthoSlide, &diagSlide};
     const size_t kingPMOsCount = 1;
-    const ChessPMO* const kingPMOs [kingPMOsCount] = {&kingMove};
+    const ChessPMO* const kingPMOs [kingPMOsCount] = {&noopMove};
 }
 
 // Note: this has to be parallel to PIECE_TYPE_ENUM

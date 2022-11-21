@@ -143,6 +143,16 @@ const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_2_1 = {
   '\0','\0','\0','\0','\0','\0','\0','\0',
   '\0','\0','\0','\0','\0','\0','\0','k' 
 };
+const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_2_2 = {
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','K' ,'\0','\0','\0','\0',
+  '\0','\0','\0','p' ,'\0','\0','\0','\0',
+  'P' ,'\0','\0','\0','P' ,'\0','\0','P' ,
+  '\0','P' ,'\0','\0','\0','\0','\0','\0',
+  'p' ,'p' ,'\0','\0','\0','\0','p' ,'\0',
+  '\0','\0','\0','\0','\0','\0','\0','k' 
+};
 
 const ChessBoardState EXAMPLE_BOARD_STATE = {false, EXAMPLE_ARRAY, ChessNPD()};
 const ChessBoardState EXAMPLE_CHECKMATE_STATE = {false, EXAMPLE_ARRAY_2, ChessNPD()};
@@ -158,8 +168,8 @@ const ChessBoardState EXAMPLE_CHECK_STATE_4 = {true, EXAMPLE_ARRAY_8, ChessNPD()
 
 const ChessBoardState EXAMPLE_REV_CHECK_1 = {false, EXAMPLE_ARRAY_1_1, ChessNPD()};
 
-const ChessBoardState EXAMPLE_PAWN_CHECK_1 = {false, EXAMPLE_ARRAY_2_1, ChessNPD()};
-const ChessBoardState EXAMPLE_PAWN_CHECK_2 = {true, EXAMPLE_ARRAY_2_1, ChessNPD()};
+const ChessBoardState EXAMPLE_PAWN_CHECK_1 = {false, EXAMPLE_ARRAY_2_2, ChessNPD()};
+const ChessBoardState EXAMPLE_PAWN_CHECK_2 = {true, EXAMPLE_ARRAY_2_2, ChessNPD()};
 
 
 int main()
