@@ -129,13 +129,14 @@ public:
     return idx / m_segLength;
   }
 
-  auto getRange(int k)
+  auto getRange(int k) const
   {
-    return ::std::make_tuple(k * m_segLength, ::std::max((k+1) * m_segLength, static_cast<int>(FlattenedSz)));
+    return ::std::make_tuple(k * m_segLength, 
+        ::std::min((k+1) * m_segLength, static_cast<int>(FlattenedSz)));
   }
   
-  inline bool checkInRange(const ::std::vector<int>& startBoard, 
-      const ::std::vector<int>& currentBoard)
+  inline bool checkInRange(const auto& startBoard, 
+    const auto& currentBoard) const
   {
     return (currentBoard[0] - startBoard[0]) < m_segLength; 
   }
@@ -144,8 +145,8 @@ public:
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
   typename IsValidBoardFn=null_type>
-void inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, 
-    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& losses,
+auto inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, // TODO <- make const 
+    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>&& losses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
     IsValidBoardFn boardValidityEval = {})
@@ -155,9 +156,9 @@ void inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz
   
   indexPermutations[0] = startFirstIdx;
   int j = 0;
-  for (::std::size_t i = 1; i < indexPermutations().size; ++i)
+  for (::std::size_t i = 1; i < indexPermutations.size(); ++i)
   {
-    if (i == startFirstIdx)
+    if (j == startFirstIdx)
       ++j;
     indexPermutations[i] = j;
     ++j;
@@ -166,36 +167,38 @@ void inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz
   auto startBoard = indexPermutations;
 
   ::std::size_t kPermute = pieceSet.size();
-  
-  // generates kPermute new checkmate positions.
-  // TODO: consider how to store smaller checkmates. Do we keep in storage somewhere?
-  do 
+  bool hasNext = false;
+   
+  // generates [3, ..., kPermute] sets of new checkmate positions.
+  for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
   {
-    BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
-    for (::std::size_t i = 0; i != kPermute; ++i)
-      currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
-
-    if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
-      if (!IsValidBoardFn(currentBoard))
-        continue;
-    
-    // checking if black loses (white wins) 
-    if (checkmateEval(currentBoard))
+    do 
     {
-      losses.insert(currentBoard);
-    }
-    
-    currentBoard.m_player = true;
-    
-    // checking if white loses (black wins)
-    if (checkmateEval(currentBoard))
-    {
-      losses.insert(currentBoard);
-    }
+      BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
+      for (::std::size_t i = 0; i != kPermute; ++i)
+        currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
 
-    ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
-    ::std::next_permutation(indexPermutations.begin(), indexPermutations.end());
-  } while (partitioner.checkInRange(startBoard, indexPermutations));
+      if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
+        if (!boardValidityEval(currentBoard))
+          continue;
+      
+      // checking if black loses (white wins) 
+      if (checkmateEval(currentBoard))
+        losses.insert(currentBoard);
+      
+      currentBoard.m_player = true;
+      
+      // checking if white loses (black wins)
+      if (checkmateEval(currentBoard))
+      {
+        losses.insert(currentBoard);
+      }
+
+      ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
+      hasNext = ::std::next_permutation(indexPermutations.begin(), indexPermutations.end());
+    } while (hasNext && partitioner.checkInRange(startBoard, indexPermutations));
+  }
+  return ::std::move(losses);
 }
 
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
@@ -345,6 +348,7 @@ auto do_syncAndFree(int numNodes,
   // TODO: could this result in a deadlock?
   do 
   {
+    // doing async send -> sync receive at the moment 
     MPI_Recv(&recvBuf, 1, MPI_NodeCommData, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
