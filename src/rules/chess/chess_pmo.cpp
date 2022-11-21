@@ -3,10 +3,6 @@
 #define inBounds(coords) ((coords.file >= 0 && coords.file < BOARD_WIDTH && coords.rank >= 0 && coords.rank < BOARD_HEIGHT))
 
 ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> SlidePMO::getModdableMovesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
-    return getModdableMovesWithDisplacement(b, piecePos, false);
-}
-
-::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> SlidePMO::getModdableMovesWithDisplacement(const ChessBoardState& b, Coords piecePos, bool otherPlayer) const {
     std::vector<ChessBoardState> resultStates;
     // parallel to resultStates, describes the displacement of the moving piece's coords
     std::vector<Coords> resultDisplacements;
@@ -23,7 +19,7 @@
             auto movedToContents = b.m_board.at(pieceEndPos.flatten());
             if (!isEmpty(movedToContents)) {
                 // if the player-to-move's color is the same as the piece we are moving to, not allowed.
-                if (isWhite(movedToContents) == (b.m_player ^ otherPlayer)) break;
+                if (isWhite(movedToContents) == b.m_player) break;
                 // Otherwise, this is a capture
                 isCapture = true;
             } 
@@ -95,70 +91,6 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
         }
     }
     auto unmoves = std::make_pair(std::move(resultStates), std::move(resultDisplacements));
-    addUncaptures(b, piecePos, unmoves);
-    // then just add uncaptures
-    return unmoves;
-}
-
-::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> JumpPMO::getModdableMovesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
-    return getModdableMovesWithDisplacement(b, piecePos, false);
-}
-
-::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> JumpPMO::getModdableMovesWithDisplacement(const ChessBoardState& b, Coords piecePos, bool otherPlayer) const {
-    std::vector<ChessBoardState> resultStates;
-    // parallel to resultStates, describes the displacement of the moving piece's coords
-    std::vector<Coords> resultDisplacements;
-
-    for (auto moveOffset : moveOffsets) {
-        Coords pieceEndPos = piecePos + moveOffset;
-        if (!inBounds(pieceEndPos)) continue;
-
-        auto movedToContents = b.m_board.at(pieceEndPos.flatten());
-        if (!isEmpty(movedToContents)) {
-            // if the player-to-move's color is the same as the piece we are moving to, not allowed.
-            if (isWhite(movedToContents) == (b.m_player ^ otherPlayer)) continue;
-            // Otherwise, this is a capture
-        } 
-        ChessBoardState newState(b); // copy state.
-
-        newState.m_board.at(pieceEndPos.flatten()) = newState.m_board.at(piecePos.flatten());
-        newState.m_board.at(piecePos.flatten()) = '\0';
-        // Any time we make a move, invert turn and reset en-passant. //TODO: smells bad doing this here, separate this functionality somehow.
-        newState.m_player = !newState.m_player; 
-        // TODO: reset en passant info
-
-        resultStates.push_back(newState);
-        resultDisplacements.push_back(moveOffset);
-    }
-    
-    return std::make_pair(std::move(resultStates), std::move(resultDisplacements));
-}
-
-::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> JumpPMO::getModdableUnmovesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
-    std::vector<ChessBoardState> resultStates;
-    // parallel to resultStates, describes the displacement of the moving piece's coords
-    std::vector<Coords> resultDisplacements;
-
-    for (auto moveOffset : moveOffsets) {
-        Coords pieceEndPos = piecePos + moveOffset;
-        if (!inBounds(pieceEndPos)) continue;
-
-        auto movedToContents = b.m_board.at(pieceEndPos.flatten());
-        // ASSUMPTION: moves leave behind empty tile
-        if (!isEmpty(movedToContents)) continue; // TODO: consider abstracting fwd and rev move to have less repetition
-        ChessBoardState newState(b); // copy state.
-
-        newState.m_board.at(pieceEndPos.flatten()) = newState.m_board.at(piecePos.flatten());
-        newState.m_board.at(piecePos.flatten()) = '\0';
-        // Any time we make an unmove, invert turn.
-        newState.m_player = !newState.m_player; 
-
-        resultStates.push_back(newState);
-        resultDisplacements.push_back(moveOffset);
-    }
-    
-    auto unmoves = std::make_pair(std::move(resultStates), std::move(resultDisplacements));
-    // non-capture unmoves are same as forward moves, but with opposite person playing
     addUncaptures(b, piecePos, unmoves);
     // then just add uncaptures
     return unmoves;

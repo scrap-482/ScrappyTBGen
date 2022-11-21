@@ -19,33 +19,24 @@ public:
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getModdableUnmovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
-    // hack to allow getReverses to call this. Same as before but plays for person not moving. //TODO: remove if unused
-    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>
-    getModdableMovesWithDisplacement(const ChessBoardState& b,  Coords piecePos, bool otherPlayer) const;
-
     SlidePMO(::std::vector<Coords> _moveOffsets) 
         : moveOffsets(_moveOffsets) { }
 
 };
 
-class JumpPMO : public ChessModdablePMO {
-    // the displacement in each direction, stored as flattened coordinates.
-    std::vector<Coords> moveOffsets;
+// class JumpPMO : public ChessModdablePMO { // Note: DirectedJump is just like Jump, but with a few more lines of code, so for now at least I am making all jumps directed.
+//     // the displacement in each direction, stored as flattened coordinates.
+//     std::vector<Coords> moveOffsets;
 
-public:
-    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getModdableMovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
-    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getModdableUnmovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
+// public:
+//     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
+//     getModdableMovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
+//     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
+//     getModdableUnmovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
-    // hack to allow getReverses to call this. Same as before but plays for person not moving. //TODO: remove if unused
-    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getModdableMovesWithDisplacement(const ChessBoardState& b, Coords piecePos, bool otherPlayer) const;
-
-    JumpPMO(::std::vector<Coords> _moveOffsets) 
-        : moveOffsets(_moveOffsets) { }
-};
-
+//     JumpPMO(::std::vector<Coords> _moveOffsets) 
+//         : moveOffsets(_moveOffsets) { }
+// };
 
 // JumpPMO but moveOffsets are negated for black.
 class DirectedJumpPMO : public ChessModdablePMO {
@@ -107,13 +98,13 @@ namespace ChessPMOs {
         , pawnDJPreFwdMods, pawnDJPostFwdMods, noPreMods, noPostMods); // TODO:
     const auto orthoSlide = SlidePMO(std::vector<Coords>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}});
     const auto diagSlide = SlidePMO(std::vector<Coords>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
-    const auto knightLeap = JumpPMO(std::vector<Coords>{
+    const auto knightLeap = DirectedJumpPMO(std::vector<Coords>{
         {-2, -1}, {-2, 1}, {2, -1}, {2, 1},
         {-1, -2}, {-1, 2}, {1, -2}, {1, 2}});
-    const auto kingMove = JumpPMO(std::vector<Coords>{
+    const auto kingMove = DirectedJumpPMO(std::vector<Coords>{
         {-1, 0}, {1, 0}, {0, -1}, {0, 1},
         {-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
-    const auto noopMove = JumpPMO(std::vector<Coords>{});
+    const auto noopMove = DirectedJumpPMO(std::vector<Coords>{});
 
     const size_t pawnPMOsCount = 1;
     const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&pawnDouble}; // {&pawnForward, &pawnAttack};
