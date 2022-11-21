@@ -8,8 +8,17 @@ compiled_path = "./compiled/"
 opts = Variables([], ARGUMENTS)
 
 # Gets the standard flags CC, CCX, etc.
-AddOption('--n', dest='N', type='int', nargs=1, action='store', metavar='NUMBER', help='number of pieces')
-env = Environment(N = GetOption('N'))
+AddOption('--user_src_dir', dest='pathname', type='string', nargs=1, action='store', 
+metavar='PATH', help='location of user-defined callbacks')
+env = Environment(PATHNAME = GetOption('pathname'))
+filename = env['PATHNAME']
+
+cluster = False
+AddOption('--enable_cluster', dest='cluster', type='string', nargs=0, action='store', 
+metavar='CLUSTER', help='whether or not cluster implementation is used')
+env = Environment(CLUSTER = GetOption('cluster'))
+if(env['CLUSTER'] != None):
+    cluster = True
 
 
 # Define our options
@@ -94,6 +103,9 @@ def compile():
     env.Program(compiled_path + 'scrappytbgen', sources)
 
 if env['platform'] == '':
+    print(filename)
+    print()
+    print(cluster)
     print("\nNo valid target platform selected. Try `scons platform=[platform]` or add a scons.config file.\nType `scons --help` for more parameters.\n")
 else:
     compile()
