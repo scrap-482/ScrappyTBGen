@@ -101,7 +101,8 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
     // parallel to resultStates, describes the displacement of the moving piece's coords
     std::vector<Coords> resultDisplacements;
 
-    for (auto moveOffset : moveOffsets) {
+    for (size_t offsetIndex = 0; offsetIndex < moveOffsets.size(); ++offsetIndex) {
+        auto moveOffset = moveOffsets.at(offsetIndex);
         // this is just the piece we are moving
         auto movedFromContents = b.m_board.at(piecePos.flatten());
         // negate if black
@@ -109,6 +110,19 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
 
         Coords pieceEndPos = piecePos + moveOffset;
         if (!inBounds(pieceEndPos)) continue;
+
+        bool obstructed = false;
+        for (auto obstructOffset : obstructOffsets.at(offsetIndex)) {
+            // negate if black
+            if (!isWhite(movedFromContents)) obstructOffset *= -1;
+
+            auto obstrContents = b.m_board.at((piecePos + obstructOffset).flatten());
+            if (obstrContents != '\0') {
+                obstructed = true;
+                break;
+            }
+        }
+        if (obstructed) continue;
 
         auto movedToContents = b.m_board.at(pieceEndPos.flatten());
 
@@ -137,7 +151,8 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
     // parallel to resultStates, describes the displacement of the moving piece's coords
     std::vector<Coords> resultDisplacements;
 
-    for (auto moveOffset : moveOffsets) {
+    for (size_t offsetIndex = 0; offsetIndex < moveOffsets.size(); ++offsetIndex) {
+        auto moveOffset = moveOffsets.at(offsetIndex);
         // this is just the piece we are moving
         auto movedFromContents = b.m_board.at(piecePos.flatten());
         // negate since this is UNmove, then negate again if black
@@ -145,6 +160,19 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
 
         Coords pieceEndPos = piecePos + moveOffset;
         if (!inBounds(pieceEndPos)) continue;
+
+        bool obstructed = false;
+        for (auto obstructOffset : obstructOffsets.at(offsetIndex)) {
+            // negate since this is UNmove, then negate again if black
+            if (isWhite(movedFromContents)) obstructOffset *= -1;
+
+            auto obstrContents = b.m_board.at((piecePos + obstructOffset).flatten());
+            if (obstrContents != '\0') {
+                obstructed = true;
+                break;
+            }
+        }
+        if (obstructed) continue;
 
         auto movedToContents = b.m_board.at(pieceEndPos.flatten());
         // ASSUMPTION: moves leave behind empty tile

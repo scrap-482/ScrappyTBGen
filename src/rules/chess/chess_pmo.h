@@ -45,17 +45,28 @@ public:
     // ASSUMPTION: can just be negated for black pieces. Sufficient if rectangular board and moves is horizontally symmetric.
     std::vector<Coords> moveOffsets;
 
+    // Parallel to moveOffsets, each vector for a moveOffset specifies which tiles must be empty so this piece can 'pass through' it (e.g. Xiangqi horse, double-jumping pawn).
+    std::vector<std::vector<Coords>> obstructOffsets;
+
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getModdableMovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
     getModdableUnmovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
     DirectedJumpPMO(::std::vector<Coords> _moveOffsets) 
-        : moveOffsets(_moveOffsets) { }
+        : moveOffsets(_moveOffsets), obstructOffsets(_moveOffsets.size(), std::vector<Coords>()) { }
+
+    DirectedJumpPMO(::std::vector<Coords> _moveOffsets, ::std::vector<std::vector<Coords>> _obstructOffsets) 
+        : moveOffsets(_moveOffsets), obstructOffsets(_obstructOffsets) { }
 
     DirectedJumpPMO(::std::vector<Coords> _moveOffsets
         , ChessPMOPreModList preFwdMods, ChessPMOPostModList postFwdMods, ChessPMOPreModList preBwdMods, ChessPMOPostModList postBwdMods) 
         : moveOffsets(_moveOffsets), ChessModdablePMO(preFwdMods, postFwdMods, preBwdMods, postBwdMods) { }
+
+    DirectedJumpPMO(::std::vector<Coords> _moveOffsets, ::std::vector<std::vector<Coords>> _obstructOffsets
+        , ChessPMOPreModList preFwdMods, ChessPMOPostModList postFwdMods, ChessPMOPreModList preBwdMods, ChessPMOPostModList postBwdMods) 
+        : moveOffsets(_moveOffsets), obstructOffsets(_obstructOffsets)
+        , ChessModdablePMO(preFwdMods, postFwdMods, preBwdMods, postBwdMods) { }
 };
 
 namespace ChessPMOs {
@@ -84,18 +95,19 @@ namespace ChessPMOs {
 
 
     const ChessDirRegionMod startOnSecondRank(&isRank2, &isRank7);
+    const ChessDirRegionMod startOnFourthRank(&isRank4, &isRank5);
 
     const ChessPMOPreModList  pawnDJPreFwdMods = {&startOnSecondRank};
     const ChessPMOPostModList pawnDJPostFwdMods = {&fwdCaptureProhibitedMod};
-    // const ChessPMOPreModList  pawnDJPreBwdMods = {&startOnSecondRank};
-    // const ChessPMOPostModList pawnDJPostBwdMods = {&fwdCaptureProhibitedMod};
+    const ChessPMOPreModList  pawnDJPreBwdMods = {&startOnFourthRank};
+    const ChessPMOPostModList pawnDJPostBwdMods = {&bwdCaptureProhibitedMod};
 
     const auto pawnForward = DirectedJumpPMO(std::vector<Coords>{{0, 1}}
         , noPreMods, pawnForwardPostFwdMods, noPreMods, pawnForwardPostBwdMods);
     const auto pawnAttack = DirectedJumpPMO(std::vector<Coords>{{-1, 1}, {1, 1}}
         , noPreMods, pawnAttackPostFwdMods, noPreMods, pawnAttackPostBwdMods);
-    const auto pawnDouble = DirectedJumpPMO(std::vector<Coords>{{0, 2}}
-        , pawnDJPreFwdMods, pawnDJPostFwdMods, noPreMods, noPostMods); // TODO:
+    const auto pawnDouble = DirectedJumpPMO(std::vector<Coords>{{0, 2}}, std::vector<std::vector<Coords>>{{{0, 1}}}
+        , pawnDJPreFwdMods, pawnDJPostFwdMods, pawnDJPreBwdMods, pawnDJPostBwdMods);
     const auto orthoSlide = SlidePMO(std::vector<Coords>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}});
     const auto diagSlide = SlidePMO(std::vector<Coords>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto knightLeap = DirectedJumpPMO(std::vector<Coords>{
