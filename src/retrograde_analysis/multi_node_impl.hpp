@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <algorithm>
 #include <memory>
+#include <chrono>
 
 #include <mpi.h>
 
@@ -67,7 +68,7 @@ void initialize_comm_structs(void)
     MPI_Type_create_resized(tmp, lowerBound, extent, &MPI_BoardState);
     MPI_Type_commit(&MPI_BoardState);
   }
-
+  std::cout << "here2" << std::endl;
   { // Serialize NodeCommData 
     // C++ preprocessor does not understand template syntax so this is necessary
     typedef NodeCommData<FlattenedSz, NonPlacementDataType> node_comm_data_t;
@@ -145,7 +146,7 @@ public:
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
   typename IsValidBoardFn=null_type>
-auto inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, // TODO <- make const 
+auto inline MPI_generateConfigCheckmates(int k, const KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>>& partitioner,
     ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>&& losses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
@@ -334,9 +335,11 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
 }
 
 // TODO: Consider more efficient communication scheme with MPI groups
-template<typename BoardMap, typename Frontier> 
+template<typename BoardMap, typename BoardSet, typename Frontier> 
 auto do_syncAndFree(int numNodes,
     ::std::vector<MPI_Request*> sendRequests,
+    const BoardSet& wins,
+    const BoardSet& losses,
     BoardMap&& boardMap, Frontier&& frontier)
 {
   // initially, we only know that the current node is complete with computation
@@ -351,8 +354,10 @@ auto do_syncAndFree(int numNodes,
     // doing async send -> sync receive at the moment 
     MPI_Recv(&recvBuf, 1, MPI_NodeCommData, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-
-    frontier.push_back(recvBuf);
+    
+    if (wins.find(recvBuf.b) == wins.end() 
+        && losses.find(recvBuf.b) == losses.end())
+      frontier.push_back(recvBuf);
 
     finishedNodes += status.MPI_TAG;
   } while(finishedNodes != numNodes);
@@ -378,9 +383,9 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t
     MoveGenerator>::value>::type* = nullptr,
   typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves<FlattenedSz, NonPlacementDataType>, 
     ReverseMoveGenerator>::value>::type* = nullptr>
-auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, int id, 
+auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>>& partitioner, int id, 
     int numProcs, ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
-      BoardStateHasher<FlattenedSz, NonPlacementDataType>> checkmates,
+      BoardStateHasher<FlattenedSz, NonPlacementDataType>>&& checkmates,
     MoveGenerator generateSuccessors,
     ReverseMoveGenerator generatePredecessors,
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
@@ -440,7 +445,8 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
 
   bool b_mark{};
   ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
-     ::std::move(estimateData), ::std::move(loseFrontier)); 
+      wins, losses, ::std::move(estimateData), ::std::move(loseFrontier)); 
+  std::cout << "passed first do sync and free" << std::endl;
 
   winFrontier.clear();
   sendRequests.clear();
@@ -452,8 +458,8 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
         partitioner, ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
         ::std::move(wins), generatePredecessors);
     
-    ::std::tie(estimateData, winFrontier) = do_syncAndFree(numProcs, sendRequests, 
-        ::std::move(estimateData), ::std::move(winFrontier));
+    ::std::tie(estimateData, winFrontier) = do_syncAndFree(numProcs, sendRequests,
+        wins, losses, ::std::move(estimateData), ::std::move(winFrontier));
     
     sendRequests.clear();
     loseFrontier.clear(); // must wait until after synchronization
@@ -465,15 +471,20 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
     ::std::tie(b_mark, sendRequests, estimateData, loseFrontier, losses) = do_minorIteration(id, v, numProcs,
       partitioner, ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
       ::std::move(losses), wins, generatePredecessors, generateSuccessors);
-  
-    ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
-        ::std::move(estimateData), ::std::move(loseFrontier));
     
+    auto t0 = std::chrono::high_resolution_clock::now();
+    ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
+        wins, losses, ::std::move(estimateData), ::std::move(loseFrontier));
+    auto t1 = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
+    std::cout << "sync time: " << elapsed << std::endl;
+
     sendRequests.clear();
     winFrontier.clear();
 
     if (!b_mark)
       break; 
+    std::cout << "finished v=" << v << " frontier " << winFrontier.size() << " " << loseFrontier.size() << std::endl;
   }
   return ::std::make_tuple(wins, losses);
 }
