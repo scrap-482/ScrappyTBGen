@@ -1,41 +1,38 @@
 #include "retrograde_analysis.hpp"
 #include <cassert>
 #include <iostream>
-#ifdef PATH_TO_USER_HEADER
-#  include <PATH_TO_USER_HEADER>
+#ifndef hzSymEvaluator
+#  define hzSymEvaluator false_fn
 #endif
-#ifndef HZ_SYM_CHECK
-#  define HZ_SYM_CHECK false_fn
+#ifndef vtSymEvaluator
+#  define vtSymEvaluator false_fn
 #endif
-#ifndef VT_SYM_CHECK
-#  define VT_SYM_CHECK false_fn
-#endif
-#ifndef IS_VALID_BOARD_FN
-#  define IS_VALID_BOARD_FN null_type
+#ifndef isValidBoardFn
+#  define isValidBoardFn null_type
 #endif
 
 int main(){
-#if defined ROWSZ && defined COLSZ && defined FLATTENEDSZ && defined NOROYALTYPIECESET && defined ROYALTYPIECESET
-FORWARD_MOVE_GENERATOR<FLATTENEDSZ, NON_PLACEMENT_DATATYPE> forward;
-REVERSE_MOVE_GENERATOR<FLATTENEDSZ, NON_PLACEMENT_DATATYPE> reverse;
+#if defined rowSz && defined colSz
+constexpr std::size_t flattenedSz = rowSz * colSz;
+forwardMoveGenerator<flattenedSz, nonPlacementDatatype> forward;
+reverseMoveGenerator<flattenedSz, nonPlacementDatatype> reverse;
 
-HZ_SYM_CHECK hzSymmetryCheck;
-VT_SYM_CHECK vtSymmetryCheck;
+hzSymEvaluator hzSymmetryCheck;
+vtSymEvaluator vtSymmetryCheck;
 
 //invoke retrograde analysis and checkmate generator with paramaters passed
 #ifndef MULTI_NODE
-auto checkmates = generateAllCheckmates<FLATTENEDSZ, NON_PLACEMENT_DATATYPE, N, ROWSZ, COLSZ, CheckmateEvalFn, 
-  HZ_SYM_CHECK, VT_SYM_CHECK, IS_VALID_BOARD_FN>(const ::std::vector<piece_label_t>& noRoyaltyPieceset, 
-    const ::std::vector<piece_label_t>& royaltyPieceset, CheckmateEvalFn eval, 
-    HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, IsValidBoardFn isValidBoardFn={}); 
+auto checkmates = generateAllCheckmates<flattenedSz, nonPlacementDatatype, N, rowSz, colSz, winCondEvaluator, 
+  hzSymEvaluator, vtSymEvaluator, isValidBoardFn>(noRoyaltyPieceset, royaltyPieceset, winCondEvaluator eval, 
+  hzSymEvaluator hzSymFn={}, vtSymEvaluator vSymFn={}, isValidBoardFn isValidBoardFn={}); 
 
-retrograde_analysis<MachineType::SINGLE_NODE, FLATTENEDSZ, NON_PLACEMENT_DATATYPE, N, 
-  ROWSZ, COLSZ, decltype(forward), decltype(reverse), HZ_SYM_CHECK, VT_SYM_CHECK, 
-  IS_VALID_BOARD_FN>(Args&&... args);
+retrograde_analysis<MachineType::SINGLE_NODE, flattenedSz, nonPlacementDatatype, N, 
+  rowSz, colSz, decltype(forward), decltype(reverse), hzSymEvaluator, vtSymEvaluator, 
+  isValidBoardFn>(Args&&... args);
 #else
-retrograde_analysis<MachineType::MULTI_NODE, FLATTENEDSZ, NON_PLACEMENT_DATATYPE, N, 
-  ROWSZ, COLSZ, decltype(forward), decltype(reverse), HZ_SYM_CHECK, VT_SYM_CHECK, 
-  IS_VALID_BOARD_FN>(Args&&... args);
+retrograde_analysis<MachineType::MULTI_NODE, flattenedSz, nonPlacementDatatype, N, 
+  rowSz, colSz, decltype(forward), decltype(reverse), hzSymEvaluator, vtSymEvaluator, 
+  isValidBoardFn>(Args&&... args);
 #endif
 #else
 std::cerr << "ERROR: Invalid configuration file" << std::endl;

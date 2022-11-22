@@ -2,16 +2,13 @@
   "rowSz" : 8,
   "colSz" : 8,
   "N"     : 3,
-  "noRoyaltyPieceset" : ["q"],
-  "royaltyPieceset"   : ["k", "K"],
-  "fullPieceset"      : ["k", "K", "q"],
   "srcDirs" : [
-    "~/Documents/Capstone/ScrappyTB/src/rules/chess",
-    "~/Documents/Capstone/ScrappyTB/src/core",
-    "~/Documents/Capstone/ScrappyTB/src/utils"
+    "src/rules/chess",
+    "src/core",
+    "src/utils"
   ],
   "includeHeaders" : [
-    "~/Documents/Capstone/ScrappyTB/src/rules/chess/interface.h"
+    "src/rules/chess/interface.h"
   ],
   "forwardMoveGenerator" : "ChessGenerateForwardMoves",
   "reverseMoveGenerator" : "ChessGenerateReverseMoves",

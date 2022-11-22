@@ -52,13 +52,16 @@ def parse_json_cc_args(config_dict):
         if key == 'includeHeaders':
             for header in val:
                 cl_args.append('-include ' + header)
-        elif not (val is None):
+        elif not (val is None) and key != 'srcDirs':
             cl_args.append('-D' + key + '=' + str(val)) 
     return cl_args
 
 
 # Main function of this script
 def compile():
+
+    userspecs = read_json_cc_args(filename)
+    userspecargs = parse_json_cc_args(userspecs)
 # ------- First, do the things that are common to all compiled targets ------- #
     print("Platform =",  env['platform'], ("(llvm)" if  env['use_llvm'] else ''))
     # Check our platform specifics
@@ -71,8 +74,10 @@ def compile():
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
     elif env['platform'] == "linux":
-        env.Append(CCFLAGS = ['-fopenmp', '-std=c++2a'])
-        env.Append(LINKFLAGS = ['-fopenmp', '-std=c++2a'])
+        clargs = ['-fopenmp', '-std=c++2a']
+        clargs.extend(userspecargs)
+        env.Append(CCFLAGS = clargs)
+        env.Append(LINKFLAGS = clargs)
         # if env['target'] == 'debug':
         #     env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
         # else:
@@ -93,10 +98,11 @@ def compile():
     #     env.Append(CPPDEFINES=['DEBUG'])
 
     # Change this to choose which variant
-    sources = Glob('src/rules/' + filename + '/*.cpp')
+    sources = []
     # Core source code
-    sources.extend(Glob('src/core/*.cpp'))
-    sources.extend(Glob('src/utils/*.cpp'))
+    srces = userspecs['srcDirs']
+    for src in srces:
+        sources.extend(Glob(src + '/*.cpp')) 
     # Main file
     sources.extend(['src/retrograde_analysis/main.cpp'])
 
