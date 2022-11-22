@@ -93,7 +93,7 @@ def compile():
     #     env.Append(CPPDEFINES=['DEBUG'])
 
     # Change this to choose which variant
-    sources = Glob('src/rules/chess/*.cpp')
+    sources = Glob('src/rules/' + filename + '/*.cpp')
     # Core source code
     sources.extend(Glob('src/core/*.cpp'))
     sources.extend(Glob('src/utils/*.cpp'))
@@ -103,9 +103,6 @@ def compile():
     env.Program(compiled_path + 'scrappytbgen', sources)
 
 if env['platform'] == '':
-    print(filename)
-    print()
-    print(cluster)
     print("\nNo valid target platform selected. Try `scons platform=[platform]` or add a scons.config file.\nType `scons --help` for more parameters.\n")
 else:
     compile()
