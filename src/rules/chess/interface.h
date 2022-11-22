@@ -27,4 +27,9 @@ class ChessBoardPrinter : public BoardPrinter<64, ChessNPD> {
   ::std::string operator()(const ChessBoardState& b);
 };
 
+class ChessValidBoardEvaluator : ValidBoardEvaluator<64, ChessNPD> {
+public:
+  bool operator()(const ChessBoardState& b);
+};
+
 #endif

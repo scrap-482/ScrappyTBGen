@@ -9,6 +9,9 @@
 #include <array>
 #include <memory.h>
 
+// TODO: seems like bad place to put this function
+#define inBounds(coords) ((coords.file >= 0 && coords.file < BOARD_WIDTH && coords.rank >= 0 && coords.rank < BOARD_HEIGHT))
+
 class SlidePMO : public ChessModdablePMO {
     // the increment in each direction, stored as flattened coordinates.
     std::vector<Coords> moveOffsets;
@@ -97,6 +100,7 @@ namespace ChessPMOs {
     const ChessDirRegionMod startOnSecondRank(&isRank2, &isRank7);
     const ChessDirRegionMod startOnFourthRank(&isRank4, &isRank5);
 
+    // TODO: Double jump does not set En Passant Rights, because implementing En Passant is painful and maybe impossible to do efficiency
     const ChessPMOPreModList  pawnDJPreFwdMods = {&startOnSecondRank};
     const ChessPMOPostModList pawnDJPostFwdMods = {&fwdCaptureProhibitedMod};
     const ChessPMOPreModList  pawnDJPreBwdMods = {&startOnFourthRank};

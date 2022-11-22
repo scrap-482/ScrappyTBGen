@@ -1,7 +1,5 @@
 #include "chess_pmo.h"
 
-#define inBounds(coords) ((coords.file >= 0 && coords.file < BOARD_WIDTH && coords.rank >= 0 && coords.rank < BOARD_HEIGHT))
-
 ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> SlidePMO::getModdableMovesWithDisplacement(const ChessBoardState& b, Coords piecePos) const {
     std::vector<ChessBoardState> resultStates;
     // parallel to resultStates, describes the displacement of the moving piece's coords

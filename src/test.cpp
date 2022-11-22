@@ -153,7 +153,17 @@ const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_2_2 = {
   'p' ,'p' ,'\0','\0','\0','\0','p' ,'\0',
   '\0','\0','\0','\0','\0','\0','\0','k' 
 };
-
+/* -------------------- For testing validEvaluator -------------------- */
+const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_3_1 = {
+  'K' ,'n' ,'\0','\0','\0','\0','\0','\0',
+  'n' ,'\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  'n' ,'\0','\0','\0','\0','\0','\0','\0',
+  'R' ,'n' ,'\0','\0','\0','\0','\0','\0',
+  '\0','\0','p' ,'P' ,'\0','\0','\0','k' 
+};
 const ChessBoardState EXAMPLE_BOARD_STATE = {false, EXAMPLE_ARRAY, ChessNPD()};
 const ChessBoardState EXAMPLE_CHECKMATE_STATE = {false, EXAMPLE_ARRAY_2, ChessNPD()};
 const ChessBoardState EXAMPLE_STALEMATE_STATE = {false, EXAMPLE_ARRAY_3, ChessNPD()};
@@ -170,6 +180,8 @@ const ChessBoardState EXAMPLE_REV_CHECK_1 = {false, EXAMPLE_ARRAY_1_1, ChessNPD(
 
 const ChessBoardState EXAMPLE_PAWN_CHECK_1 = {false, EXAMPLE_ARRAY_2_2, ChessNPD()};
 const ChessBoardState EXAMPLE_PAWN_CHECK_2 = {true, EXAMPLE_ARRAY_2_2, ChessNPD()};
+
+const ChessBoardState EXAMPLE_INVALID_1 = {true, EXAMPLE_ARRAY_3_1, ChessNPD()};
 
 
 int main()
@@ -201,14 +213,16 @@ int main()
   auto revMoveGenerator = ChessGenerateReverseMoves();
   auto winCondEvaluator = ChessCheckmateEvaluator();
   auto boardPrinter = ChessBoardPrinter();
+  auto validityEvaluator = ChessValidBoardEvaluator();
 
   std::cout << "=============================================\n Forward Move Gen and Win Condition Testing\n =============================================\n" << std::endl;
-  std::vector<ChessBoardState> statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2};
-  // std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4};
+  // std::vector<ChessBoardState> statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2};
+  std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4, EXAMPLE_INVALID_1};
   for (auto state : statesToTest) {
     std::cout << boardPrinter(state) << std::endl;;
     // std::cout << "In Mate= " << inMate(state) << std::endl;;
     std::cout << "WDL = " << winCondEvaluator(state) << std::endl;;
+    std::cout << "Validity Evaluator: " << validityEvaluator(state) << std::endl;
 
     auto fwdMoves = fwdMoveGenerator(state);
     std::cout << "num forward moves: " << fwdMoves.size() << std::endl;
