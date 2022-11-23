@@ -1,13 +1,10 @@
 #ifndef MULTI_NODE_IMPL_HPP_
 
-#include <tuple>
-#include <bitset>
 #include <cmath>
 #include <cassert>
 #include <iostream>
 #include <cstddef>
 #include <algorithm>
-#include <memory>
 
 #include <mpi.h>
 
@@ -112,53 +109,6 @@ void initialize_comm_structs(void)
     MPI_Type_commit(&MPI_NodeCommData);
   }
 }
-
-// TODO: better scheme as future work.
-// contingent on the location of a single piece on the board. each 
-// process is assigned all positions dependent on position of one piece
-template <::std::size_t FlattenedSz, typename BoardType>
-class KStateSpacePartition
-{
-  piece_label_t m_toTrack;
-  int m_segLength;
-
-public:
-  KStateSpacePartition(const piece_label_t& toTrack, int K)
-    : m_toTrack(toTrack),
-      m_segLength(FlattenedSz / K)
-  {
-    // with this partitioning scheme, cannot have more nodes than max board size.
-    assert(FlattenedSz > K);
-  }
-  
-  // Contingent on tracked piece location 
-  int operator()(const BoardType& b) const
-  {
-    int idx = 0;
-    
-    for (const auto& c : b.m_board)
-    {
-      if (c == m_toTrack)
-        break;
-
-      ++idx;
-    }
-    return idx / m_segLength;
-  }
-
-  auto getRange(int k) const
-  {
-    return ::std::make_tuple(k * m_segLength, 
-        ::std::min((k+1) * m_segLength, static_cast<int>(FlattenedSz)));
-  }
-  
-  inline bool checkInRange(const auto& startBoard, 
-    const auto& currentBoard) const
-  {
-    return (currentBoard[0] - startBoard[0]) < m_segLength; 
-  }
-};
-
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
   typename IsValidBoardFn=null_type>
