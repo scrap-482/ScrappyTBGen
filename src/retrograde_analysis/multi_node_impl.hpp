@@ -250,7 +250,7 @@ inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& 
           MPI_Request* r = new MPI_Request(); // receiver responsible for knowing 
           sendRequests.push_back(r);
           frontierState.G = v;
-          MPI_Isend(&frontierState, 1, MPI_NodeCommData, targetId, 0, // need to send a 1 if it is the last msg
+          MPI_Isend(&frontierState, 1, MPI_NodeCommData, targetId, 0,
             MPI_COMM_WORLD, r);
         }
       }
@@ -282,7 +282,7 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
   bool b_lossFound = false;
   ::std::vector<MPI_Request*> sendRequests;
   int g = v - 1;
-  //for (::std::size_t i = 0; i < winFrontier.size(); ++i)
+
   for (auto& frontierState : winFrontier)
   {
     if (losses.find(frontierState.b) == losses.end() 
@@ -350,7 +350,6 @@ auto do_syncAndFree(int numNodes, short v,
   typename ::std::remove_reference<decltype(frontier)>::type::value_type recvBuf;
   // 1. Process all receives for the current node
   MPI_Status status;
-  // TODO: could this result in a deadlock?
   do 
   {
     MPI_Recv(&recvBuf, 1, MPI_NodeCommData, MPI_ANY_SOURCE,
@@ -375,8 +374,9 @@ auto do_syncAndFree(int numNodes, short v,
         // Decrement loss counter and determine current longest path to a loss
         else
         {
-          --(boardMap[recvBuf.b].C);
-          boardMap[recvBuf.b].M = ::std::max(boardMap[recvBuf.b].M, recvBuf.G);
+          auto& estimateNodeData = boardMap[recvBuf.b];
+          --(estimateNodeData.C);
+          estimateNodeData.M = ::std::max(estimateNodeData.M, recvBuf.G);
         }
       }
       else // from lose iteration
@@ -393,7 +393,7 @@ auto do_syncAndFree(int numNodes, short v,
   } while(finishedNodes != numNodes);
   
   ::std::vector<MPI_Status> statuses(sendRequests.size());
-
+  
   // 2. Wait for requests and free memory. These should be instantly
   // freed
   for (::std::size_t i = 0; i < sendRequests.size(); ++i)
@@ -479,7 +479,6 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
   bool b_mark{};
   ::std::tie(estimateData, loseFrontier) = do_syncAndFree<false>(numProcs, 0, sendRequests,
       wins, losses, ::std::move(estimateData), ::std::move(loseFrontier)); 
-  std::cout << "passed first do sync and free" << std::endl;
 
   winFrontier.clear();
   sendRequests.clear();
@@ -491,7 +490,7 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
         partitioner, ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
         ::std::move(wins), generatePredecessors);
     
-    std::cout << "starting pre-major do sync and free with v=" << v << " " << loseFrontier.size() << std::endl;
+    std::cout << "starting post-major do sync and free with v=" << v << " " << sendRequests.size() << std::endl;
     auto t0 = std::chrono::high_resolution_clock::now();
     ::std::tie(estimateData, winFrontier) = do_syncAndFree<true>(numProcs, v, sendRequests,
         wins, losses, ::std::move(estimateData), ::std::move(winFrontier));
@@ -510,7 +509,7 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
       partitioner, ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
       ::std::move(losses), wins, generatePredecessors, generateSuccessors);
     
-    std::cout << "starting pre-minor do sync and free with v=" << v << " " << winFrontier.size() << std::endl;
+    std::cout << "starting post-minor do sync and free with v=" << v << " " << sendRequests.size() << std::endl;
     t0 = std::chrono::high_resolution_clock::now();
     ::std::tie(estimateData, loseFrontier) = do_syncAndFree<false>(numProcs, v, sendRequests, 
         wins, losses, ::std::move(estimateData), ::std::move(loseFrontier));

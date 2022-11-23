@@ -69,9 +69,11 @@ int main()
 
   std::cout << "node: " << localRank << " checkmates found: " << localCheckmates.size() << std::endl;
   
-  auto [wins, losses /*, dtm*/] = retrogradeAnalysisClusterImpl<64, ChessNPD, N, ROW_SZ, COL_SZ, 
+  auto [wins, losses, dtm] = retrogradeAnalysisClusterImpl<64, ChessNPD, N, ROW_SZ, COL_SZ, 
     decltype(fwdMoveGenerator), decltype(revMoveGenerator)>(partitioner, localRank, globalSz, 
     std::move(localCheckmates), fwdMoveGenerator, revMoveGenerator);
+
+  std::cout << "wins: " << wins.size() << " losses: " << losses.size() << std::endl;
 
   MPI_Finalize();
   return 0;
