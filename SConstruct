@@ -13,6 +13,11 @@ metavar='PATH', help='location of user-defined callbacks')
 env = Environment(PATHNAME = GetOption('pathname'))
 filename = env['PATHNAME']
 
+AddOption('--pieceset', dest='fullpieceset', type='string', nargs=1, action='store', 
+metavar='PIECESET', help='full piece set for specified game')
+env = Environment(FULLPIECESET = GetOption('fullpieceset'))
+fullpieceset = env['FULLPIECESET'].split(",")
+
 cluster = False
 AddOption('--enable_cluster', dest='cluster', type='string', nargs=0, action='store', 
 metavar='CLUSTER', help='whether or not cluster implementation is used')
