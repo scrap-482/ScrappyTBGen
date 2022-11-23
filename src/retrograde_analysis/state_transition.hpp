@@ -39,4 +39,12 @@ class BoardPrinter
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+class ValidBoardEvaluator 
+{
+public:
+  virtual bool
+  operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
+};
+
 #endif 

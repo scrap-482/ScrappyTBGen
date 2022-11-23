@@ -106,7 +106,7 @@ namespace ChessPMOs {
     const size_t queenPMOsCount = 2;
     const ChessPMO* const queenPMOs [queenPMOsCount] = {&orthoSlide, &diagSlide};
     const size_t kingPMOsCount = 1;
-    const ChessPMO* const kingPMOs [kingPMOsCount] =  {&noopMove};//TODO {&kingMove};
+    const ChessPMO* const kingPMOs [kingPMOsCount] = {&kingMove};
 }
 
 // Note: this has to be parallel to PIECE_TYPE_ENUM
