@@ -51,7 +51,7 @@ def parse_json_cc_args(config_dict):
     for key, val in config_dict.items():
         if key == 'includeHeaders':
             for header in val:
-                cl_args.append('-include ' + header)
+                cl_args.append(str('-include' + header))
         elif not (val is None) and key != 'srcDirs':
             cl_args.append('-D' + key + '=' + str(val)) 
     return cl_args
