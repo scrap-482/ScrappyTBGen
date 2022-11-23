@@ -110,64 +110,6 @@ void initialize_comm_structs(void)
   }
 }
 
-template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
-  typename IsValidBoardFn=null_type>
-auto inline MPI_generateConfigCheckmates(int k, const KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>>& partitioner,
-    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>&& losses,
-    const ::std::vector<piece_label_t>& pieceSet,
-    EvalFn checkmateEval,
-    IsValidBoardFn boardValidityEval = {})
-{
-  ::std::array<::std::size_t, FlattenedSz> indexPermutations;
-  auto [startFirstIdx, endFirstIdx] = partitioner.getRange(k);
-  
-  indexPermutations[0] = startFirstIdx;
-  int j = 0;
-  for (::std::size_t i = 1; i < indexPermutations.size(); ++i)
-  {
-    if (j == startFirstIdx)
-      ++j;
-    indexPermutations[i] = j;
-    ++j;
-  }
-
-  auto startBoard = indexPermutations;
-
-  ::std::size_t kPermute = pieceSet.size();
-  bool hasNext = false;
-   
-  // generates [3, ..., kPermute] sets of new checkmate positions.
-  for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
-  {
-    do 
-    {
-      BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
-      for (::std::size_t i = 0; i != kPermute; ++i)
-        currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
-
-      if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
-        if (!boardValidityEval(currentBoard))
-          continue;
-      
-      // checking if black loses (white wins) 
-      if (checkmateEval(currentBoard))
-        losses.insert(currentBoard);
-      
-      currentBoard.m_player = true;
-      
-      // checking if white loses (black wins)
-      if (checkmateEval(currentBoard))
-      {
-        losses.insert(currentBoard);
-      }
-
-      ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
-      hasNext = ::std::next_permutation(indexPermutations.begin(), indexPermutations.end());
-    } while (hasNext && partitioner.checkInRange(startBoard, indexPermutations));
-  }
-  return ::std::move(losses);
-}
-
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
 inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& p, 
