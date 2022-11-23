@@ -8,7 +8,6 @@
 #include <cstddef>
 #include <algorithm>
 #include <memory>
-#include <chrono>
 
 #include <mpi.h>
 
@@ -490,13 +489,8 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
         partitioner, ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
         ::std::move(wins), generatePredecessors);
     
-    std::cout << "starting post-major do sync and free with v=" << v << " " << sendRequests.size() << std::endl;
-    auto t0 = std::chrono::high_resolution_clock::now();
     ::std::tie(estimateData, winFrontier) = do_syncAndFree<true>(numProcs, v, sendRequests,
         wins, losses, ::std::move(estimateData), ::std::move(winFrontier));
-    auto t1 = std::chrono::high_resolution_clock::now();
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
-    std::cout << "sync time: " << elapsed << std::endl;
     
     sendRequests.clear();
     loseFrontier.clear();
@@ -509,13 +503,8 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
       partitioner, ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
       ::std::move(losses), wins, generatePredecessors, generateSuccessors);
     
-    std::cout << "starting post-minor do sync and free with v=" << v << " " << sendRequests.size() << std::endl;
-    t0 = std::chrono::high_resolution_clock::now();
     ::std::tie(estimateData, loseFrontier) = do_syncAndFree<false>(numProcs, v, sendRequests, 
         wins, losses, ::std::move(estimateData), ::std::move(loseFrontier));
-    t1 = std::chrono::high_resolution_clock::now();
-    elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
-    std::cout << "sync time: " << elapsed << std::endl;
 
     sendRequests.clear();
     winFrontier.clear();
