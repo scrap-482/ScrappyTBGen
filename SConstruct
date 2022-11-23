@@ -18,6 +18,14 @@ metavar='PIECESET', help='full piece set for specified game')
 env = Environment(FULLPIECESET = GetOption('fullpieceset'))
 fullpieceset = env['FULLPIECESET'].split(",")
 
+royaltypieceset = []
+noroyaltypieceset = []
+for piece in fullpieceset:
+    if(piece != 'k' and piece != 'K'):
+        noroyaltypieceset.append(piece)
+    else:
+        royaltypieceset.append(piece)
+
 cluster = False
 AddOption('--enable_cluster', dest='cluster', type='string', nargs=0, action='store', 
 metavar='CLUSTER', help='whether or not cluster implementation is used')
@@ -114,6 +122,8 @@ def compile():
     env.Program(compiled_path + 'scrappytbgen', sources)
 
 if env['platform'] == '':
+    print(noroyaltypieceset)
+    print(royaltypieceset)
     print("\nNo valid target platform selected. Try `scons platform=[platform]` or add a scons.config file.\nType `scons --help` for more parameters.\n")
 else:
     compile()
