@@ -94,6 +94,7 @@ const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2,
 const size_t MAN_LIMIT = 5;
 
 /* ------------------------- piece_label_t functions ------------------------ */
+// TODO: move to retrograde or core file
 inline piece_label_t toBlack(piece_label_t letter) {
   return tolower(letter);
 }
@@ -109,6 +110,11 @@ inline bool isWhite(piece_label_t letter) {
 inline PIECE_TYPE_ENUM getTypeEnumFromPieceLabel(piece_label_t letter) {
   return LABEL_T_TO_TYPE_ENUM_MAP.at(toBlack(letter));
 }
+
+/* ----------------------------- PromotionScheme ---------------------------- */
+// definitions.cpp will implement this
+extern PromotionScheme promotionScheme;
+
 /* -------------------------------------------------------------------------- */
 // The number of pieces if we distguish black and white
 const size_t NUM_PIECE_TYPES_COLORED = 2*NUM_PIECE_TYPES;

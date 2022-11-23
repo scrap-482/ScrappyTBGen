@@ -234,7 +234,7 @@ int main()
     }
     std::cout << "--------------------------------------------\n" << std::endl;
   }
-  std::cout << "=============================================\n Reverse Move Gen Testing\n =============================================\n" << std::endl;
+  std::cout << "=============================================\n Reverse Move Gen Testing\n=============================================\n" << std::endl;
 
   statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2};
   // statesToTest = {EXAMPLE_REV_CHECK_1};
@@ -250,5 +250,30 @@ int main()
     }
     std::cout << "--------------------------------------------\n" << std::endl;
   }
+  std::cout << "=============================================\n Promotion Testing\n=============================================\n" << std::endl;
+  std::cout << "p promotions: ";
+  for (auto p : promotionScheme.getPromotions('p')) std::cout << p;
+  std::cout << std::endl;
+
+  std::cout << "p unpromotions: ";
+  for (auto p : promotionScheme.getUnpromotions('p')) std::cout << p;
+  std::cout << std::endl;
+
+  std::cout << "q promotions: ";
+  for (auto p : promotionScheme.getPromotions('q')) std::cout << p;
+  std::cout << std::endl;
+
+  std::cout << "q unpromotions: ";
+  for (auto p : promotionScheme.getUnpromotions('q')) std::cout << p;
+  std::cout << std::endl;
+
+  std::cout << "n promotions: ";
+  for (auto p : promotionScheme.getPromotions('n')) std::cout << p;
+  std::cout << std::endl;
+
+  std::cout << "n unpromotions: ";
+  for (auto p : promotionScheme.getUnpromotions('n')) std::cout << p;
+  std::cout << std::endl;
+
   std::cout << "Done." << std::endl;
 }

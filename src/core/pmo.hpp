@@ -5,6 +5,7 @@
 #include "../utils/utils.h"
 #include "../core/coords_grid.hpp"
 #include "../retrograde_analysis/state.hpp"
+#include "promotion.h"
 
 // Shorthand: 
 // FS = FlattenedSize
