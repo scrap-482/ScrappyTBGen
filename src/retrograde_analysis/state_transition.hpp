@@ -4,6 +4,7 @@
 #define STATE_TRANSITION_HPP_
 
 #include <vector>
+#include <string>
 
 #include "state.hpp"
 
@@ -25,6 +26,21 @@ public:
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class CheckmateEvaluator
+{
+public:
+  virtual bool
+  operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
+};
+
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+class BoardPrinter
+{
+  virtual ::std::string
+  operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
+};
+
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+class ValidBoardEvaluator 
 {
 public:
   virtual bool

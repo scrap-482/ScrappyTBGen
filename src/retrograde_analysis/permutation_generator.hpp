@@ -63,36 +63,42 @@ public:
     ::std::array<::std::size_t, FlattenedSz> indexPermutations;
     ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
 
-    ::std::size_t kPermute = pieceSet.size();
+    //::std::size_t kPermute = pieceSet.size();
     
     // generates kPermute new checkmate positions.
-    // TODO: consider how to store smaller checkmates. Do we keep in storage somewhere?
-    do 
+    // establish a bare minimum
+    for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
     {
-      BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
-      for (::std::size_t i = 0; i != kPermute; ++i)
-        currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
-
-      if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
-        if (!IsValidBoardFn(currentBoard))
-          continue;
-      
-      // checking if black loses (white wins) 
-      if (checkmateEval(currentBoard))
+      do 
       {
-        losses.insert(currentBoard);
-      }
-      
-      currentBoard.m_player.set();
-      
-      // checking if white loses (black wins)
-      if (checkmateEval(currentBoard))
-      {
-        losses.insert(currentBoard);
-      }
+        BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
+        for (::std::size_t i = 0; i != kPermute; ++i)
+          currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
 
-      ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
-    } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
+        if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
+          if (!boardValidityEval(currentBoard))
+          {
+            ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
+            continue;
+          }
+        
+        // checking if black loses (white wins) 
+        if (checkmateEval(currentBoard))
+        {
+          losses.insert(currentBoard);
+        }
+        
+        currentBoard.m_player = true;
+        
+        // checking if white loses (black wins)
+        if (checkmateEval(currentBoard))
+        {
+          losses.insert(currentBoard);
+        }
+
+        ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
+      } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
+    }
   }
   
   // thread safe function for generating permutations exploiting symmetry for 
@@ -106,67 +112,71 @@ public:
     ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
     ::std::size_t mid = indexPermutations[indexPermutations.size() / 2];
 
-    ::std::size_t kPermute = pieceSet.size();
-    
-    do 
+    for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
     {
-      BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
-      for (::std::size_t i = 0; i != kPermute; ++i)
-        currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
-      
-      // TODO: generalize - this works for even row length boards only.
-      // To prune out horizontally mirrored positions, we track the movement 
-      // of a single piece as its position is permuted. Once, we permute this piece for
-      // the upper half of the board, then all horizontal mirrors can be deduced
-      if (m_isHSym && (mid == indexPermutations[0]))
-        break;
-      
-      // TODO: generalize - this works for even column length boards only
-      // To prune out vertically mirrored positions, we limit a single piece's positioning on the
-      // left-hand side of the board. Once we permute for the entire left hand side, then 
-      // the vertical mirros can be deduced.
-      if (m_isVSym && ((indexPermutations[0] % m_colSz) > (m_colSz / 2)))
+      do 
       {
-        auto next_first_idx = indexPermutations[0] + (m_colSz - indexPermutations[0] % m_colSz);
+        BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
+        for (::std::size_t i = 0; i != kPermute; ++i)
+          currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
+        
+        // TODO: generalize - this works for even row length boards only.
+        // To prune out horizontally mirrored positions, we track the movement 
+        // of a single piece as its position is permuted. Once, we permute this piece for
+        // the upper half of the board, then all horizontal mirrors can be deduced
+        if (m_isHSym && (mid == indexPermutations[0]))
+          break;
+        
+        // TODO: generalize - this works for even column length boards only
+        // To prune out vertically mirrored positions, we limit a single piece's positioning on the
+        // left-hand side of the board. Once we permute for the entire left hand side, then 
+        // the vertical mirros can be deduced.
+        if (m_isVSym && ((indexPermutations[0] % m_colSz) > (m_colSz / 2)))
+        {
+          auto next_first_idx = indexPermutations[0] + (m_colSz - indexPermutations[0] % m_colSz);
 
-        auto insert_new = ::std::find_if(indexPermutations.begin(),
-            indexPermutations.end(),
-            [&indexPermutations] (const auto& e) { return e > indexPermutations[0]; });
-        indexPermutations.insert(insert_new, indexPermutations[0]);
-        
-        auto new_first = ::std::find(indexPermutations.begin(),
-            indexPermutations.end(), next_first_idx);
-        
-        // If this occurs, then we are at the end of generation
-        if (new_first == indexPermutations.end() 
-            || insert_new == indexPermutations.end())
-        { 
-          break; 
+          auto insert_new = ::std::find_if(indexPermutations.begin(),
+              indexPermutations.end(),
+              [&indexPermutations] (const auto& e) { return e > indexPermutations[0]; });
+          indexPermutations.insert(insert_new, indexPermutations[0]);
+          
+          auto new_first = ::std::find(indexPermutations.begin(),
+              indexPermutations.end(), next_first_idx);
+          
+          // If this occurs, then we are at the end of generation
+          if (new_first == indexPermutations.end() 
+              || insert_new == indexPermutations.end())
+          { 
+            break; 
+          }
+     
+          indexPermutations[0] = *new_first;
+          indexPermutations.erase(new_first);
         }
-   
-        indexPermutations[0] = *new_first;
-        indexPermutations.erase(new_first);
-      }
 
-      if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
-        if (!IsValidBoardFn(currentBoard))
-          continue;
-      
-      // checking if black loses (white wins)
-      if (checkmateEval(currentBoard))
-      {
-        losses.insert(currentBoard);
-      }
-      
-      currentBoard.m_player.set();
+        if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
+          if (!boardValidityEval(currentBoard))
+          {
+            ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
+            continue;
+          }
+        
+        // checking if black loses (white wins)
+        if (checkmateEval(currentBoard))
+        {
+          losses.insert(currentBoard);
+        }
+        
+        currentBoard.m_player = true;
 
-      if (checkmateEval(currentBoard))
-      {
-        losses.insert(currentBoard);
-      }
+        if (checkmateEval(currentBoard))
+        {
+          losses.insert(currentBoard);
+        }
 
-      ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
-    } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
+        ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
+      } while (::std::next_permutation(indexPermutations.begin(), indexPermutations.end()));
+    }
   }
   
   // makes class a functor that evaluates the permutations 

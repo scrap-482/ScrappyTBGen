@@ -1,3 +1,8 @@
+// NOTE: when using some build flags and not the hardcoded
+// checkmates, this program segfaults (due to 
+// poor implementation of the callbacks). However, this hacky test case
+// will soon be replaced
+
 // Matt's hardcoded validation before rulesets are implemented. 
 // Mess around with this file to observe retrograde analysis' behavior 
 // requires the hardcoding of checkmates.
@@ -196,13 +201,14 @@ public:
 };
 
 // sanity test case QKvk on 4x4 board
+// TODO: integrate mpi checkmate testing
 int main()
 {
   constexpr ::std::size_t numRows = 4;
   constexpr ::std::size_t numCols = 4;
   
-  std::vector<piece_label_t> noRoyaltyPieceset = { 'Q' };
-  std::vector<piece_label_t> royaltyPieceset = { 'k', 'K' };
+  std::vector<piece_label_t> noRoyaltyPieceset = { 'q' };
+  std::vector<piece_label_t> royaltyPieceset = { 'k', 'q', 'K' };
   TestForwardMove<16, null_type> forward;
   TestReverseMove<16, null_type> backward;
   TestCheckmateEvaluator<16, null_type> evaluator;
@@ -211,7 +217,15 @@ int main()
        decltype(evaluator)>(noRoyaltyPieceset, royaltyPieceset, evaluator);
   auto [config, checkmates_0] = checkmates[0];
 
-  auto [wins, losses] = retrogradeAnalysisBaseImpl<16, null_type, 3, 
+  
+#ifdef MULTI_NODE
+  KStateSpacePartition<16, BoardState<16, null_type>> p('k', 4);
+  auto [wins, losses] = retrogradeAnalysisClusterImpl<16, null_type, 3, 
+    4, 4, decltype(forward), decltype(backward)>(p, 2, 16, ::std::move(checkmates_0),
+      forward, backward);
+#else
+  auto [wins, losses, dtm] = retrogradeAnalysisBaseImpl<16, null_type, 3, 
     4, 4, decltype(forward), decltype(backward)>(::std::move(checkmates_0),
       forward, backward);
+#endif
 }

@@ -73,26 +73,23 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
 {
   using board_set_t = ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
         BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
+  ::std::vector<::std::tuple<::std::vector<piece_label_t>, board_set_t>> checkmates;
 
   // Generate state permutations parallelizing over the board configurations
   auto configsToProcess = 
     generateAllConfigs<FlattenedSz, NonPlacementDataType, N, rowSz, colSz, CheckmateEvalFn, HorizontalSymFn, VerticalSymFn, IsValidBoardFn>
     (noRoyaltyPieceset, royaltyPieceset, eval, hzSymFn, vSymFn, isValidBoardFn);
   
-  ::std::vector<::std::tuple<::std::vector<piece_label_t>, board_set_t>> checkmates;
-  checkmates.reserve(configsToProcess.size());
+  for (const auto& c : configsToProcess)
+    checkmates.emplace_back(c, board_set_t{});
+
 #pragma omp parallel for 
   for (::std::size_t i = 0; i < configsToProcess.size(); ++i)
   {
     board_set_t losses;
     PermutationEvaluator<FlattenedSz, NonPlacementDataType, rowSz, colSz, CheckmateEvalFn, 
       HorizontalSymFn, VerticalSymFn, IsValidBoardFn> evaluator(hzSymFn, vSymFn, isValidBoardFn);
-    evaluator(losses, configsToProcess[i], eval);
-
-#pragma omp critical
-    {
-      checkmates.push_back(::std::make_tuple(configsToProcess[i], losses));
-    }
+    evaluator(::std::get<1>(checkmates[i]), configsToProcess[i], eval);
   }
   return checkmates;
 }
@@ -103,13 +100,14 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t
   typename ::std::enable_if<::std::is_base_of<CheckmateEvaluator<FlattenedSz, NonPlacementDataType>, CheckmateEvalFn>::value>::type* = nullptr>
 auto generateConfigCheckmates(const ::std::vector<piece_label_t>& pieceSet, 
     CheckmateEvalFn eval, 
-    HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
-    IsValidBoardFn isValidBoardFn={})
+    IsValidBoardFn isValidBoardFn={},
+    HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}) 
 {
   ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>> losses;
+  
   PermutationEvaluator<FlattenedSz, NonPlacementDataType, rowSz, colSz, CheckmateEvalFn, 
     HorizontalSymFn, VerticalSymFn, IsValidBoardFn> evaluator(hzSymFn, vSymFn, isValidBoardFn);
-  evaluator(losses, pieceSet, eval);
+  evaluator(losses, pieceSet, eval, isValidBoardFn);
   return losses;
 }
 

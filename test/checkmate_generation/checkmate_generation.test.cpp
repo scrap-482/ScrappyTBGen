@@ -66,8 +66,13 @@ int main()
 
   
   auto c = cm_function<64, StandardChessNPD>(rd, m_distribution, m_engine);
+
+#if 0
   auto losses = generateAllCheckmates<64, StandardChessNPD, 4, 8, 8, decltype(c),
        decltype(symFn), decltype(symFn)>(noRoyaltyPieceset, royaltyPieceset, c, symFn, symFn);
+#else
+  auto losses = generateAllCheckmates<64, StandardChessNPD, 3, 8, 8, decltype(c)>(noRoyaltyPieceset, royaltyPieceset, c);
+#endif
   
   int total_cms = 0;
   for (const auto& [config, cm_set] : losses)
