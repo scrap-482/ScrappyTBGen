@@ -7,7 +7,7 @@
 #include "permutation_generator.hpp"
 
 // generate all N-man piece configurations for a given game 
-template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N,
   ::std::size_t rowSz, ::std::size_t colSz, typename CheckmateEvalFn,
   typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn, typename IsValidBoardFn = null_type,
   typename ::std::enable_if<::std::is_base_of<CheckmateEvaluator<FlattenedSz, NonPlacementDataType>, CheckmateEvalFn>::value>::type* = nullptr>

@@ -8,23 +8,10 @@ compiled_path = "./compiled/"
 opts = Variables([], ARGUMENTS)
 
 # Gets the standard flags CC, CCX, etc.
-AddOption('--user_src_dir', dest='pathname', type='string', nargs=1, action='store', 
+AddOption('--config_dir', dest='pathname', type='string', nargs=1, action='store', 
 metavar='PATH', help='location of user-defined callbacks')
 env = Environment(PATHNAME = GetOption('pathname'))
 filename = env['PATHNAME']
-
-AddOption('--pieceset', dest='fullpieceset', type='string', nargs=1, action='store', 
-metavar='PIECESET', help='full piece set for specified game')
-env = Environment(FULLPIECESET = GetOption('fullpieceset'))
-fullpieceset = env['FULLPIECESET'].split(",")
-
-royaltypieceset = []
-noroyaltypieceset = []
-for piece in fullpieceset:
-    if(piece != 'k' and piece != 'K'):
-        noroyaltypieceset.append(piece)
-    else:
-        royaltypieceset.append(piece)
 
 cluster = False
 AddOption('--enable_cluster', dest='cluster', type='string', nargs=0, action='store', 
@@ -62,17 +49,32 @@ def read_json_cc_args(fname):
 def parse_json_cc_args(config_dict):
     cl_args = []
     for key, val in config_dict.items():
-        if key == 'includeHeaders':
+        if key == 'INCLUDE_HEADERS':
             for header in val:
                 cl_args.append(str('-include' + header))
-        elif not (val is None) and key != 'srcDirs':
+        elif key == 'NO_ROYALTY_PIECESET':
+            nonroyalty_pieces = "{"
+            for i, element in enumerate(val):
+                if i != len(val) - 1:
+                    nonroyalty_pieces += "'" + element + "', "
+                else:
+                    nonroyalty_pieces += "'" + element + "'};"
+            cl_args.append('-D' + key + '=' + str(nonroyalty_pieces))
+        elif key == 'ROYALTY_PIECESET':
+            royalty_pieces = "{"
+            for i, element in enumerate(val):
+                if i != len(val) - 1:
+                    royalty_pieces += "'" + element + "', "
+                else:
+                    royalty_pieces += "'" + element + "'};"
+            cl_args.append('-D' + key + '=' + str(royalty_pieces))
+        elif not (val is None) and key != 'SRC_DIRS':
             cl_args.append('-D' + key + '=' + str(val)) 
     return cl_args
 
 
 # Main function of this script
 def compile():
-
     userspecs = read_json_cc_args(filename)
     userspecargs = parse_json_cc_args(userspecs)
 # ------- First, do the things that are common to all compiled targets ------- #
@@ -113,7 +115,7 @@ def compile():
     # Change this to choose which variant
     sources = []
     # Core source code
-    srces = userspecs['srcDirs']
+    srces = userspecs['SRC_DIRS']
     for src in srces:
         sources.extend(Glob(src + '/*.cpp')) 
     # Main file
