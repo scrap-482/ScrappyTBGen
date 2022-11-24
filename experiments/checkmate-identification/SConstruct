@@ -10,6 +10,12 @@ opts = Variables([], ARGUMENTS)
 
 # necessary on hpc systems using modules
 env = Environment(ENV = os.environ)
+cluster = False
+AddOption('--enable_cluster', dest='cluster', type='string', nargs=0, action='store',
+metavar='CLUSTER', help='whether or not cluster implementation is used')
+env = Environment(CLUSTER = GetOption('cluster'))
+if(env['CLUSTER'] != None):
+    cluster = True
 
 # Define our options
 opts.Add(EnumVariable('target', "Compile targets in debug or release mode", 'debug', ['debug', 'release']))
@@ -42,12 +48,18 @@ def compile():
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
     elif env['platform'] == "linux":
-        env['CXX'] = 'g++'
         # env.Append(CCFLAGS = ['-fopenmp', '-std=c++20', '-O3', '-pg'])
         # env.Append(LINKFLAGS = ['-fopenmp', '-std=c++20', '-O3', '-pg'])
-        
-        env.Append(CCFLAGS = ['-fopenmp', '-std=c++20', '-O3'])
-        env.Append(LINKFLAGS = ['-fopenmp', '-std=c++20', '-O3'])
+
+        flags = ['-fopenmp', '-std=c++20', '-O3']
+        if cluster:
+            flags.append('-DMULTI_NODE')
+            env['CXX'] = 'mpic++'
+        else:
+            env['CXX'] = 'g++'
+
+        env.Append(CCFLAGS = flags)
+        env.Append(LINKFLAGS = flags)
 
         # if env['target'] == 'debug':
         #     env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
