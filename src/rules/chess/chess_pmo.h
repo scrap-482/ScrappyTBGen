@@ -9,6 +9,8 @@
 #include <array>
 #include <memory.h>
 
+#define inBounds(coords) ((coords.file >= 0 && coords.file < BOARD_WIDTH && coords.rank >= 0 && coords.rank < BOARD_HEIGHT))
+
 class SlidePMO : public ChessModdablePMO {
     // the increment in each direction, stored as flattened coordinates.
     std::vector<Coords> moveOffsets;
@@ -28,7 +30,7 @@ public:
 
 };
 
-class JumpPMO : public ChessModdablePMO {
+struct JumpPMO : public ChessModdablePMO {
     // the displacement in each direction, stored as flattened coordinates.
     std::vector<Coords> moveOffsets;
 
