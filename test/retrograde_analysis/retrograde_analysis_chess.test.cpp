@@ -60,7 +60,7 @@ int main()
   auto boardPrinter = ChessBoardPrinter();
   auto validityEvaluator = ChessValidBoardEvaluator();
 
-  constexpr ::std::size_t N      = 3;
+  constexpr ::std::size_t N      = 4;
   constexpr ::std::size_t ROW_SZ = 8;
   constexpr ::std::size_t COL_SZ = 8;
   
@@ -68,7 +68,7 @@ int main()
   std::vector<piece_label_t> noRoyaltyPieceset = { 'q' };
   std::vector<piece_label_t> royaltyPieceset = { 'k', 'K' };
 
-  std::vector<piece_label_t> fullPieceset = { 'k', 'K', 'q' };
+  std::vector<piece_label_t> fullPieceset = { 'K', 'k', 'q', 'R'};
   
   //auto checkmates = generateConfigCheckmates<64, ChessNPD, N, ROW_SZ, COL_SZ,
   //     decltype(winCondEvaluator)>(fullPieceset, winCondEvaluator);
