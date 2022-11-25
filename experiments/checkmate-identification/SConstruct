@@ -9,11 +9,13 @@ opts = Variables([], ARGUMENTS)
 # Gets the standard flags CC, CCX, etc.
 
 # necessary on hpc systems using modules
-env = Environment(ENV = os.environ)
+#env = Environment(ENV = os.environ)
+
 cluster = False
 AddOption('--enable_cluster', dest='cluster', type='string', nargs=0, action='store',
 metavar='CLUSTER', help='whether or not cluster implementation is used')
-env = Environment(CLUSTER = GetOption('cluster'))
+env = Environment(ENV = os.environ, CLUSTER = GetOption('cluster'))
+
 if(env['CLUSTER'] != None):
     cluster = True
 

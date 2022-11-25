@@ -83,11 +83,19 @@ int main()
   auto t0 = std::chrono::high_resolution_clock::now();
   localCheckmates = generatePartitionCheckmates<64>(rank, partitioner, 
       std::move(localCheckmates), fullPieceset, winCondEvaluator); 
-  auto t1 = std::chrono::high_resolution_clock::now();
   
+  // wait until everyone is done before logging the time 
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  auto t1 = std::chrono::high_resolution_clock::now();
   auto runtime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-  std::cout << global_sz << "," << runtime << std::endl;
+
+  // after sync, one node should output elapsed time 
+  if (rank == 0)
+    std::cout << global_sz << "," << runtime << std::endl;
+
   MPI_Finalize();
-#endif
+  
+  #endif
   return 0;
 }
