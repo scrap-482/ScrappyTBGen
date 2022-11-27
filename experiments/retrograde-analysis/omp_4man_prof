@@ -1,0 +1,411 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 36.33    624.65   624.65 12414090     0.00     0.00  inCheck(BoardState<64ul, ChessNPD> const&, bool)
+ 18.79    947.83   323.19 32664810     0.00     0.00  SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const
+ 14.54   1197.83   250.00 160928748     0.00     0.00  void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&)
+  9.64   1363.55   165.72 108205480     0.00     0.00  void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> >(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul>&&)
+  5.80   1463.35    99.80 17918347     0.00     0.00  JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const
+  4.21   1535.69    72.34 48040545     0.00     0.00  void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&)
+  3.23   1591.17    55.48        2    27.74   856.33  std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion()
+  2.45   1633.23    42.06 94114515     0.00     0.00  std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::find(BoardState<64ul, ChessNPD> const&)
+  1.31   1655.77    22.54   550620     0.00     0.00  ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&)
+  0.59   1665.97    10.20   208455     0.00     0.00  ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&)
+  0.53   1675.08     9.11   972119     0.00     0.00  countPiecesOnBoard(BoardState<64ul, ChessNPD> const&)
+  0.33   1680.68     5.60 22793881     0.00     0.00  SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.31   1686.05     5.37   559015     0.00     0.00  addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&)
+  0.28   1690.93     4.88   694760     0.00     0.00  inMate(BoardState<64ul, ChessNPD> const&)
+  0.27   1695.55     4.62   289025     0.00     0.00  SlidePMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.23   1699.59     4.04       32     0.13     0.13  std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_rehash(unsigned long, unsigned long const&)
+  0.18   1702.71     3.12                             std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::vector(std::initializer_list<CoordsGrid<int, int, 8ul> >, std::allocator<CoordsGrid<int, int, 8ul> > const&)
+  0.16   1705.46     2.75   242944     0.00     0.00  JumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.14   1707.89     2.43  5816760     0.00     0.00  std::__detail::_Map_base<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true>, true>::operator[](BoardState<64ul, ChessNPD> const&)
+  0.13   1710.18     2.29 11998052     0.00     0.00  JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.11   1712.01     1.83                             std::_Tuple_impl<0ul, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > > >::_Tuple_impl<std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&, void>(std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&)
+  0.09   1713.55     1.54       16     0.10     0.10  std::_Hashtable<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::_M_rehash(unsigned long, unsigned long const&)
+  0.07   1714.71     1.16   267433     0.00     0.00  ChessValidBoardEvaluator::operator()(BoardState<64ul, ChessNPD> const&)
+  0.06   1715.77     1.06                             std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::~_Hashtable()
+  0.05   1716.71     0.95   453478     0.00     0.00  DirectedJumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.04   1717.48     0.77   849828     0.00     0.00  allowedUncapturesByCount(BoardState<64ul, ChessNPD> const&)
+  0.03   1717.96     0.48                             std::_Hashtable<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::~_Hashtable()
+  0.03   1718.42     0.47    29935     0.00     0.00  DirectedJumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.02   1718.75     0.33 26043662     0.00     0.00  std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true>*, unsigned long)
+  0.02   1719.02     0.27                             frame_dummy
+  0.01   1719.23     0.21   601404     0.00     0.00  FwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.01   1719.40     0.18                             allowedUncapturesByPosAndCount(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>)
+  0.01   1719.54     0.14   474237     0.00     0.00  ChessCheckmateEvaluator::operator()(BoardState<64ul, ChessNPD> const&)
+  0.00   1719.59     0.05    36371     0.00     0.00  BwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const
+  0.00   1719.64     0.05                             std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_Hashtable(std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >&&, std::allocator<std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true> >&&, std::integral_constant<bool, true>)
+  0.00   1719.67     0.03                             std::_Tuple_impl<0ul, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > > >::~_Tuple_impl()
+  0.00   1719.68     0.02                             ChessBoardPrinter::operator()[abi:cxx11](BoardState<64ul, ChessNPD> const&)
+  0.00   1719.68     0.00      499     0.00     0.00  std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::reserve(unsigned long)
+  0.00   1719.68     0.00        2     0.00     0.00  _GLOBAL__sub_I__ZNK8SlidePMO32getModdableMovesWithDisplacementERK10BoardStateILm64E8ChessNPDE10CoordsGridIiiLm8EE
+  0.00   1719.68     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z10dlogStreamB5cxx11
+  0.00   1719.68     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN25ChessGenerateForwardMovesclERK10BoardStateILm64E8ChessNPDE
+  0.00   1719.68     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
+  0.00   1719.68     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int) [clone .constprop.0]
+  0.00   1719.68     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int) [clone .constprop.0]
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2021 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.00% of 1719.68 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]     99.7    1.83 1712.66                 std::_Tuple_impl<0ul, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > > >::_Tuple_impl<std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&, void>(std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&) [1]
+               55.48 1657.18       2/2           std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+-----------------------------------------------
+                             46499394             std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+               55.48 1657.18       2/2           std::_Tuple_impl<0ul, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > > >::_Tuple_impl<std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&, void>(std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&) [1]
+[2]     99.6   55.48 1657.18       2+46499394 std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+               22.54  794.42  550620/550620      ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+               10.20  584.17  208455/208455      ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+                0.14  194.08  474237/474237      ChessCheckmateEvaluator::operator()(BoardState<64ul, ChessNPD> const&) [11]
+               42.06    0.00 94114515/94114515     std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::find(BoardState<64ul, ChessNPD> const&) [15]
+                0.33    4.04 26043662/26043662     std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true>*, unsigned long) [21]
+                2.43    1.54 5816760/5816760     std::__detail::_Map_base<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true>, true>::operator[](BoardState<64ul, ChessNPD> const&) [23]
+                1.16    0.00  267433/267433      ChessValidBoardEvaluator::operator()(BoardState<64ul, ChessNPD> const&) [28]
+                0.02    0.03     492/12414090     inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+                0.00    0.00     499/499         std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::reserve(unsigned long) [44]
+                             46499394             std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+-----------------------------------------------
+                0.02    0.03     492/12414090     std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+               73.35  102.69 1457840/12414090     inMate(BoardState<64ul, ChessNPD> const&) [12]
+              230.19  322.23 4574728/12414090     ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+              321.08  449.46 6381030/12414090     ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+[3]     87.2  624.65  874.42 12414090         inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+                5.48  640.23 22308541/22793881     SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [5]
+                2.11  224.24 11060555/11998052     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [9]
+                0.77    1.42  368061/453478      DirectedJumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [25]
+                0.17    0.00  477034/601404      FwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [32]
+-----------------------------------------------
+               22.54  794.42  550620/550620      std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[4]     47.5   22.54  794.42  550620         ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+              321.08  449.46 6381030/12414090     inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+                0.12   12.49  616149/11998052     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [9]
+                0.06    7.40  257792/22793881     SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [5]
+                3.26    0.00 2097395/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+                0.18    0.33   85417/453478      DirectedJumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [25]
+                0.04    0.00  124370/601404      FwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [32]
+-----------------------------------------------
+                0.06    6.53  227548/22793881     inMate(BoardState<64ul, ChessNPD> const&) [12]
+                0.06    7.40  257792/22793881     ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+                5.48  640.23 22308541/22793881     inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+[5]     38.4    5.60  654.16 22793881         SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [5]
+              323.19  330.97 32664810/32664810     SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [6]
+-----------------------------------------------
+              323.19  330.97 32664810/32664810     SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [5]
+[6]     38.0  323.19  330.97 32664810         SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [6]
+              167.30    0.00 107695827/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+              163.67    0.00 106869328/108205480     void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> >(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul>&&) [13]
+-----------------------------------------------
+               10.20  584.17  208455/208455      std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[7]     34.6   10.20  584.17  208455         ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+              230.19  322.23 4574728/12414090     inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+                4.62   12.00  289025/289025      SlidePMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [16]
+                2.75    9.42  242944/242944      JumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [18]
+                1.52    0.00  980740/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+                0.47    0.92   29935/29935       DirectedJumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [27]
+                0.05    0.00   36371/36371       BwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [34]
+-----------------------------------------------
+                0.02    0.00   12414/160928748     addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [17]
+                0.05    0.00   35215/160928748     DirectedJumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [27]
+                0.89    0.00  575481/160928748     DirectedJumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [25]
+                1.44    0.00  930140/160928748     JumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [18]
+                1.52    0.00  980740/160928748     ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+                2.08    0.00 1341586/160928748     SlidePMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [16]
+                3.26    0.00 2097395/160928748     ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+               73.42    0.00 47259950/160928748     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [10]
+              167.30    0.00 107695827/160928748     SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [6]
+[8]     14.5  250.00    0.00 160928748         void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+-----------------------------------------------
+                0.00    0.00      16/11998052     std::map<unsigned char, PIECE_TYPE_ENUM const, std::less<unsigned char>, std::allocator<std::pair<unsigned char const, PIECE_TYPE_ENUM const> > >::~map() [38]
+                0.06    6.51  321332/11998052     inMate(BoardState<64ul, ChessNPD> const&) [12]
+                0.12   12.49  616149/11998052     ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+                2.11  224.24 11060555/11998052     inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+[9]     14.3    2.29  243.25 11998052         JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [9]
+               99.80  143.45 17918347/17918347     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [10]
+-----------------------------------------------
+               99.80  143.45 17918347/17918347     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [9]
+[10]    14.1   99.80  143.45 17918347         JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [10]
+               73.42    0.00 47259950/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+               70.03    0.00 46506919/48040545     void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&) [14]
+-----------------------------------------------
+                0.14  194.08  474237/474237      std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[11]    11.3    0.14  194.08  474237         ChessCheckmateEvaluator::operator()(BoardState<64ul, ChessNPD> const&) [11]
+                4.88  189.20  694760/694760      inMate(BoardState<64ul, ChessNPD> const&) [12]
+-----------------------------------------------
+                4.88  189.20  694760/694760      ChessCheckmateEvaluator::operator()(BoardState<64ul, ChessNPD> const&) [11]
+[12]    11.3    4.88  189.20  694760         inMate(BoardState<64ul, ChessNPD> const&) [12]
+               73.35  102.69 1457840/12414090     inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+                0.06    6.53  227548/22793881     SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [5]
+                0.06    6.51  321332/11998052     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [9]
+-----------------------------------------------
+                2.05    0.00 1336152/108205480     SlidePMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [16]
+              163.67    0.00 106869328/108205480     SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [6]
+[13]     9.6  165.72    0.00 108205480         void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> >(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul>&&) [13]
+-----------------------------------------------
+                0.02    0.00   12128/48040545     addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [17]
+                0.05    0.00   35292/48040545     DirectedJumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [27]
+                0.86    0.00  570258/48040545     DirectedJumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [25]
+                1.38    0.00  915948/48040545     JumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [18]
+               70.03    0.00 46506919/48040545     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [10]
+[14]     4.2   72.34    0.00 48040545         void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&) [14]
+-----------------------------------------------
+               42.06    0.00 94114515/94114515     std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[15]     2.4   42.06    0.00 94114515         std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::find(BoardState<64ul, ChessNPD> const&) [15]
+-----------------------------------------------
+                4.62   12.00  289025/289025      ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+[16]     1.0    4.62   12.00  289025         SlidePMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [16]
+                2.77    5.11  287992/559015      addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [17]
+                2.08    0.00 1341586/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+                2.05    0.00 1336152/108205480     void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> >(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul>&&) [13]
+-----------------------------------------------
+                0.29    0.53   29842/559015      DirectedJumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [27]
+                2.32    4.28  241181/559015      JumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [18]
+                2.77    5.11  287992/559015      SlidePMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [16]
+[17]     0.9    5.37    9.91  559015         addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [17]
+                0.77    9.11  849828/849828      allowedUncapturesByCount(BoardState<64ul, ChessNPD> const&) [19]
+                0.02    0.00   12414/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+                0.02    0.00   12128/48040545     void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&) [14]
+-----------------------------------------------
+                2.75    9.42  242944/242944      ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+[18]     0.7    2.75    9.42  242944         JumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [18]
+                2.32    4.28  241181/559015      addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [17]
+                1.44    0.00  930140/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+                1.38    0.00  915948/48040545     void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&) [14]
+-----------------------------------------------
+                0.77    9.11  849828/849828      addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [17]
+[19]     0.6    0.77    9.11  849828         allowedUncapturesByCount(BoardState<64ul, ChessNPD> const&) [19]
+                9.11    0.00  972119/972119      countPiecesOnBoard(BoardState<64ul, ChessNPD> const&) [20]
+-----------------------------------------------
+                9.11    0.00  972119/972119      allowedUncapturesByCount(BoardState<64ul, ChessNPD> const&) [19]
+[20]     0.5    9.11    0.00  972119         countPiecesOnBoard(BoardState<64ul, ChessNPD> const&) [20]
+-----------------------------------------------
+                0.33    4.04 26043662/26043662     std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[21]     0.3    0.33    4.04 26043662         std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true>*, unsigned long) [21]
+                4.04    0.00      32/32          std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_rehash(unsigned long, unsigned long const&) [22]
+-----------------------------------------------
+                4.04    0.00      32/32          std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true>*, unsigned long) [21]
+[22]     0.2    4.04    0.00      32         std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_rehash(unsigned long, unsigned long const&) [22]
+-----------------------------------------------
+                2.43    1.54 5816760/5816760     std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[23]     0.2    2.43    1.54 5816760         std::__detail::_Map_base<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true>, true>::operator[](BoardState<64ul, ChessNPD> const&) [23]
+                1.54    0.00      16/16          std::_Hashtable<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::_M_rehash(unsigned long, unsigned long const&) [26]
+-----------------------------------------------
+                                                 <spontaneous>
+[24]     0.2    3.12    0.00                 std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::vector(std::initializer_list<CoordsGrid<int, int, 8ul> >, std::allocator<CoordsGrid<int, int, 8ul> > const&) [24]
+-----------------------------------------------
+                0.18    0.33   85417/453478      ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+                0.77    1.42  368061/453478      inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+[25]     0.2    0.95    1.75  453478         DirectedJumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [25]
+                0.89    0.00  575481/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+                0.86    0.00  570258/48040545     void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&) [14]
+-----------------------------------------------
+                1.54    0.00      16/16          std::__detail::_Map_base<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true>, true>::operator[](BoardState<64ul, ChessNPD> const&) [23]
+[26]     0.1    1.54    0.00      16         std::_Hashtable<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::_M_rehash(unsigned long, unsigned long const&) [26]
+-----------------------------------------------
+                0.47    0.92   29935/29935       ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+[27]     0.1    0.47    0.92   29935         DirectedJumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [27]
+                0.29    0.53   29842/559015      addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [17]
+                0.05    0.00   35215/160928748     void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&) [8]
+                0.05    0.00   35292/48040545     void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&) [14]
+-----------------------------------------------
+                1.16    0.00  267433/267433      std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[28]     0.1    1.16    0.00  267433         ChessValidBoardEvaluator::operator()(BoardState<64ul, ChessNPD> const&) [28]
+-----------------------------------------------
+                                                 <spontaneous>
+[29]     0.1    1.06    0.00                 std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::~_Hashtable() [29]
+-----------------------------------------------
+                                                 <spontaneous>
+[30]     0.0    0.48    0.00                 std::_Hashtable<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::~_Hashtable() [30]
+-----------------------------------------------
+                                                 <spontaneous>
+[31]     0.0    0.27    0.00                 frame_dummy [31]
+-----------------------------------------------
+                0.04    0.00  124370/601404      ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [4]
+                0.17    0.00  477034/601404      inCheck(BoardState<64ul, ChessNPD> const&, bool) [3]
+[32]     0.0    0.21    0.00  601404         FwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [32]
+-----------------------------------------------
+                                                 <spontaneous>
+[33]     0.0    0.18    0.00                 allowedUncapturesByPosAndCount(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) [33]
+-----------------------------------------------
+                0.05    0.00   36371/36371       ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [7]
+[34]     0.0    0.05    0.00   36371         BwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [34]
+-----------------------------------------------
+                                                 <spontaneous>
+[35]     0.0    0.05    0.00                 std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_Hashtable(std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >&&, std::allocator<std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true> >&&, std::integral_constant<bool, true>) [35]
+-----------------------------------------------
+                                                 <spontaneous>
+[36]     0.0    0.03    0.00                 std::_Tuple_impl<0ul, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > > >::~_Tuple_impl() [36]
+-----------------------------------------------
+                                                 <spontaneous>
+[37]     0.0    0.02    0.00                 ChessBoardPrinter::operator()[abi:cxx11](BoardState<64ul, ChessNPD> const&) [37]
+-----------------------------------------------
+                                                 <spontaneous>
+[38]     0.0    0.00    0.00                 std::map<unsigned char, PIECE_TYPE_ENUM const, std::less<unsigned char>, std::allocator<std::pair<unsigned char const, PIECE_TYPE_ENUM const> > >::~map() [38]
+                0.00    0.00      16/11998052     JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [9]
+-----------------------------------------------
+                0.00    0.00     499/499         std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion() [2]
+[44]     0.0    0.00    0.00     499         std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::reserve(unsigned long) [44]
+-----------------------------------------------
+                0.00    0.00       2/2           __libc_csu_init [224]
+[45]     0.0    0.00    0.00       2         _GLOBAL__sub_I__ZNK8SlidePMO32getModdableMovesWithDisplacementERK10BoardStateILm64E8ChessNPDE10CoordsGridIiiLm8EE [45]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [224]
+[46]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z10dlogStreamB5cxx11 [46]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [224]
+[47]     0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN25ChessGenerateForwardMovesclERK10BoardStateILm64E8ChessNPDE [47]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [224]
+[48]     0.0    0.00    0.00       1         _GLOBAL__sub_I_main [48]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [224]
+[49]     0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [clone .constprop.0] [49]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [224]
+[50]     0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [clone .constprop.0] [50]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2021 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+  [46] _GLOBAL__sub_I__Z10dlogStreamB5cxx11 [4] ChessGenerateForwardMoves::operator()(BoardState<64ul, ChessNPD> const&) [35] std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_Hashtable(std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >&&, std::allocator<std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true> >&&, std::integral_constant<bool, true>)
+  [47] _GLOBAL__sub_I__ZN25ChessGenerateForwardMovesclERK10BoardStateILm64E8ChessNPDE [7] ChessGenerateReverseMoves::operator()(BoardState<64ul, ChessNPD> const&) [29] std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::~_Hashtable()
+  [45] _GLOBAL__sub_I__ZNK8SlidePMO32getModdableMovesWithDisplacementERK10BoardStateILm64E8ChessNPDE10CoordsGridIiiLm8EE [25] DirectedJumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [26] std::_Hashtable<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::_M_rehash(unsigned long, unsigned long const&)
+  [48] _GLOBAL__sub_I_main    [27] DirectedJumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [30] std::_Hashtable<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true> >::~_Hashtable()
+  [17] addUncaptures(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, std::pair<std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >&) [34] BwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [1] std::_Tuple_impl<0ul, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > > >::_Tuple_impl<std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&, void>(std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >&, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > >&)
+  [20] countPiecesOnBoard(BoardState<64ul, ChessNPD> const&) [32] FwdCaptureDependentPMOPostMod<64ul, ChessNPD, CoordsGrid<int, int, 8ul> >::isProhibited(BoardState<64ul, ChessNPD>&, CoordsGrid<int, int, 8ul>, BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [36] std::_Tuple_impl<0ul, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_set<BoardState<64ul, ChessNPD>, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<BoardState<64ul, ChessNPD> > >, std::unordered_map<BoardState<64ul, ChessNPD>, int, BoardStateHasher<64ul, ChessNPD>, std::equal_to<BoardState<64ul, ChessNPD> >, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> > > >::~_Tuple_impl()
+  [19] allowedUncapturesByCount(BoardState<64ul, ChessNPD> const&) [9] JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [8] void std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::_M_realloc_insert<BoardState<64ul, ChessNPD> const&>(__gnu_cxx::__normal_iterator<BoardState<64ul, ChessNPD>*, std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > > >, BoardState<64ul, ChessNPD> const&)
+  [33] allowedUncapturesByPosAndCount(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) [10] JumpPMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [44] std::vector<BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> > >::reserve(unsigned long)
+  [49] __static_initialization_and_destruction_0(int, int) [clone .constprop.0] [18] JumpPMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [14] void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> const&>(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul> const&)
+  [50] __static_initialization_and_destruction_0(int, int) [clone .constprop.0] [5] SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [13] void std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::_M_realloc_insert<CoordsGrid<int, int, 8ul> >(__gnu_cxx::__normal_iterator<CoordsGrid<int, int, 8ul>*, std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > > >, CoordsGrid<int, int, 8ul>&&)
+  [12] inMate(BoardState<64ul, ChessNPD> const&) [6] SlidePMO::getModdableMovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>, bool) const [24] std::vector<CoordsGrid<int, int, 8ul>, std::allocator<CoordsGrid<int, int, 8ul> > >::vector(std::initializer_list<CoordsGrid<int, int, 8ul> >, std::allocator<CoordsGrid<int, int, 8ul> > const&)
+   [3] inCheck(BoardState<64ul, ChessNPD> const&, bool) [16] SlidePMO::getModdableUnmovesWithDisplacement(BoardState<64ul, ChessNPD> const&, CoordsGrid<int, int, 8ul>) const [2] std::__detail::_Compiler<std::__cxx11::regex_traits<char> >::_M_assertion()
+  [37] ChessBoardPrinter::operator()[abi:cxx11](BoardState<64ul, ChessNPD> const&) [21] std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_insert_unique_node(unsigned long, unsigned long, std::__detail::_Hash_node<BoardState<64ul, ChessNPD>, true>*, unsigned long) [23] std::__detail::_Map_base<BoardState<64ul, ChessNPD>, std::pair<BoardState<64ul, ChessNPD> const, int>, std::allocator<std::pair<BoardState<64ul, ChessNPD> const, int> >, std::__detail::_Select1st, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, false, true>, true>::operator[](BoardState<64ul, ChessNPD> const&)
+  [11] ChessCheckmateEvaluator::operator()(BoardState<64ul, ChessNPD> const&) [15] std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::find(BoardState<64ul, ChessNPD> const&) [31] frame_dummy
+  [28] ChessValidBoardEvaluator::operator()(BoardState<64ul, ChessNPD> const&) [22] std::_Hashtable<BoardState<64ul, ChessNPD>, BoardState<64ul, ChessNPD>, std::allocator<BoardState<64ul, ChessNPD> >, std::__detail::_Identity, std::equal_to<BoardState<64ul, ChessNPD> >, BoardStateHasher<64ul, ChessNPD>, std::__detail::_Mod_range_hashing, std::__detail::_Default_ranged_hash, std::__detail::_Prime_rehash_policy, std::__detail::_Hashtable_traits<true, true, true> >::_M_rehash(unsigned long, unsigned long const&)
