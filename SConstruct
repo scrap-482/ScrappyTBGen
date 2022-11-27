@@ -124,8 +124,6 @@ def compile():
     env.Program(compiled_path + 'scrappytbgen', sources)
 
 if env['platform'] == '':
-    print(noroyaltypieceset)
-    print(royaltypieceset)
     print("\nNo valid target platform selected. Try `scons platform=[platform]` or add a scons.config file.\nType `scons --help` for more parameters.\n")
 else:
     compile()
