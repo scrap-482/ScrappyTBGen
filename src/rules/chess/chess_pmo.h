@@ -57,19 +57,33 @@ public:
     getModdableUnmovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
 
     DirectedJumpPMO(::std::vector<Coords> _moveOffsets) 
-        : moveOffsets(_moveOffsets), obstructOffsets(_moveOffsets.size(), std::vector<Coords>()) { }
+    : moveOffsets(_moveOffsets), obstructOffsets(_moveOffsets.size(), std::vector<Coords>()) { }
 
     DirectedJumpPMO(::std::vector<Coords> _moveOffsets, ::std::vector<std::vector<Coords>> _obstructOffsets) 
-        : moveOffsets(_moveOffsets), obstructOffsets(_obstructOffsets) { }
+    : moveOffsets(_moveOffsets), obstructOffsets(_obstructOffsets) { }
 
     DirectedJumpPMO(::std::vector<Coords> _moveOffsets
         , ChessPMOPreModList preFwdMods, ChessPMOPostModList postFwdMods, ChessPMOPreModList preBwdMods, ChessPMOPostModList postBwdMods) 
-        : moveOffsets(_moveOffsets), ChessModdablePMO(preFwdMods, postFwdMods, preBwdMods, postBwdMods) { }
+    : moveOffsets(_moveOffsets), obstructOffsets(_moveOffsets.size(), std::vector<Coords>())
+        , ChessModdablePMO(preFwdMods, postFwdMods, preBwdMods, postBwdMods) { }
+
+    DirectedJumpPMO(::std::vector<Coords> _moveOffsets
+        , ChessPMOPreModList preFwdMods, ChessPMOPostModList postFwdMods, ChessPMOPreModList preBwdMods, ChessPMOPostModList postBwdMods
+        , ChessPMOPreModList preUnpromotionMods, ChessPMOPostModList postUnpromotionMods) 
+    : moveOffsets(_moveOffsets), obstructOffsets(_moveOffsets.size(), std::vector<Coords>())
+        , ChessModdablePMO(preFwdMods, postFwdMods, preBwdMods, postBwdMods, preUnpromotionMods, postUnpromotionMods) { }
 
     DirectedJumpPMO(::std::vector<Coords> _moveOffsets, ::std::vector<std::vector<Coords>> _obstructOffsets
         , ChessPMOPreModList preFwdMods, ChessPMOPostModList postFwdMods, ChessPMOPreModList preBwdMods, ChessPMOPostModList postBwdMods) 
-        : moveOffsets(_moveOffsets), obstructOffsets(_obstructOffsets)
+    : moveOffsets(_moveOffsets), obstructOffsets(_obstructOffsets)
         , ChessModdablePMO(preFwdMods, postFwdMods, preBwdMods, postBwdMods) { }
+
+    DirectedJumpPMO(::std::vector<Coords> _moveOffsets, ::std::vector<std::vector<Coords>> _obstructOffsets
+        , ChessPMOPreModList preFwdMods, ChessPMOPostModList postFwdMods, ChessPMOPreModList preBwdMods, ChessPMOPostModList postBwdMods
+        , ChessPMOPreModList preUnpromotionMods, ChessPMOPostModList postUnpromotionMods)
+    : moveOffsets(_moveOffsets), obstructOffsets(_obstructOffsets)
+        , ChessModdablePMO(preFwdMods, postFwdMods, preBwdMods, postBwdMods, preUnpromotionMods, postUnpromotionMods) { }
+
 };
 
 namespace ChessPMOs {
@@ -87,18 +101,22 @@ namespace ChessPMOs {
     const auto fwdCaptureProhibitedMod = ChessFwdCaptDepPMO(false);
     const auto bwdCaptureRequiredMod = ChessBwdCaptDepPMO(true);
     const auto bwdCaptureProhibitedMod = ChessBwdCaptDepPMO(false);
+
+    const ChessDirRegionMod startOnSecondRank(&isRank2, &isRank7);
+    const ChessDirRegionMod startOnFourthRank(&isRank4, &isRank5);
+    const ChessDirRegionMod startOnEighthRank(&isRank8, &isRank1);
+
     const ChessPMOPreModList noPreMods;
     const ChessPMOPostModList noPostMods;
+
+    // premods applied to pawn unpromotions
+    const ChessPMOPreModList pawnUnpromotionPreMods = {&startOnEighthRank};
 
     const ChessPMOPostModList pawnForwardPostFwdMods = {&fwdCaptureProhibitedMod};
     const ChessPMOPostModList pawnForwardPostBwdMods = {&bwdCaptureProhibitedMod};
 
     const ChessPMOPostModList pawnAttackPostFwdMods = {&fwdCaptureRequiredMod};
     const ChessPMOPostModList pawnAttackPostBwdMods = {&bwdCaptureRequiredMod};
-
-
-    const ChessDirRegionMod startOnSecondRank(&isRank2, &isRank7);
-    const ChessDirRegionMod startOnFourthRank(&isRank4, &isRank5);
 
     // TODO: Double jump does not set En Passant Rights, because implementing En Passant is painful and maybe impossible to do efficiency
     const ChessPMOPreModList  pawnDJPreFwdMods = {&startOnSecondRank};
@@ -107,11 +125,11 @@ namespace ChessPMOs {
     const ChessPMOPostModList pawnDJPostBwdMods = {&bwdCaptureProhibitedMod};
 
     const auto pawnForward = DirectedJumpPMO(std::vector<Coords>{{0, 1}}
-        , noPreMods, pawnForwardPostFwdMods, noPreMods, pawnForwardPostBwdMods);
+        , noPreMods, pawnForwardPostFwdMods, noPreMods, pawnForwardPostBwdMods, pawnUnpromotionPreMods, noPostMods);
     const auto pawnAttack = DirectedJumpPMO(std::vector<Coords>{{-1, 1}, {1, 1}}
-        , noPreMods, pawnAttackPostFwdMods, noPreMods, pawnAttackPostBwdMods);
+        , noPreMods, pawnAttackPostFwdMods, noPreMods, pawnAttackPostBwdMods, pawnUnpromotionPreMods, noPostMods);
     const auto pawnDouble = DirectedJumpPMO(std::vector<Coords>{{0, 2}}, std::vector<std::vector<Coords>>{{{0, 1}}}
-        , pawnDJPreFwdMods, pawnDJPostFwdMods, pawnDJPreBwdMods, pawnDJPostBwdMods);
+        , pawnDJPreFwdMods, pawnDJPostFwdMods, pawnDJPreBwdMods, pawnDJPostBwdMods, pawnUnpromotionPreMods, noPostMods);
     const auto orthoSlide = SlidePMO(std::vector<Coords>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}});
     const auto diagSlide = SlidePMO(std::vector<Coords>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto knightLeap = DirectedJumpPMO(std::vector<Coords>{
@@ -122,18 +140,18 @@ namespace ChessPMOs {
         {-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto noopMove = DirectedJumpPMO(std::vector<Coords>{});
 
-    const size_t pawnPMOsCount = 1;
-    const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&pawnDouble}; // {&pawnForward, &pawnAttack};
+    const size_t pawnPMOsCount = 3;
+    const ChessPMO* const pawnPMOs [pawnPMOsCount] = {&pawnForward, &pawnAttack, &pawnDouble};
     const size_t rookPMOsCount = 1;
     const ChessPMO* const rookPMOs [rookPMOsCount] = {&orthoSlide};
     const size_t bishopPMOsCount = 1;
     const ChessPMO* const bishopPMOs [bishopPMOsCount] = {&diagSlide};
     const size_t knightPMOsCount = 1;
     const ChessPMO* const knightPMOs [knightPMOsCount] = {&knightLeap};
-    const size_t queenPMOsCount = 2;
-    const ChessPMO* const queenPMOs [queenPMOsCount] = {&orthoSlide, &diagSlide};
+    const size_t queenPMOsCount = 1;
+    const ChessPMO* const queenPMOs [queenPMOsCount] = {&noopMove}; // TODO: unnoop //{&orthoSlide, &diagSlide};
     const size_t kingPMOsCount = 1;
-    const ChessPMO* const kingPMOs [kingPMOsCount] = {&noopMove};
+    const ChessPMO* const kingPMOs [kingPMOsCount] = {&noopMove}; // TODO: unnoop
 }
 
 // Note: this has to be parallel to PIECE_TYPE_ENUM
@@ -162,25 +180,42 @@ std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const Che
 // template function.
 // ForEachPMOFunc is assumed to have the type (std::vector<ChessBoardState> newMoves, const ChessBoardState& b) -> bool // TODO: update description
 // Can generate all PMOs for the player whose turn it is (forPlayerToMove=true) or for the other.
+// WARNING: unpromotions will call actOnPMO for the unpromoted piece's PMO but the promoted piece's position on the board in reverse.
 // TODO: move this functionality into core
 template <typename ForEachPMOFunc>
-void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool forPlayerToMove=true) {
+void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool reverse=false) {
+    const auto noopLambda = [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos, piece_label_t unpromoted, piece_label_t promoted) { return false; };
+    loopAllPMOs<ForEachPMOFunc>(b, actOnPMO, reverse, noopLambda);
+}
+template <typename ForEachPMOFunc, typename ForEachPMOUnpromotionFunc>
+void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool reverse, ForEachPMOUnpromotionFunc actOnUnpromotionPMO) {
     // TODO: consider using a list of the positions of every type of piece, rather than brute-force checking all tiles
     for (size_t flatStartPos = 0; flatStartPos < 64; ++flatStartPos) {
         piece_label_t thisPiece = b.m_board.at(flatStartPos);
         if (isEmpty(thisPiece)) continue;
         // Ignore this piece if it is not for the player-to-move. Invert this result if forPlayerToMove=false.
-        if (isWhite(thisPiece) ^ b.m_player ^ !forPlayerToMove) continue;
+        if (isWhite(thisPiece) ^ b.m_player ^ reverse) continue;
 
         PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
 
         for (size_t i = 0; i < PIECE_TYPE_DATA[type].pmoListSize; ++i) {
             auto pmo = PIECE_TYPE_DATA[type].pmoList[i];
-            // auto newMoves = pmo->getForwards(b, unflatten(flatStartPos)); // TODO: since all chess moves are DisplacementPMOs, consider using this information for speedup.
-
             // Break if function returns false
-            // if (!onMoveFound(newMoves, b)) return;
             if (!actOnPMO(b, pmo, flatStartPos)) return;
+        }
+
+        // Now check for unpromotion PMOs
+        if (reverse) {
+            for (auto unpromotedPlt : promotionScheme.getUnpromotions(thisPiece)) {
+                PIECE_TYPE_ENUM unpromotedType = getTypeEnumFromPieceLabel(unpromotedPlt);
+
+                for (size_t i = 0; i < PIECE_TYPE_DATA[unpromotedType].pmoListSize; ++i) {
+                    // ASSUMPTION: every PMO held by a promotable piece is a PromotablePMO.
+                    auto pmo = (ChessPromotablePMO*) PIECE_TYPE_DATA[unpromotedType].pmoList[i];
+                    // Break if function returns false
+                    if (!actOnUnpromotionPMO(b, pmo, flatStartPos, unpromotedPlt, thisPiece)) return;
+                }
+            }
         }
     }
     return;

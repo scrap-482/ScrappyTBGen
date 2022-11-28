@@ -26,6 +26,7 @@ using Coords = CoordsGrid<int, int, BOARD_WIDTH>;
 using ChessBoardState = BoardState<64, ChessNPD>;
 using ChessPMO = PMO<64, ChessNPD, Coords>;
 using ChessModdablePMO = ModdablePMO<64, ChessNPD, Coords>;
+using ChessPromotablePMO = PromotablePMO<64, ChessNPD, Coords>;
 using ChessPieceType = PieceType<64, ChessNPD, Coords>;
 
 using ChessPMOPreMod = PMOPreMod<64, ChessNPD, Coords>;
