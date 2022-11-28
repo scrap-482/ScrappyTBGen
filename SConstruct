@@ -89,7 +89,7 @@ def compile():
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
     elif env['platform'] == "linux":
-        clargs = ['-fopenmp', '-std=c++2a']
+        clargs = ['-fopenmp', '-std=c++2a', '-fconcepts']
         clargs.extend(userspecargs)
         env.Append(CCFLAGS = clargs)
         env.Append(LINKFLAGS = clargs)
