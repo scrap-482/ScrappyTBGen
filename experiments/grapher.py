@@ -2,10 +2,10 @@ from matplotlib import pyplot as plt
 import pandas as pd
 
 def main():
-    fname = 'checkmate-identification/results/checkmate_omp'
+    fname = 'retrograde-analysis/results/retro_analysis_mpi_3man'
     df = pd.read_csv(fname)
 
-    title = 'OMP 4-man Checkmate Identification Speedup'
+    title = 'MPI 3-man Retrograde Analysis Speedup'
     
     xs = df.iloc[:, 0]
     ys = df.iloc[:, 1]
@@ -21,15 +21,15 @@ def main():
     plt.title(title)
     plt.ylabel('Speedup')
 
-    plt.savefig('checkmate_omp_speedup.png')
+    plt.savefig('retro_analysis_mpi_3man_speedup.png')
     plt.cla()
     
-    title = 'OMP 4-man Checkmate Identification Runtime'
+    title = 'MPI 3-man Retrograde Analysis Runtime'
     plt.plot(xs, ys, '-o')
     plt.title(title)
     plt.ylabel(ylabel)
 
-    plt.savefig('checkmate_omp_runtime.png')
+    plt.savefig('retro_analysis_mpi_3man_runtime.png')
 
 if __name__ == '__main__':
     main()
