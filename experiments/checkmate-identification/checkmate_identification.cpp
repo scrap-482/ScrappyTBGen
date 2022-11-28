@@ -50,7 +50,7 @@ int main()
   auto validityEvaluator = ChessValidBoardEvaluator();
  
   std::vector<piece_label_t> noRoyaltyPieceset = { 'q', 'R' };
-  std::vector<piece_label_t> royaltyPieceset = { 'k', 'K', 'R' };
+  std::vector<piece_label_t> royaltyPieceset = { 'k', 'K' };
 
   std::vector<piece_label_t> fullPieceset = { 'k', 'K', 'q', 'R' };
 
