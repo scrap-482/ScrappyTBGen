@@ -106,21 +106,23 @@ namespace ChessPMOs {
     const ChessDirRegionMod startOnFourthRank(&isRank4, &isRank5);
     const ChessDirRegionMod startOnEighthRank(&isRank8, &isRank1);
 
+    const auto promoteOnEighthRank = ChessPromotionFwdPostMod{&isRank8, &isRank1};
+
     const ChessPMOPreModList noPreMods;
     const ChessPMOPostModList noPostMods;
 
     // premods applied to pawn unpromotions
     const ChessPMOPreModList pawnUnpromotionPreMods = {&startOnEighthRank};
 
-    const ChessPMOPostModList pawnForwardPostFwdMods = {&fwdCaptureProhibitedMod};
+    const ChessPMOPostModList pawnForwardPostFwdMods = {&fwdCaptureProhibitedMod, &promoteOnEighthRank};
     const ChessPMOPostModList pawnForwardPostBwdMods = {&bwdCaptureProhibitedMod};
 
-    const ChessPMOPostModList pawnAttackPostFwdMods = {&fwdCaptureRequiredMod};
+    const ChessPMOPostModList pawnAttackPostFwdMods = {&fwdCaptureRequiredMod, &promoteOnEighthRank};
     const ChessPMOPostModList pawnAttackPostBwdMods = {&bwdCaptureRequiredMod};
 
     // TODO: Double jump does not set En Passant Rights, because implementing En Passant is painful and maybe impossible to do efficiency
     const ChessPMOPreModList  pawnDJPreFwdMods = {&startOnSecondRank};
-    const ChessPMOPostModList pawnDJPostFwdMods = {&fwdCaptureProhibitedMod};
+    const ChessPMOPostModList pawnDJPostFwdMods = {&fwdCaptureProhibitedMod}; // don't include &promoteOnEighthRank because double jump to promotion zone
     const ChessPMOPreModList  pawnDJPreBwdMods = {&startOnFourthRank};
     const ChessPMOPostModList pawnDJPostBwdMods = {&bwdCaptureProhibitedMod};
 

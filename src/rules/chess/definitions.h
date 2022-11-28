@@ -39,6 +39,7 @@ using ChessFwdCaptDepPMO = FwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
 using ChessBwdCaptDepPMO = BwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
 
 using ChessDirRegionMod = DirectedRegionPMOPreMod<64, ChessNPD, Coords>;
+using ChessPromotionFwdPostMod = RegionalForcedSinglePromotionPMOPostMod<64, ChessNPD, Coords>;
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType>

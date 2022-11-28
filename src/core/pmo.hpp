@@ -179,6 +179,69 @@ public:
     }
 };
 
+
+// Abstract class for any PMOPostMod that for each board, replaces it with a (possibly empty) set of modified boards.
+template<::std::size_t FS, typename NPDT, typename CT>
+class Replace1ToManyPMOPostMod : public PMOPostMod<FS, NPDT, CT> {
+public:
+    virtual void operator()(
+            ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>& moves
+            , const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        //TODO: implement if needed
+    };
+};
+
+// Abstract class for any PMOPostMod that modifies each board independently of other boards or adding/removing number of boards.
+template<::std::size_t FS, typename NPDT, typename CT>
+class ModifyEachPMOPostMod : public PMOPostMod<FS, NPDT, CT> {
+public:
+    // Modify moveState and moveDisplacement, given knowledge of prior board b and its starting position piecePos
+    virtual void modify(
+            BoardState<FS, NPDT>& moveState, CT& moveDisplacement
+            , const BoardState<FS, NPDT>& b, CT piecePos) const = 0;
+
+    virtual void operator()(
+            ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>& moves
+            , const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        for (size_t i = 0; i < moves.first.size(); ++i) {
+            BoardState<FS, NPDT> &moveState = moves.first.at(i);
+            CT& moveDisplacement = moves.second.at(i);
+
+            modify(moveState, moveDisplacement, b, piecePos);
+        }
+    };
+};
+
+
+// prohibits moves using only piece color and starting position.
+// Assumes all promotions specified by promotionScheme.
+// TODO: assumes only a single promotion type allowed in promotionScheme. Needs to extend Replace1ToManyPMOPostMod instead to do this. Beward losses in efficiency possible.
+template<::std::size_t FS, typename NPDT, typename CT>
+class RegionalForcedSinglePromotionPMOPostMod : public ModifyEachPMOPostMod<FS, NPDT, CT> {
+private:
+    const RegionEvalPtr<CT> whiteEval;
+    const RegionEvalPtr<CT> blackEval;
+public:
+    // eval function parameters should return true for the zone the piece promotes in 
+    RegionalForcedSinglePromotionPMOPostMod(RegionEvalPtr<CT> _whiteEval, RegionEvalPtr<CT> _blackEval) : whiteEval(_whiteEval), blackEval(_blackEval) { }
+
+    virtual void modify(
+            BoardState<FS, NPDT>& moveState, CT& moveDisplacement
+            , const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        
+        CT endPos = piecePos + moveDisplacement;
+        piece_label_t unpromotedPiece = moveState.m_board.at(endPos.flatten());
+        bool pieceColor = isWhite(unpromotedPiece);
+
+        // if we are in the promotion zone of our color
+        if (pieceColor? (*whiteEval)(endPos) : (*blackEval)(endPos)) {
+            piece_label_t promotedPiece = promotionScheme.getPromotions(unpromotedPiece)[0];
+            // literally just change end position to this piece
+            moveState.m_board.at(endPos.flatten()) = promotedPiece;
+        }
+    }
+};
+
 template<::std::size_t FS, typename NPDT, typename CT>
 class ModdablePMO : public DisplacementPMO<FS, NPDT, CT> {
 public:
