@@ -6,7 +6,6 @@
 
 #include "../../src/rules/chess/interface.h"
 
-// still need to fully figure out what to do here
 void initialize_chess_non_placement(void)
 {
   { // serialize Board State
@@ -64,7 +63,7 @@ int main()
   
   std::unordered_set<BoardState<64, ChessNPD>, BoardStateHasher<64, ChessNPD>> localCheckmates;
 
-  localCheckmates = MPI_generateConfigCheckmates<64>(localRank, partitioner, 
+  localCheckmates = generatePartitionCheckmates<64>(localRank, partitioner, 
       std::move(localCheckmates), fullPieceset, winCondEvaluator); 
 
   std::cout << "node: " << localRank << " checkmates found: " << localCheckmates.size() << std::endl;

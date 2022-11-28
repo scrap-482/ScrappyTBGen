@@ -146,8 +146,14 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
         currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
 
       if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
+      {
         if (!boardValidityEval(currentBoard))
+        {
+          ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
+          hasNext = ::std::next_permutation(indexPermutations.begin(), indexPermutations.end());
           continue;
+        }
+      }
       
       // checking if black loses (white wins) 
       if (checkmateEval(currentBoard))
@@ -188,7 +194,7 @@ auto generateParallelConfigCheckmates(const ::std::vector<piece_label_t>& pieceS
       
       KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner(pieceSet[0], totalThreads);
       localLosses = generatePartitionCheckmates<FlattenedSz, NonPlacementDataType>(threadId, partitioner, 
-          std::move(localLosses), pieceSet, eval);
+          std::move(localLosses), pieceSet, eval, isValidBoardFn);
 #pragma omp critical
       {
         for (const auto& l : localLosses)

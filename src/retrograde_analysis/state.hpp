@@ -66,7 +66,7 @@ public:
       m_segLength(FlattenedSz / K)
   {
     // with this partitioning scheme, cannot have more nodes than max board size.
-    assert(FlattenedSz > K);
+    assert(FlattenedSz >= K);
   }
   
   // Contingent on tracked piece location 
