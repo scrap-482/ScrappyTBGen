@@ -1,0 +1,23 @@
+{
+  "ROW_SZ"   : 8,
+  "COL_SZ"   : 8,
+  "N_MAN"    : 3,
+  "SRC_DIRS" : [
+    "src/rules/chess",
+    "src/core",
+    "src/utils"
+  ],
+  "INCLUDE_HEADERS" : [
+    "src/rules/chess/interface.h"
+  ],
+  "NO_ROYALTY_PIECESET"     : ["p", "P", "r", "R", "n", "N", "b", "B", "q", "Q"],
+  "ROYALTY_PIECESET"        : ["k", "K"],
+  "FORWARD_MOVE_GENERATOR"  : "ChessGenerateForwardMoves",
+  "REVERSE_MOVE_GENERATOR"  : "ChessGenerateReverseMoves",
+  "WIN_COND_EVALUATOR"      : "ChessCheckmateEvaluator",
+  "BOARD_PRINTER"           : "ChessBoardPrinter",
+  "NON_PLACEMENT_DATATYPE"  : "ChessNPD",
+  "IS_VALID_BOARD_FUNCTION" : null,
+  "HZ_SYM_EVALUATOR"        : null,
+  "VT_SYM_EVALUATOR"        : null
+}
