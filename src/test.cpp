@@ -231,9 +231,7 @@ int main()
   auto validityEvaluator = ChessValidBoardEvaluator();
 
   std::cout << "=============================================\n Forward Move Gen and Win Condition Testing\n =============================================\n" << std::endl;
-  // std::vector<ChessBoardState> statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2};
-  std::vector<ChessBoardState> statesToTest = {EXAMPLE_PROMOTION_1, EXAMPLE_PROMOTION_2};
-  // std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4, EXAMPLE_INVALID_1};
+  std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4, EXAMPLE_INVALID_1, EXAMPLE_PROMOTION_1, EXAMPLE_PROMOTION_2};
   for (auto state : statesToTest) {
     std::cout << boardPrinter(state) << std::endl;;
     // std::cout << "In Mate= " << inMate(state) << std::endl;;
@@ -252,9 +250,7 @@ int main()
   }
   std::cout << "=============================================\n Reverse Move Gen Testing\n=============================================\n" << std::endl;
 
-  // statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2};
-  statesToTest = {EXAMPLE_PROMOTION_1, EXAMPLE_PROMOTION_2};
-  // statesToTest = {EXAMPLE_REV_CHECK_1};
+  statesToTest = {EXAMPLE_PAWN_CHECK_1, EXAMPLE_PAWN_CHECK_2, EXAMPLE_PROMOTION_1, EXAMPLE_PROMOTION_2, EXAMPLE_REV_CHECK_1};
   for (auto state : statesToTest) {
     std::cout << boardPrinter(state) << std::endl;;
     auto revMoves = revMoveGenerator(state);

@@ -106,6 +106,7 @@ namespace ChessPMOs {
     const ChessDirRegionMod startOnFourthRank(&isRank4, &isRank5);
     const ChessDirRegionMod startOnEighthRank(&isRank8, &isRank1);
 
+    // Note: this only handles promotion of forward moves.
     const auto promoteOnEighthRank = ChessPromotionFwdPostMod{&isRank8, &isRank1};
 
     const ChessPMOPreModList noPreMods;
@@ -150,10 +151,10 @@ namespace ChessPMOs {
     const ChessPMO* const bishopPMOs [bishopPMOsCount] = {&diagSlide};
     const size_t knightPMOsCount = 1;
     const ChessPMO* const knightPMOs [knightPMOsCount] = {&knightLeap};
-    const size_t queenPMOsCount = 1;
-    const ChessPMO* const queenPMOs [queenPMOsCount] = {&noopMove}; // TODO: unnoop //{&orthoSlide, &diagSlide};
+    const size_t queenPMOsCount = 2;
+    const ChessPMO* const queenPMOs [queenPMOsCount] = {&orthoSlide, &diagSlide};
     const size_t kingPMOsCount = 1;
-    const ChessPMO* const kingPMOs [kingPMOsCount] = {&noopMove}; // TODO: unnoop
+    const ChessPMO* const kingPMOs [kingPMOsCount] = {&kingMove};
 }
 
 // Note: this has to be parallel to PIECE_TYPE_ENUM
@@ -180,9 +181,13 @@ std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const Che
 
 // Looping over all PMOs is common functionality, but what to do with them varies; as such, this is implemented as a 
 // template function.
-// ForEachPMOFunc is assumed to have the type (std::vector<ChessBoardState> newMoves, const ChessBoardState& b) -> bool // TODO: update description
+// actOnPMO will act on every move (except unpromotions), while actOnUnpromotionPMO acts only on unpromotions.
+// Set reverse=true to flip the color of who we are generating moves for (which is needed for all backwards moves).
+// ForEachPMOFunc is assumed to have the type:
+//     (std::vector<ChessBoardState> newMoves, const ChessBoardState& b) -> bool
+// ForEachPMOUnpromotionFunc is assumed to have the type:
+//     (std::vector<ChessBoardState> newMoves, const ChessBoardState& b, piece_label_t unpromotedPlt, piece_label_t thisPiece) -> bool
 // Can generate all PMOs for the player whose turn it is (forPlayerToMove=true) or for the other.
-// WARNING: unpromotions will call actOnPMO for the unpromoted piece's PMO but the promoted piece's position on the board in reverse.
 // TODO: move this functionality into core
 template <typename ForEachPMOFunc>
 void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool reverse=false) {
