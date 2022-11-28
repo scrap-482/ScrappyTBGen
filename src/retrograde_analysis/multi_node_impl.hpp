@@ -448,21 +448,4 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
   return ::std::make_tuple(wins, losses, estimateData);
 }
 
-// TODO: finish implementing this wrapper 
-template<typename... Args>
-auto retrogradeAnalysisClusterInvoker(Args&&... args)
-{
-  // 1. initialization
-  MPI_Init(NULL, NULL);
-
-  // number of active processes
-  int globalSz = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &globalSz);
-  
-  KStateSpacePartition<64, null_type>
-  retrogradeAnalysisClusterImpl(::std::forward<Args>(args)...);
-
-  MPI_Finalize();
-}
-
 #endif

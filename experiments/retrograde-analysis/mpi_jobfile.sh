@@ -18,8 +18,7 @@
 #SBATCH --exclusive 
 ### Display some diagnostic information
 
-## mpirun -np 64 ./compiled/scrappytbgen >> results/retro_analysis_mpi_4man
-mpirun -np 32 ./compiled/scrappytbgen
+mpirun -np 64 ./compiled/scrappytbgen >> results/retro_analysis_mpi_3man
 echo '=====================JOB DIAGNOTICS========================'
 date
 echo -n 'This machine is ';hostname
