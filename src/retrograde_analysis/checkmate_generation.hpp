@@ -142,6 +142,8 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
     do 
     {
       BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
+      currentBoard.m_player = false;
+
       for (::std::size_t i = 0; i != kPermute; ++i)
         currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
 
