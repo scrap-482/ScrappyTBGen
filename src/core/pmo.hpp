@@ -5,6 +5,7 @@
 #include "../utils/utils.h"
 #include "../core/coords_grid.hpp"
 #include "../retrograde_analysis/state.hpp"
+#include "promotion.h"
 
 // Shorthand: 
 // FS = FlattenedSize
@@ -25,9 +26,19 @@ public:
 
 /* -------- Below are some PMO templates that may be useful extending ------- */
 
+// Guarantees getUnpromotions is implemented.
+template<::std::size_t FS, typename NPDT, typename CT>
+class PromotablePMO : public PMO<FS, NPDT, CT> {
+public:
+    // The same as getReverses, but exclusively used for unpromotions.
+    // unpromotedLabel is the type we are unpromoting to, promotedLabel is the type we are unpromoting from.
+    virtual ::std::vector<BoardState<FS, NPDT>> 
+    getUnpromotions(const BoardState<FS, NPDT>& b, CT piecePos, piece_label_t unpromotedLabel, piece_label_t promotedLabel) const = 0;
+};
+
 // Any move that takes a piece and moves it somewhere else. Exposes displacement of moves to make complex move implementation easier.
 template<::std::size_t FS, typename NPDT, typename CT>
-class DisplacementPMO : public PMO<FS, NPDT, CT> {
+class DisplacementPMO : public PromotablePMO<FS, NPDT, CT> {
 public:
     // takes a board state and the piece's current position and returns a list of new possible board states 
     // AND a parallel vector of the displacements of the moving piece 
@@ -48,11 +59,30 @@ public:
     getReverses(const BoardState<FS, NPDT>& b, CT piecePos) const override {
         return getReversesWithDisplacement(b, piecePos).first;
     };
+
+    virtual ::std::vector<BoardState<FS, NPDT>> 
+    getUnpromotions(const BoardState<FS, NPDT>& b, CT piecePos, piece_label_t unpromotedLabel, piece_label_t promotedLabel) const override {
+        return getUnpromotionsWithDisplacement(b, piecePos, unpromotedLabel, promotedLabel).first;
+    }
+
+    virtual ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>
+    getUnpromotionsWithDisplacement(const BoardState<FS, NPDT>& b, CT piecePos, piece_label_t unpromotedLabel, piece_label_t promotedLabel) const {
+        auto moves = getReversesWithDisplacement(b, piecePos);
+        for (size_t i = 0; i < moves.first.size(); ++i) {
+            BoardState<FS, NPDT> &moveState = moves.first.at(i);
+            CT moveDisplacement = moves.second.at(i);
+
+            // just set the end of each unmove to be the unpromoted piece
+            moveState.m_board.at((piecePos + moveDisplacement).flatten()) = unpromotedLabel;
+        }
+        return moves;
+    };
 };
 
 template<::std::size_t FS, typename NPDT, typename CT>
 class PMOPreMod {
 public:
+    // Return false if we should reject this PMO; return true if it passes this test (may still fail others).
     virtual bool operator()(const BoardState<FS, NPDT>& b, CT piecePos) const = 0;
 };
 
@@ -131,6 +161,86 @@ public:
     };
 };
 
+template<typename CT>
+using RegionEvalPtr = bool(*)(CT piecePos);
+
+// prohibits moves using only piece color and starting position.
+template<::std::size_t FS, typename NPDT, typename CT>
+class DirectedRegionPMOPreMod : public PMOPreMod<FS, NPDT, CT> {
+private:
+    const RegionEvalPtr<CT> whiteEval;
+    const RegionEvalPtr<CT> blackEval;
+public:
+    DirectedRegionPMOPreMod(RegionEvalPtr<CT> _whiteEval, RegionEvalPtr<CT> _blackEval) : whiteEval(_whiteEval), blackEval(_blackEval) { }
+
+    virtual bool operator()(const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        bool pieceColor = isWhite(b.m_board.at(piecePos.flatten()));
+        return (pieceColor? (*whiteEval)(piecePos) : (*blackEval)(piecePos));
+    }
+};
+
+
+// Abstract class for any PMOPostMod that for each board, replaces it with a (possibly empty) set of modified boards.
+template<::std::size_t FS, typename NPDT, typename CT>
+class Replace1ToManyPMOPostMod : public PMOPostMod<FS, NPDT, CT> {
+public:
+    virtual void operator()(
+            ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>& moves
+            , const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        //TODO: implement if needed
+    };
+};
+
+// Abstract class for any PMOPostMod that modifies each board independently of other boards or adding/removing number of boards.
+template<::std::size_t FS, typename NPDT, typename CT>
+class ModifyEachPMOPostMod : public PMOPostMod<FS, NPDT, CT> {
+public:
+    // Modify moveState and moveDisplacement, given knowledge of prior board b and its starting position piecePos
+    virtual void modify(
+            BoardState<FS, NPDT>& moveState, CT& moveDisplacement
+            , const BoardState<FS, NPDT>& b, CT piecePos) const = 0;
+
+    virtual void operator()(
+            ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>& moves
+            , const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        for (size_t i = 0; i < moves.first.size(); ++i) {
+            BoardState<FS, NPDT> &moveState = moves.first.at(i);
+            CT& moveDisplacement = moves.second.at(i);
+
+            modify(moveState, moveDisplacement, b, piecePos);
+        }
+    };
+};
+
+
+// prohibits moves using only piece color and starting position.
+// Assumes all promotions specified by promotionScheme.
+// TODO: assumes only a single promotion type allowed in promotionScheme. Needs to extend Replace1ToManyPMOPostMod instead to do this. Beward losses in efficiency possible.
+template<::std::size_t FS, typename NPDT, typename CT>
+class RegionalForcedSinglePromotionPMOPostMod : public ModifyEachPMOPostMod<FS, NPDT, CT> {
+private:
+    const RegionEvalPtr<CT> whiteEval;
+    const RegionEvalPtr<CT> blackEval;
+public:
+    // eval function parameters should return true for the zone the piece promotes in 
+    RegionalForcedSinglePromotionPMOPostMod(RegionEvalPtr<CT> _whiteEval, RegionEvalPtr<CT> _blackEval) : whiteEval(_whiteEval), blackEval(_blackEval) { }
+
+    virtual void modify(
+            BoardState<FS, NPDT>& moveState, CT& moveDisplacement
+            , const BoardState<FS, NPDT>& b, CT piecePos) const override {
+        
+        CT endPos = piecePos + moveDisplacement;
+        piece_label_t unpromotedPiece = moveState.m_board.at(endPos.flatten());
+        bool pieceColor = isWhite(unpromotedPiece);
+
+        // if we are in the promotion zone of our color
+        if (pieceColor? (*whiteEval)(endPos) : (*blackEval)(endPos)) {
+            piece_label_t promotedPiece = promotionScheme.getPromotions(unpromotedPiece)[0];
+            // literally just change end position to this piece
+            moveState.m_board.at(endPos.flatten()) = promotedPiece;
+        }
+    }
+};
 
 template<::std::size_t FS, typename NPDT, typename CT>
 class ModdablePMO : public DisplacementPMO<FS, NPDT, CT> {
@@ -181,6 +291,33 @@ public:
         return moves;
     }
 
+    virtual ::std::vector<BoardState<FS, NPDT>> 
+    getUnpromotions(const BoardState<FS, NPDT>& b, CT piecePos, piece_label_t unpromotedLabel, piece_label_t promotedLabel) const override {
+        return getUnpromotionsWithDisplacement(b, piecePos, unpromotedLabel, promotedLabel).first;
+    }
+
+    virtual ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>
+    getUnpromotionsWithDisplacement(const BoardState<FS, NPDT>& b, CT piecePos, piece_label_t unpromotedLabel, piece_label_t promotedLabel) const override {
+
+        // prune illegal moves based on these starting conditions
+        for (const auto pre : preUnpromotionMods) {
+            if (!(*pre)(b, piecePos)) {
+                // return empty set
+                return ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>();
+            }
+        }
+        // main move functionality specified by subclasses.
+        auto moves = DisplacementPMO<FS, NPDT, CT>::getUnpromotionsWithDisplacement(b, piecePos, unpromotedLabel, promotedLabel);
+
+        // each postFwdMod modifies moves set in-place
+        for (const auto post : postUnpromotionMods) {
+            (*post)(moves, b, piecePos);
+        }
+        return moves;
+    };
+
+    ModdablePMO() { }
+
     ModdablePMO(
         std::vector<const PMOPreMod  <FS, NPDT, CT>*> _preFwdMods,
         std::vector<const PMOPostMod <FS, NPDT, CT>*> _postFwdMods,
@@ -188,15 +325,24 @@ public:
         std::vector<const PMOPostMod <FS, NPDT, CT>*> _postBwdMods
     ) : preFwdMods(_preFwdMods), postFwdMods(_postFwdMods), preBwdMods(_preBwdMods), postBwdMods(_postBwdMods) { }
 
-    ModdablePMO() { }
+    ModdablePMO(
+        std::vector<const PMOPreMod  <FS, NPDT, CT>*> _preFwdMods,
+        std::vector<const PMOPostMod <FS, NPDT, CT>*> _postFwdMods,
+        std::vector<const PMOPreMod  <FS, NPDT, CT>*> _preBwdMods,
+        std::vector<const PMOPostMod <FS, NPDT, CT>*> _postBwdMods,
+        std::vector<const PMOPreMod  <FS, NPDT, CT>*> _preUnpromotionMods,
+        std::vector<const PMOPostMod <FS, NPDT, CT>*> _postUnpromotionMods
+    ) : preFwdMods(_preFwdMods), postFwdMods(_postFwdMods), preBwdMods(_preBwdMods), postBwdMods(_postBwdMods), preUnpromotionMods(_preUnpromotionMods), postUnpromotionMods(_postUnpromotionMods) { }
 
 private:
-    // TODO: should these be made constant? and if so, do we need a different data type than vector?
     const std::vector<const PMOPreMod <FS, NPDT, CT>*> preFwdMods;
     const std::vector<const PMOPostMod<FS, NPDT, CT>*> postFwdMods;
     const std::vector<const PMOPreMod <FS, NPDT, CT>*> preBwdMods;
     const std::vector<const PMOPostMod<FS, NPDT, CT>*> postBwdMods;
+    // Note: this is called before preBwdMods. Give this vector only premods unique to unpromotions
+    const std::vector<const PMOPreMod <FS, NPDT, CT>*> preUnpromotionMods;
+    // Note: this is called after postBwdMods. Give this vector only postmods unique to unpromotions. Do not need to specify the piece change as a postmod, already handled.
+    const std::vector<const PMOPostMod<FS, NPDT, CT>*> postUnpromotionMods;
 };
-// TODO: generalize chess classes to interfaces that can be put here
 
 #endif

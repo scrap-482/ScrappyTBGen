@@ -26,6 +26,7 @@ using Coords = CoordsGrid<int, int, BOARD_WIDTH>;
 using ChessBoardState = BoardState<64, ChessNPD>;
 using ChessPMO = PMO<64, ChessNPD, Coords>;
 using ChessModdablePMO = ModdablePMO<64, ChessNPD, Coords>;
+using ChessPromotablePMO = PromotablePMO<64, ChessNPD, Coords>;
 using ChessPieceType = PieceType<64, ChessNPD, Coords>;
 
 using ChessPMOPreMod = PMOPreMod<64, ChessNPD, Coords>;
@@ -36,6 +37,9 @@ using ChessPMOPostModList = std::vector<const PMOPostMod<64, ChessNPD, Coords>*>
 // TODO: this is an ugly syntax, is there a better way?
 using ChessFwdCaptDepPMO = FwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
 using ChessBwdCaptDepPMO = BwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
+
+using ChessDirRegionMod = DirectedRegionPMOPreMod<64, ChessNPD, Coords>;
+using ChessPromotionFwdPostMod = RegionalForcedSinglePromotionPMOPostMod<64, ChessNPD, Coords>;
 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType>
@@ -92,6 +96,7 @@ const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2,
 const size_t MAN_LIMIT = 3;
 
 /* ------------------------- piece_label_t functions ------------------------ */
+// TODO: move to retrograde or core file
 inline piece_label_t toBlack(piece_label_t letter) {
   return tolower(letter);
 }
@@ -107,6 +112,11 @@ inline bool isWhite(piece_label_t letter) {
 inline PIECE_TYPE_ENUM getTypeEnumFromPieceLabel(piece_label_t letter) {
   return LABEL_T_TO_TYPE_ENUM_MAP.at(toBlack(letter));
 }
+
+/* ----------------------------- PromotionScheme ---------------------------- */
+// definitions.cpp will implement this
+extern PromotionScheme promotionScheme;
+
 /* -------------------------------------------------------------------------- */
 // The number of pieces if we distguish black and white
 const size_t NUM_PIECE_TYPES_COLORED = 2*NUM_PIECE_TYPES;
