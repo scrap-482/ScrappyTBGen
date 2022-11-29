@@ -23,7 +23,7 @@
 auto readClArgs(int argc, char* argv[], 
   const std::vector<piece_label_t>& royaltyPieceset)
 {
-  if (argc == 0)
+  if (argc == 1)
   {
     std::cerr << "ERROR: Please enter a pieceset confiuration" << std::endl;
     assert(false);
