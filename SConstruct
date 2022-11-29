@@ -98,6 +98,7 @@ def compile():
         sources.extend(Glob(src + '/*.cpp')) 
     # Main file
     sources.extend(['src/retrograde_analysis/main.cpp'])
+    # sources.extend(['src/test.cpp'])
 
     env.Program(compiled_path + 'scrappytbgen', sources)
 

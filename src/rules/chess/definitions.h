@@ -19,8 +19,8 @@ struct ChessNPD {
 };
 
 // Since this is a rectangular board
-const size_t BOARD_WIDTH = 8;
-const size_t BOARD_HEIGHT = 8;
+const size_t BOARD_WIDTH = ROW_SZ;
+const size_t BOARD_HEIGHT = COL_SZ;
 using Coords = CoordsGrid<int, int, BOARD_WIDTH>;
 
 using ChessBoardState = BoardState<64, ChessNPD>;
@@ -93,7 +93,7 @@ const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2,
 
 // inclusive limit of number of total pieces on board, e.g. 5-man tablebase
 // TODO: we can probably take this in from the command line.
-const size_t MAN_LIMIT = 3;
+const size_t MAN_LIMIT = N_MAN;
 
 /* ------------------------- piece_label_t functions ------------------------ */
 // TODO: move to retrograde or core file
