@@ -40,6 +40,10 @@ if env['use_llvm']:
 
 # loads the json from the given configuration file
 def read_json_cc_args(fname):
+    if fname is None:
+        print("ERROR: Please enter the path to your config directory.")
+        quit()
+
     with open(fname) as f:
         load_dict = json.load(f)
     return load_dict
@@ -89,7 +93,7 @@ def compile():
             env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
     elif env['platform'] == "linux":
-        clargs = ['-fopenmp', '-std=c++2a', '-fconcepts']
+        clargs = ['-fopenmp', '-std=c++20', '-O3']
         clargs.extend(userspecargs)
         env.Append(CCFLAGS = clargs)
         env.Append(LINKFLAGS = clargs)
