@@ -22,9 +22,7 @@ if(env['CLUSTER'] != None):
 
 
 # Define our options
-opts.Add(EnumVariable('target', "Compile targets in debug or release mode", 'debug', ['debug', 'release']))
-opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'linux', 'osx']))
-opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
+opts.Add(BoolVariable('use2a', "Use C++2a instead of C++20", 'no'))
 
 # Updates the environment with the option variables.
 opts.Update(env)
@@ -33,16 +31,11 @@ opts.Update(env)
 Help("\nScrappyTBGen Compiler Options:\n---------------------------")
 Help(opts.GenerateHelpText(env))
 
-# Process some arguments
-if env['use_llvm']:
-    env['CC'] = 'clang'
-    env['CXX'] = 'clang++'
-
-# loads the json from the given configuration file
+# loads the json from the given configuration file. Returns false if it failed.
 def read_json_cc_args(fname):
     if fname is None:
         print("ERROR: Please enter the path to your config directory.")
-        quit()
+        return False
 
     with open(fname) as f:
         load_dict = json.load(f)
@@ -80,41 +73,22 @@ def parse_json_cc_args(config_dict):
 # Main function of this script
 def compile():
     userspecs = read_json_cc_args(filename)
+    if not userspecs:
+        print("\nNo config specified. Try `scons --config_dir=[path/to/config.json]`\nType `scons --help` for more parameters.\n")
+        return False
+
     userspecargs = parse_json_cc_args(userspecs)
 # ------- First, do the things that are common to all compiled targets ------- #
-    print("Platform =",  env['platform'], ("(llvm)" if  env['use_llvm'] else ''))
-    # Check our platform specifics
-    if env['platform'] == "osx":
-        if env['target'] == 'debug':
-            env.Append(CCFLAGS = ['-g','-O2', '-arch', 'x86_64', '-std=c++17'])
-            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
-        else:
-            env.Append(CCFLAGS = ['-g','-O3', '-arch', 'x86_64', '-std=c++17'])
-            env.Append(LINKFLAGS = ['-arch', 'x86_64'])
 
-    elif env['platform'] == "linux":
-        clargs = ['-fopenmp', '-std=c++20', '-O3']
-        clargs.extend(userspecargs)
-        env.Append(CCFLAGS = clargs)
-        env.Append(LINKFLAGS = clargs)
-        # if env['target'] == 'debug':
-        #     env.Append(CCFLAGS = ['-fPIC', '-g3','-Og', '-std=c++17'])
-        # else:
-        #     env.Append(CCFLAGS = ['-fPIC', '-g','-O3', '-std=c++17'])
+    clargs = ['-fopenmp', '-O3']
+    if env['use2a']:
+        clargs.extend(['-std=c++2a', '-fconcepts'])
+    else:
+        clargs.extend(['-std=c++20'])
 
-    elif env['platform'] == "windows":
-        # This makes sure to keep the session environment variables on windows,
-        # that way you can run scons in a vs 2017 prompt and it will find all the required tools
-        env.Append(ENV = os.environ)
-
-        env.Append(CCFLAGS = ['-DWIN32', '-D_WIN32', '-D_WINDOWS', '-W3', '-GR', '-D_CRT_SECURE_NO_WARNINGS'])
-        if env['target'] == 'debug':
-            env.Append(CCFLAGS = ['-EHsc', '-D_DEBUG', '-MDd'])
-        else:
-            env.Append(CCFLAGS = ['-O2', '-EHsc', '-DNDEBUG', '-MD'])
-
-    # if env['target'] == 'debug':
-    #     env.Append(CPPDEFINES=['DEBUG'])
+    clargs.extend(userspecargs)
+    env.Append(CCFLAGS = clargs)
+    env.Append(LINKFLAGS = clargs)
 
     # Change this to choose which variant
     sources = []
@@ -127,7 +101,7 @@ def compile():
 
     env.Program(compiled_path + 'scrappytbgen', sources)
 
-if env['platform'] == '':
-    print("\nNo valid target platform selected. Try `scons platform=[platform]` or add a scons.config file.\nType `scons --help` for more parameters.\n")
-else:
-    compile()
+# if env['platform'] == '':
+# else:
+
+compile()
