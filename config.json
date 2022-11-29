@@ -17,7 +17,7 @@
   "WIN_COND_EVALUATOR"      : "ChessCheckmateEvaluator",
   "BOARD_PRINTER"           : "ChessBoardPrinter",
   "NON_PLACEMENT_DATATYPE"  : "ChessNPD",
-  "IS_VALID_BOARD_FUNCTION" : null,
+  "IS_VALID_BOARD_FN"       : "ChessValidBoardEvaluator",
   "HZ_SYM_EVALUATOR"        : null,
   "VT_SYM_EVALUATOR"        : null
 }
