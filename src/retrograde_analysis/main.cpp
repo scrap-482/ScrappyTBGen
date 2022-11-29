@@ -79,23 +79,66 @@ int main(int argc, char* argv[])
 #ifndef MULTI_NODE
   auto checkmates = generateParallelConfigCheckmates<FLATTENED_SZ, NON_PLACEMENT_DATATYPE, N_MAN, ROW_SZ, COL_SZ,
          decltype(winEval), decltype(isValidBoardFn)>(fullPieceset, winEval, isValidBoardFn);
-  std::cout << "here" << std::endl;
+
   auto [wins, losses, dtm] = retrogradeAnalysisBaseImpl<FLATTENED_SZ, NON_PLACEMENT_DATATYPE, N_MAN, ROW_SZ, 
       COL_SZ, decltype(forward), decltype(reverse)>(::std::move(checkmates),
       forward, reverse);
 
-  std::cout << wins.size() << " " << losses.size() << std::endl;
+  std::cout << "Number of wins: " << wins.size() << " Number of losses: " << losses.size() << std::endl; 
+  // todo: adjust this to be generic
+  auto boardPrinter = ChessBoardPrinter();
+
+  //BoardState<64, ChessNPD> longest3ManDTM
+  //{
+  //  true,
+  //  {
+  //    '\0','\0','\0','\0','\0','\0','\0','\0',
+  //    '\0','\0','\0','\0','\0','\0','\0','\0',
+  //    '\0','\0','\0','\0','\0','\0','\0','\0',
+  //    '\0','\0','\0','\0','\0','\0','\0','\0',
+  //    '\0','\0','\0','\0','\0','\0','\0','\0',
+  //    '\0','\0','\0','\0','\0','\0','\0','\0',
+  //    '\0','\0','r','K','\0','\0','\0','\0',
+  //    '\0','k','\0','\0','\0','\0','\0','\0',
+  //  },
+  //  {-1}
+  //};
+  BoardState<64, ChessNPD> longest3ManDTM
+  {
+    true,
+    {
+      '\0','\0','\0','\0','\0','\0','\0','\0',
+      '\0','\0','\0','\0','\0','\0','\0','\0',
+      '\0','\0','\0','\0','\0','\0','\0','\0',
+      '\0','\0','\0','\0','\0','\0','\0','\0',
+      '\0','\0','\0','\0', 'K','\0','\0','\0',
+      '\0','\0','\0','\0','\0','\0','\0','\0',
+      '\0', 'q','\0','\0','\0','\0','\0','\0',
+      'k', '\0','\0','\0','\0','\0','\0','\0',
+    },
+    {-1}
+  };
+
+  
+  bool iteration;
+  if (wins.find(longest3ManDTM) != wins.end())
+    iteration = true;
+  else if (losses.find(longest3ManDTM) != losses.end())
+    iteration = false;
+  else
+    assert(false);
+    
+  auto [depthToEnd, path] = probe(longest3ManDTM, dtm, forward, iteration, boardPrinter);
+  std::cout << "Number of moves until the end: " << depthToEnd << std::endl;
 
 #else
   auto checkmates = generateParallelConfigCheckmates<FLATTENED_SZ, NON_PLACEMENT_DATATYPE, N_MAN, ROW_SZ, COL_SZ,
          decltype(winEval)>(fullPieceset, winEval);
 
   auto [wins, losses, dtm] = retrogradeAnalysisBaseImpl<FLATTENED_SZ, NON_PLACEMENT_DATATYPE, N_MAN, ROW_SZ, 
-      COL_SZ, decltype(forward), decltype(reverse)>(::std::move(checkmates),
-      forward, reverse);
+      COL_SZ, decltype(forward), decltype(reverse)>(::std::move(checkmates), forward, reverse);
 
-  std::cout << "Number of wins: " << wins.size() << " Number of losses: " << losses.size() << std::endl;
-
+  std::cout << "Number of wins: " << wins.size() << " Number of losses: " << losses.size() << std::endl; 
 #endif
 #else
   std::cerr << "ERROR: Invalid configuration file" << std::endl;
