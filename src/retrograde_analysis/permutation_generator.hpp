@@ -54,7 +54,6 @@ public:
   }
   
   // thread safe function for generating permutations
-  // todo: remove the white wins
   void inline generatePermutations(::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& losses,
     const ::std::vector<piece_label_t>& pieceSet,
     EvalFn checkmateEval,
@@ -63,10 +62,7 @@ public:
     ::std::array<::std::size_t, FlattenedSz> indexPermutations;
     ::std::iota(indexPermutations.begin(), indexPermutations.end(), 0);
 
-    //::std::size_t kPermute = pieceSet.size();
-    
     // generates kPermute new checkmate positions.
-    // establish a bare minimum
     for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
     {
       do 

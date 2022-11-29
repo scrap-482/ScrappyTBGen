@@ -93,7 +93,7 @@ const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2,
 
 // inclusive limit of number of total pieces on board, e.g. 5-man tablebase
 // TODO: we can probably take this in from the command line.
-const size_t MAN_LIMIT = 5;
+const size_t MAN_LIMIT = 3;
 
 /* ------------------------- piece_label_t functions ------------------------ */
 // TODO: move to retrograde or core file

@@ -1,13 +1,10 @@
 #ifndef MULTI_NODE_IMPL_HPP_
 
-#include <tuple>
-#include <bitset>
 #include <cmath>
 #include <cassert>
 #include <iostream>
 #include <cstddef>
 #include <algorithm>
-#include <memory>
 
 #include <mpi.h>
 
@@ -24,8 +21,26 @@ template <::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct NodeCommData 
 {
   bool winLabel;
-  short G;
+  mutable short G;
   BoardState<FlattenedSz, NonPlacementDataType> b; 
+};
+
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+bool operator==(const NodeCommData<FlattenedSz, NonPlacementDataType>& x, const NodeCommData<FlattenedSz, NonPlacementDataType>& y){
+	return x.b == y.b;
+}
+
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+struct NodeCommHasher 
+{
+  BoardStateHasher<FlattenedSz, NonPlacementDataType> m_boardHasher;
+
+  NodeCommHasher(void) = default;
+
+  auto operator()(const NodeCommData<FlattenedSz, NonPlacementDataType>& commData) const
+  {
+    return m_boardHasher(commData.b); 
+  }
 };
 
 struct NodeEstimateData
@@ -67,7 +82,6 @@ void initialize_comm_structs(void)
     MPI_Type_create_resized(tmp, lowerBound, extent, &MPI_BoardState);
     MPI_Type_commit(&MPI_BoardState);
   }
-
   { // Serialize NodeCommData 
     // C++ preprocessor does not understand template syntax so this is necessary
     typedef NodeCommData<FlattenedSz, NonPlacementDataType> node_comm_data_t;
@@ -96,108 +110,6 @@ void initialize_comm_structs(void)
   }
 }
 
-// TODO: better scheme as future work.
-// contingent on the location of a single piece on the board. each 
-// process is assigned all positions dependent on position of one piece
-template <::std::size_t FlattenedSz, typename BoardType>
-class KStateSpacePartition
-{
-  piece_label_t m_toTrack;
-  int m_segLength;
-
-public:
-  KStateSpacePartition(const piece_label_t& toTrack, int K)
-    : m_toTrack(toTrack),
-      m_segLength(FlattenedSz / K)
-  {
-    // with this partitioning scheme, cannot have more nodes than max board size.
-    assert(FlattenedSz > K);
-  }
-  
-  // Contingent on tracked piece location 
-  int operator()(const BoardType& b) const
-  {
-    int idx = 0;
-    
-    for (const auto& c : b.m_board)
-    {
-      if (c == m_toTrack)
-        break;
-
-      ++idx;
-    }
-    return idx / m_segLength;
-  }
-
-  auto getRange(int k)
-  {
-    return ::std::make_tuple(k * m_segLength, ::std::max((k+1) * m_segLength, static_cast<int>(FlattenedSz)));
-  }
-  
-  inline bool checkInRange(const ::std::vector<int>& startBoard, 
-      const ::std::vector<int>& currentBoard)
-  {
-    return (currentBoard[0] - startBoard[0]) < m_segLength; 
-  }
-};
-
-
-template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
-  typename IsValidBoardFn=null_type>
-void inline MPI_generateConfigCheckmates(int k, KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, 
-    ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, BoardStateHasher<FlattenedSz, NonPlacementDataType>>& losses,
-    const ::std::vector<piece_label_t>& pieceSet,
-    EvalFn checkmateEval,
-    IsValidBoardFn boardValidityEval = {})
-{
-  ::std::array<::std::size_t, FlattenedSz> indexPermutations;
-  auto [startFirstIdx, endFirstIdx] = partitioner.getRange(k);
-  
-  indexPermutations[0] = startFirstIdx;
-  int j = 0;
-  for (::std::size_t i = 1; i < indexPermutations().size; ++i)
-  {
-    if (i == startFirstIdx)
-      ++j;
-    indexPermutations[i] = j;
-    ++j;
-  }
-
-  auto startBoard = indexPermutations;
-
-  ::std::size_t kPermute = pieceSet.size();
-  
-  // generates kPermute new checkmate positions.
-  // TODO: consider how to store smaller checkmates. Do we keep in storage somewhere?
-  do 
-  {
-    BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
-    for (::std::size_t i = 0; i != kPermute; ++i)
-      currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
-
-    if constexpr (!::std::is_same<null_type, IsValidBoardFn>::value)
-      if (!IsValidBoardFn(currentBoard))
-        continue;
-    
-    // checking if black loses (white wins) 
-    if (checkmateEval(currentBoard))
-    {
-      losses.insert(currentBoard);
-    }
-    
-    currentBoard.m_player = true;
-    
-    // checking if white loses (black wins)
-    if (checkmateEval(currentBoard))
-    {
-      losses.insert(currentBoard);
-    }
-
-    ::std::reverse(indexPermutations.begin() + kPermute, indexPermutations.end());
-    ::std::next_permutation(indexPermutations.begin(), indexPermutations.end());
-  } while (partitioner.checkInRange(startBoard, indexPermutations));
-}
-
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
 inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& p, 
@@ -206,39 +118,32 @@ inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& 
 {
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
   // MPI processes)
-  bool b_winFound = false;
+  bool b_localAssignedWork = false;
   ::std::vector<MPI_Request*> sendRequests;
-  for (::std::size_t i = 0; i < loseFrontier.size(); ++i)
+  for (auto& frontierState : loseFrontier)
   {
-    if (wins.find(loseFrontier[i].b) == wins.end())
+    if (wins.find(frontierState.b) == wins.end())
     {
-      if (!b_winFound)
-        b_winFound = true;
-
-      auto preds = predFn(loseFrontier[i].b);
-      wins.insert(loseFrontier[i].b);
-
-      if (boardMap.find(loseFrontier[i].b) == boardMap.end())
-      {
-        boardMap[loseFrontier[i].b] = { v, {}, {} }; // last two fields are only relevant to potentially lost states.  
-      }
-      else
-      {
-        boardMap[loseFrontier[i].b].T = v; 
-      }
+      auto preds = predFn(frontierState.b);
+      wins.insert(frontierState.b);
 
       for (auto&& pred : preds)
       {
         auto targetId = p(pred);
         if (targetId == id)
-          winFrontier.push_back({true, v, std::move(pred)}); // tell the predecessor that the current state wins in v moves.
+        {
+          auto [_, b_insert] = winFrontier.insert({true, v, std::move(pred)}); // tell the predecessor that the current state wins in v moves.
+          if (b_insert)
+            b_localAssignedWork = true;
+        }
         else
         {
+          b_localAssignedWork = true;
           // perform MPI send from current to targetId
           MPI_Request* r = new MPI_Request(); // receiver responsible for knowing 
           sendRequests.push_back(r);
-          loseFrontier[i].G = v;
-          MPI_Isend(&loseFrontier[i], 1, MPI_NodeCommData, targetId, 0, // need to send a 1 if it is the last msg
+          frontierState.G = v;
+          MPI_Isend(&frontierState, 1, MPI_NodeCommData, targetId, 0,
             MPI_COMM_WORLD, r);
         }
       }
@@ -251,11 +156,23 @@ inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& 
     {
       MPI_Request* r = new MPI_Request();
       sendRequests.push_back(r);
-      MPI_Isend(&loseFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
-        MPI_COMM_WORLD, r);
+      
+      if (loseFrontier.empty())
+          loseFrontier.insert({false, 0, { false, {}, {} }});
+      
+      if (b_localAssignedWork)
+      { 
+        MPI_Isend(&(*loseFrontier.begin()), 1, MPI_NodeCommData, i, 1,
+          MPI_COMM_WORLD, r);
+      }
+      else
+      {
+        MPI_Isend(&(*loseFrontier.begin()), 1, MPI_NodeCommData, i, 2,
+          MPI_COMM_WORLD, r);
+      }
     }
   }
-  return ::std::make_tuple(b_winFound, sendRequests,
+  return ::std::make_tuple(b_localAssignedWork, sendRequests,
     ::std::move(boardMap), ::std::move(winFrontier), ::std::move(wins));
 }
 
@@ -267,48 +184,44 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
 {
   // TODO: See if finer grain parallelism can be employed with OpenMP (otherwise just launch more
   // MPI processes)
-  bool b_lossFound = false;
+  bool b_localAssignedWork = false;
   ::std::vector<MPI_Request*> sendRequests;
   int g = v - 1;
-  for (::std::size_t i = 0; i < winFrontier.size(); ++i)
+
+  for (auto& frontierState : winFrontier)
   {
-    if (losses.find(winFrontier[i].b) == losses.end() 
-        && wins.find(winFrontier[i].b) == wins.end())
-    {
-      if (!b_lossFound)
-        b_lossFound = true;
-      
-      if (boardMap.find(winFrontier[i].b) == boardMap.end())
+    if (losses.find(frontierState.b) == losses.end() 
+        && wins.find(frontierState.b) == wins.end())
+    {      
+      // account for the fact that succs has not been calculated
+      if (boardMap[frontierState.b].C < 0)
       {
-        auto succs = succFn(winFrontier[i].b);
-        boardMap[winFrontier[i].b] = 
-          { 0, winFrontier[i].G, static_cast<short>(succs.size() - 1) }; 
+        auto succs = succFn(frontierState.b);
+        boardMap[frontierState.b].C += succs.size();
       }
-
-      else // decrement remaining moves by 1 and determine max to loss
-      {
-        --(boardMap[winFrontier[i].b].C);
-        boardMap[winFrontier[i].b].M = ::std::max(boardMap[winFrontier[i].b].M, winFrontier[i].G);
-      }
-
-      short remainingPaths = boardMap[winFrontier[i].b].C;
+      short remainingPaths = boardMap[frontierState.b].C;
       if (remainingPaths == 0)
       {
-        auto preds = predFn(winFrontier[i].b);
-        losses.insert(winFrontier[i].b);
-        boardMap[winFrontier[i].b].T = boardMap[winFrontier[i].b].M;
+        auto preds = predFn(frontierState.b);
+        losses.insert(frontierState.b);
+        boardMap[frontierState.b].T = boardMap[frontierState.b].M;
 
         for (auto&& pred : preds)
         {
           auto targetId = p(pred);
           if (targetId == id)
-            loseFrontier.push_back({false, boardMap[winFrontier[i].b].T, ::std::move(pred)});
+          {
+            auto [_, b_insert] = loseFrontier.insert({false, boardMap[frontierState.b].T, ::std::move(pred)});
+            if (b_insert)
+              b_localAssignedWork = true;
+          }
           else
           {
+            b_localAssignedWork = true;
             MPI_Request* r = new MPI_Request();
             sendRequests.push_back(r);
-            winFrontier[i].G = boardMap[winFrontier[i].b].T;
-            MPI_Isend(&winFrontier[i], 1, MPI_NodeCommData, targetId, 0, 
+            frontierState.G = boardMap[frontierState.b].T;
+            MPI_Isend(&frontierState, 1, MPI_NodeCommData, targetId, 0, 
               MPI_COMM_WORLD, r);
           }
         }
@@ -322,47 +235,105 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
     {
       MPI_Request* r = new MPI_Request();
       sendRequests.push_back(r);
-      MPI_Isend(&winFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
-        MPI_COMM_WORLD, r);
+      
+      // if no board states, insert null board
+      if (winFrontier.empty())
+        winFrontier.insert({false, 0, { false, {}, {} }});
+      
+      if (b_localAssignedWork)
+      { 
+        MPI_Isend(&(*winFrontier.begin()), 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
+          MPI_COMM_WORLD, r);
+      }
+      else
+      {
+        MPI_Isend(&(*winFrontier.begin()), 1, MPI_NodeCommData, i, 2, // need to send a 2 if it is the last msg
+          MPI_COMM_WORLD, r);
+      }
     }
   }
-  return ::std::make_tuple(b_lossFound, sendRequests, ::std::move(boardMap), 
+  return ::std::make_tuple(b_localAssignedWork, sendRequests, ::std::move(boardMap), 
     ::std::move(loseFrontier), ::std::move(losses));
 }
 
 // TODO: Consider more efficient communication scheme with MPI groups
-template<typename BoardMap, typename Frontier> 
-auto do_syncAndFree(int numNodes,
+template<bool fromWinIteration, typename BoardMap, typename BoardSet, typename Frontier> 
+auto do_syncAndFree(int numNodes, short v,
     ::std::vector<MPI_Request*> sendRequests,
+    const BoardSet& wins,
+    const BoardSet& losses,
     BoardMap&& boardMap, Frontier&& frontier)
 {
   // initially, we only know that the current node is complete with computation
   int finishedNodes = 1;
+  bool b_otherAssignedWork = false;
 
   typename ::std::remove_reference<decltype(frontier)>::type::value_type recvBuf;
   // 1. Process all receives for the current node
-  MPI_Status status;
-  // TODO: could this result in a deadlock?
   do 
   {
+    MPI_Status status;
     MPI_Recv(&recvBuf, 1, MPI_NodeCommData, MPI_ANY_SOURCE,
         MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    
+    auto tag = status.MPI_TAG;
 
-    frontier.push_back(recvBuf);
+    if (wins.find(recvBuf.b) == wins.end() 
+        && losses.find(recvBuf.b) == losses.end() && tag == 0)
+    {
+      frontier.insert(recvBuf);
+      //b_otherAssignedWork = true;
 
-    finishedNodes += status.MPI_TAG;
+      if constexpr (fromWinIteration)
+      {
+        // We initialize remaining moves to -1 and handle later. It is too 
+        // expensive to handle calculating successors here.
+        if (boardMap.find(recvBuf.b) == boardMap.end())
+        {
+          boardMap[recvBuf.b] = 
+            { 0, recvBuf.G, -1 }; 
+        }
+        // Decrement loss counter and determine current longest path to a loss
+        else
+        {
+          auto& estimateNodeData = boardMap[recvBuf.b];
+          --(estimateNodeData.C);
+          estimateNodeData.M = ::std::max(estimateNodeData.M, recvBuf.G);
+        }
+      }
+      else // from lose iteration
+      {
+        // TODO: I think this if else is unnecessary. the if is always true
+        if (boardMap.find(recvBuf.b) == boardMap.end())
+          boardMap[recvBuf.b] = { static_cast<short>(v + 1), {}, {} }; // last two fields are only relevant to potentially lost states.  
+        else
+          boardMap[recvBuf.b].T = static_cast<short>(v + 1); 
+      }
+    }
+    if (tag == 1) // consumed all work from sending node
+    {
+      ++finishedNodes;
+      b_otherAssignedWork = true;
+    }
+    else if (tag == 2)
+    {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      ++finishedNodes;
+    }
+
   } while(finishedNodes != numNodes);
   
-  ::std::vector<MPI_Status> statuses(sendRequests.size());
-
-  // 2. Wait for requests and free memory
+  // 2. Wait for requests and free memory. All messages should be
+  // freed at this point. Cleanup resources.
   for (::std::size_t i = 0; i < sendRequests.size(); ++i)
   {
+    MPI_Status status;
     MPI_Wait(sendRequests[i], &status);
     delete sendRequests[i];
   }
-
-  return ::std::make_tuple(::std::move(boardMap), ::std::move(frontier));
+  MPI_Barrier(MPI_COMM_WORLD);
+  return ::std::make_tuple(::std::move(boardMap), ::std::move(frontier), b_otherAssignedWork);
 }
 
 // This function is the base implementation for the single-node implementation
@@ -374,9 +345,9 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t
     MoveGenerator>::value>::type* = nullptr,
   typename ::std::enable_if<::std::is_base_of<GenerateReverseMoves<FlattenedSz, NonPlacementDataType>, 
     ReverseMoveGenerator>::value>::type* = nullptr>
-auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>> partitioner, int id, 
+auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>>& partitioner, int id, 
     int numProcs, ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
-      BoardStateHasher<FlattenedSz, NonPlacementDataType>> checkmates,
+      BoardStateHasher<FlattenedSz, NonPlacementDataType>>&& checkmates,
     MoveGenerator generateSuccessors,
     ReverseMoveGenerator generatePredecessors,
     HorizontalSymFn hzSymFn={}, VerticalSymFn vSymFn={}, 
@@ -384,13 +355,13 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
 {
   using board_set_t = ::std::unordered_set<BoardState<FlattenedSz, NonPlacementDataType>, 
     BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
-  using frontier_t = ::std::vector<NodeCommData<FlattenedSz, NonPlacementDataType>>;
+  using frontier_t = ::std::unordered_set<NodeCommData<FlattenedSz, NonPlacementDataType>, 
+    NodeCommHasher<FlattenedSz, NonPlacementDataType>>;
   
   // Estimate data during search - more expensive than omp implementation 
-  // BoardState b -> (M b, D b) 
   using board_map_t = 
     ::std::unordered_map<BoardState<FlattenedSz, NonPlacementDataType>, 
-    NodeEstimateData, // really want to compress data. 
+    NodeEstimateData,
     BoardStateHasher<FlattenedSz, NonPlacementDataType>>;
 
   board_set_t wins;
@@ -402,24 +373,26 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
   board_map_t estimateData;
   ::std::vector<MPI_Request*> sendRequests;
   
-  // ultimately invoke additional iteration
+  // 1. initialization 
   for (const auto& l : losses)
+    winFrontier.insert({false, 0, l });
+  
+  // 2. perform modified minor iteration for init sends
+  for (const auto& f : winFrontier)
   {
-    auto preds = generatePredecessors(l);
-
+    auto preds = generatePredecessors(f.b);
     for (const auto& pred : preds)
     {
       auto targetId = partitioner(pred);
       if (targetId != id) // different node processes this
       {
         MPI_Request* r = new MPI_Request();
-        winFrontier.push_back({false, 0, pred });
-        MPI_Isend(&winFrontier[winFrontier.size()-1], 1, MPI_NodeCommData, targetId, 0, 
+        MPI_Isend(&f, 1, MPI_NodeCommData, targetId, 0, 
               MPI_COMM_WORLD, r);
       }
       else
       {
-        loseFrontier.push_back({false, 0, pred });
+        loseFrontier.insert({false, 0, pred });
       }
     }
   }
@@ -429,14 +402,15 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
     {
       MPI_Request* r = new MPI_Request();
       sendRequests.push_back(r);
-      MPI_Isend(&loseFrontier[0], 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
+      MPI_Isend(&(*loseFrontier.begin()), 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
         MPI_COMM_WORLD, r);
     }
   }
 
-  bool b_mark{};
-  ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
-     ::std::move(estimateData), ::std::move(loseFrontier)); 
+  bool b_otherAssignedWork{};
+  bool b_localAssignedWork{};
+  ::std::tie(estimateData, loseFrontier, b_otherAssignedWork) = do_syncAndFree<false>(numProcs, 0, sendRequests,
+      wins, losses, ::std::move(estimateData), ::std::move(loseFrontier)); 
 
   winFrontier.clear();
   sendRequests.clear();
@@ -444,51 +418,34 @@ auto retrogradeAnalysisClusterImpl(KStateSpacePartition<FlattenedSz, BoardState<
   for (short v = 1; v > 0; ++v)
   {
     // 1. Invoke major iteration
-    ::std::tie(b_mark, sendRequests, estimateData, winFrontier, wins) = do_majorIteration(id, v, numProcs,
+    ::std::tie(b_localAssignedWork, sendRequests, estimateData, winFrontier, wins) = do_majorIteration(id, v, numProcs,
         partitioner, ::std::move(estimateData), loseFrontier, ::std::move(winFrontier), losses,
         ::std::move(wins), generatePredecessors);
     
-    ::std::tie(estimateData, winFrontier) = do_syncAndFree(numProcs, sendRequests, 
-        ::std::move(estimateData), ::std::move(winFrontier));
+    ::std::tie(estimateData, winFrontier, b_otherAssignedWork) = do_syncAndFree<true>(numProcs, v, sendRequests,
+        wins, losses, ::std::move(estimateData), ::std::move(winFrontier));
     
     sendRequests.clear();
-    loseFrontier.clear(); // must wait until after synchronization
+    loseFrontier.clear();
 
-    if (!b_mark)
+    if (!b_otherAssignedWork && !b_localAssignedWork)
       break;
 
     // 2. Invoke minor iteration
-    ::std::tie(b_mark, sendRequests, estimateData, loseFrontier, losses) = do_minorIteration(id, v, numProcs,
+    ::std::tie(b_localAssignedWork, sendRequests, estimateData, loseFrontier, losses) = do_minorIteration(id, v, numProcs,
       partitioner, ::std::move(estimateData), ::std::move(loseFrontier), winFrontier,
       ::std::move(losses), wins, generatePredecessors, generateSuccessors);
-  
-    ::std::tie(estimateData, loseFrontier) = do_syncAndFree(numProcs, sendRequests, 
-        ::std::move(estimateData), ::std::move(loseFrontier));
     
+    ::std::tie(estimateData, loseFrontier, b_otherAssignedWork) = do_syncAndFree<false>(numProcs, v, sendRequests, 
+        wins, losses, ::std::move(estimateData), ::std::move(loseFrontier));
+
     sendRequests.clear();
     winFrontier.clear();
 
-    if (!b_mark)
+    if (!b_otherAssignedWork && !b_localAssignedWork)
       break; 
   }
-  return ::std::make_tuple(wins, losses);
-}
-
-// TODO: finish implementing this wrapper 
-template<typename... Args>
-auto retrogradeAnalysisClusterInvoker(Args&&... args)
-{
-  // 1. initialization
-  MPI_Init(NULL, NULL);
-
-  // number of active processes
-  int globalSz = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &globalSz);
-  
-  KStateSpacePartition<64, null_type>
-  retrogradeAnalysisClusterImpl(::std::forward<Args>(args)...);
-
-  MPI_Finalize();
+  return ::std::make_tuple(wins, losses, estimateData);
 }
 
 #endif

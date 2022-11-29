@@ -3,6 +3,8 @@
 
 #include <array>
 #include <bitset>
+#include <tuple>
+#include <cassert>
 #include <functional>
 
 using piece_label_t = unsigned char;
@@ -54,5 +56,51 @@ struct bb_state
   NonPlacementDataType nonPlacementData;
 };
 #endif
+
+// TODO: better scheme as future work.
+// contingent on the location of a single piece on the board. each 
+// process is assigned all positions dependent on position of one piece
+template <::std::size_t FlattenedSz, typename BoardType>
+class KStateSpacePartition
+{
+  piece_label_t m_toTrack;
+  int m_segLength;
+
+public:
+  KStateSpacePartition(const piece_label_t& toTrack, int K)
+    : m_toTrack(toTrack),
+      m_segLength(FlattenedSz / K)
+  {
+    // with this partitioning scheme, cannot have more nodes than max board size.
+    assert(FlattenedSz >= K);
+  }
+  
+  // Contingent on tracked piece location 
+  int operator()(const BoardType& b) const
+  {
+    int idx = 0;
+    
+    for (const auto& c : b.m_board)
+    {
+      if (c == m_toTrack)
+        break;
+
+      ++idx;
+    }
+    return idx / m_segLength;
+  }
+
+  auto getRange(int k) const
+  {
+    return ::std::make_tuple(k * m_segLength, 
+        ::std::min((k+1) * m_segLength, static_cast<int>(FlattenedSz)));
+  }
+  
+  inline bool checkInRange(const auto& startBoard, 
+    const auto& currentBoard) const
+  {
+    return (currentBoard[0] - startBoard[0]) < m_segLength; 
+  }
+};
 
 #endif

@@ -73,7 +73,7 @@ bool ChessValidBoardEvaluator::operator()(const ChessBoardState& b) {
     // Check kings are not adjacent
     // First, find a king. //TODO: this could really be sped up by a piece list...
     size_t kingIndex = 0;
-    for (; kingIndex < b.m_board.size(); ++kingIndex) 
+    for (; kingIndex < b.m_board.size(); ++kingIndex)
         if (b.m_board.at(kingIndex) == 'k' || b.m_board.at(kingIndex) == 'K') // TODO: fix hardcode. Prolly need isRoyal() function like isWhite()
             break;
     if (kingIndex == b.m_board.size())
@@ -83,7 +83,7 @@ bool ChessValidBoardEvaluator::operator()(const ChessBoardState& b) {
     Coords firstKingCoords(kingIndex);
 
     // check all adjacents of king
-    for (const auto coords : ChessPMOs::kingMove.moveOffsets) {
+    for (const auto& coords : ChessPMOs::kingMove.moveOffsets) {
         Coords secondKingCoords = firstKingCoords + coords;
         if (!inBounds(secondKingCoords)) continue;
 
