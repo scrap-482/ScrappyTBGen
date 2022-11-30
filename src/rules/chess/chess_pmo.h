@@ -9,6 +9,23 @@
 #include <array>
 #include <memory.h>
 
+using ChessPMO = PMO<64, ChessNPD, Coords>;
+using ChessModdablePMO = ModdablePMO<64, ChessNPD, Coords, NUM_PIECE_TYPES>;
+using ChessPromotablePMO = PromotablePMO<64, ChessNPD, Coords, NUM_PIECE_TYPES>;
+using ChessPieceType = PieceType<64, ChessNPD, Coords>;
+
+using ChessPMOPreMod = PMOPreMod<64, ChessNPD, Coords>;
+using ChessPMOPostMod = PMOPostMod<64, ChessNPD, Coords>;
+using ChessPMOPreModList = std::vector<const PMOPreMod<64, ChessNPD, Coords>*>;
+using ChessPMOPostModList = std::vector<const PMOPostMod<64, ChessNPD, Coords>*>;
+
+// TODO: this is an ugly syntax, is there a better way?
+using ChessFwdCaptDepPMO = FwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
+using ChessBwdCaptDepPMO = BwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
+
+using ChessDirRegionMod = DirectedRegionPMOPreMod<64, ChessNPD, Coords>;
+using ChessPromotionFwdPostMod = RegionalForcedSinglePromotionPMOPostMod<64, ChessNPD, Coords>;
+
 // TODO: seems like bad place to put this function
 #define inBounds(coords) ((coords.file >= 0 && coords.file < BOARD_WIDTH && coords.rank >= 0 && coords.rank < BOARD_HEIGHT))
 

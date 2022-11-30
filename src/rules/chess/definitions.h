@@ -42,49 +42,6 @@ inline size_t toColoredTypeIndex(piece_label_t p) {
   return toColoredTypeIndex(isWhite(p), getTypeEnumFromPieceLabel(p));
 }
 
-/* -------------------------------------------------------------------------- */
-using ChessBoardState = BoardState<64, ChessNPD>;
-using ChessPMO = PMO<64, ChessNPD, Coords>;
-using ChessModdablePMO = ModdablePMO<64, ChessNPD, Coords, NUM_PIECE_TYPES>;
-using ChessPromotablePMO = PromotablePMO<64, ChessNPD, Coords, NUM_PIECE_TYPES>;
-using ChessPieceType = PieceType<64, ChessNPD, Coords>;
-
-using ChessPMOPreMod = PMOPreMod<64, ChessNPD, Coords>;
-using ChessPMOPostMod = PMOPostMod<64, ChessNPD, Coords>;
-using ChessPMOPreModList = std::vector<const PMOPreMod<64, ChessNPD, Coords>*>;
-using ChessPMOPostModList = std::vector<const PMOPostMod<64, ChessNPD, Coords>*>;
-
-// TODO: this is an ugly syntax, is there a better way?
-using ChessFwdCaptDepPMO = FwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
-using ChessBwdCaptDepPMO = BwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
-
-using ChessDirRegionMod = DirectedRegionPMOPreMod<64, ChessNPD, Coords>;
-using ChessPromotionFwdPostMod = RegionalForcedSinglePromotionPMOPostMod<64, ChessNPD, Coords>;
-
-// Define a namespace so that this doesn't get accidentally used. Probably not the best practice.
-namespace encapsulate_this_lol {
-  const ::std::array<piece_label_t, 64> CHESS_ARRAY = {
-    'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R',
-    'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 
-    '\0','\0','\0','\0','\0','\0','\0','\0',
-    '\0','\0','\0','\0','\0','\0','\0','\0',
-    '\0','\0','\0','\0','\0','\0','\0','\0',
-    '\0','\0','\0','\0','\0','\0','\0','\0',
-    'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 
-    'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'
-  };
-};
-const ChessBoardState INIT_BOARD_STATE = {true, encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
-
-/* -------- Specify max number of pieces for reverse move generation -------- */
-
-// assumes use of toColoredTypeIndex
-// TODO: What are good values for these? Obvi there can only be 1 king and 8 pawns, but what about the rest? E.g. how many queens should we limit our search to?
-const std::array<const int, NUM_PIECE_TYPES_COLORED> MAX_PIECES_BY_TYPE = {8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1};
-inline int maxPiecesByColoredType(size_t coloredType) {
-  return MAX_PIECES_BY_TYPE.at(coloredType);
-}
-
 /* ------------- Specify label_t to PIECE_TYPE_ENUM conversions ------------- */
 
 const std::map<piece_label_t, const PIECE_TYPE_ENUM> LABEL_T_TO_TYPE_ENUM_MAP = {
@@ -104,6 +61,33 @@ inline PIECE_TYPE_ENUM getTypeEnumFromPieceLabel(piece_label_t letter) {
 inline piece_label_t getPieceLabelFromTypeEnum(PIECE_TYPE_ENUM type) {
   return TYPE_ENUM_TO_LABEL_T[type];
 }
+
+/* -------- Specify max number of pieces for reverse move generation -------- */
+
+// assumes use of toColoredTypeIndex
+// TODO: What are good values for these? Obvi there can only be 1 king and 8 pawns, but what about the rest? E.g. how many queens should we limit our search to?
+const std::array<const int, NUM_PIECE_TYPES_COLORED> MAX_PIECES_BY_TYPE = {8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1};
+inline int maxPiecesByColoredType(size_t coloredType) {
+  return MAX_PIECES_BY_TYPE.at(coloredType);
+}
+
+/* -------------------------------------------------------------------------- */
+using ChessBoardState = BoardState<64, ChessNPD>;
+
+// Define a namespace so that this doesn't get accidentally used. Probably not the best practice.
+namespace encapsulate_this_lol {
+  const ::std::array<piece_label_t, 64> CHESS_ARRAY = {
+    'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R',
+    'P', 'P', 'P', 'P', 'P', 'P', 'P', 'P', 
+    '\0','\0','\0','\0','\0','\0','\0','\0',
+    '\0','\0','\0','\0','\0','\0','\0','\0',
+    '\0','\0','\0','\0','\0','\0','\0','\0',
+    '\0','\0','\0','\0','\0','\0','\0','\0',
+    'p', 'p', 'p', 'p', 'p', 'p', 'p', 'p', 
+    'r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'
+  };
+};
+const ChessBoardState INIT_BOARD_STATE = {true, encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
 
 /* -------------------------------------------------------------------------- */
 
