@@ -7,13 +7,7 @@
 #include <cassert>
 #include <functional>
 
-using piece_label_t = unsigned char;
-
-// Forward declare user-defined functions that code in core/ requires
-piece_label_t toBlack(piece_label_t letter);
-piece_label_t toWhite(piece_label_t letter);
-bool isEmpty(piece_label_t letter);
-bool isWhite(piece_label_t letter);
+#include "piece_label.hpp"
 
 #if 1
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>

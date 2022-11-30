@@ -9,7 +9,6 @@
 #include "../../retrograde_analysis/state_transition.hpp"
 #include "../../core/rectangular_board.hpp"
 
-#include <cctype> // For tolower() and toupper()
 #include <map>
 
 // Non-placement data
@@ -71,10 +70,6 @@ namespace encapsulate_this_lol {
 };
 const ChessBoardState INIT_BOARD_STATE = {true, encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
 
-// Which promotions to consider. Some users may only want to consider queen promotions since another is rarely optimal.
-const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {QUEEN};
-// const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {ROOK, KNIGHT, BISHOP, QUEEN};
-
 /* -------- Specify max number of pieces for reverse move generation -------- */
 // assumes use of toColoredTypeIndex
 // TODO: What are good values for these? Obvi there can only be 1 king and 8 pawns, but what about the rest? E.g. how many queens should we limit our search to?
@@ -82,25 +77,10 @@ const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2,
 
 /* ------------------------- piece_label_t functions ------------------------ */
 // TODO: move to retrograde or core file
-inline piece_label_t toBlack(piece_label_t letter) {
-  return tolower(letter);
-}
-inline piece_label_t toWhite(piece_label_t letter) {
-  return toupper(letter);
-}
-inline bool isEmpty(piece_label_t letter) {
-  return letter == '\0';
-}
-inline bool isWhite(piece_label_t letter) {
-  return isupper(letter);
-}
+
 inline PIECE_TYPE_ENUM getTypeEnumFromPieceLabel(piece_label_t letter) {
   return LABEL_T_TO_TYPE_ENUM_MAP.at(toBlack(letter));
 }
-
-/* ----------------------------- PromotionScheme ---------------------------- */
-// definitions.cpp will implement this
-extern PromotionScheme promotionScheme;
 
 /* -------------------------------------------------------------------------- */
 // The number of pieces if we distguish black and white
