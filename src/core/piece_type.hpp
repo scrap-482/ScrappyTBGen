@@ -8,7 +8,7 @@
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coords>
 struct PieceType {
 
-    char letter;
+    piece_label_t letter;
 
     // the array of PMOs
     const PMO<FlattenedSz, NonPlacementDataType, Coords>* const* pmoList;

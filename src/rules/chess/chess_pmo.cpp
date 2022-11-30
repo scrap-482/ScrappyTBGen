@@ -38,17 +38,18 @@
 }
 
 // ASSUMPTION: Pieces can only be removed from board via an opponent piece capturing them
+template<size_t NumPieceTypes>
 void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>& res) {
 
-    auto allowedUncapturesPieces = allowedUncapturesByPosAndCount(b, piecePos);
+    auto allowedUncapturesPieces = allowedUncapturesByPosAndCount<NumPieceTypes>(b, piecePos);
     auto loopLimit = res.first.size(); // specify this here since we are adding to vector.
     // for each unmove that does not uncapture
     for (size_t i = 0; i < loopLimit; ++i) {
         // for each type of piece we can uncapture
-        for (int uncapTypeUncolored = 0; uncapTypeUncolored < allowedUncapturesPieces.size(); ++uncapTypeUncolored) {
+        for (piece_type_enum_t uncapTypeUncolored = 0; uncapTypeUncolored < allowedUncapturesPieces.size(); ++uncapTypeUncolored) {
             if (!allowedUncapturesPieces[uncapTypeUncolored]) continue;
 
-            piece_label_t uncapType = TYPE_ENUM_TO_LABEL_T[uncapTypeUncolored];
+            piece_label_t uncapType = getPieceLabelFromTypeEnum((PIECE_TYPE_ENUM) uncapTypeUncolored);
             // Uncapture white when white to move, since prior turn black moved.
             uncapType = (b.m_player? toWhite(uncapType) : toBlack(uncapType));
 
@@ -89,7 +90,7 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
         }
     }
     auto unmoves = std::make_pair(std::move(resultStates), std::move(resultDisplacements));
-    addUncaptures(b, piecePos, unmoves);
+    addUncaptures<KING+1>(b, piecePos, unmoves); //FIXME: hack
     // then just add uncaptures
     return unmoves;
 }
@@ -188,13 +189,14 @@ void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std:
     
     auto unmoves = std::make_pair(std::move(resultStates), std::move(resultDisplacements));
     // non-capture unmoves are same as forward moves, but with opposite person playing
-    addUncaptures(b, piecePos, unmoves);
+    addUncaptures<KING+1>(b, piecePos, unmoves); // FIXME: hack
     // then just add uncaptures
     return unmoves;
 }
 
-std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const ChessBoardState& b) {
-    auto res = std::make_unique<std::array<int, 2*NUM_PIECE_TYPES>>();
+template<size_t NumPieceTypes>
+std::unique_ptr<std::array<int, 2*NumPieceTypes>> countPiecesOnBoard(const ChessBoardState& b) {
+    auto res = std::make_unique<std::array<int, 2*NumPieceTypes>>();
     res->fill(0); // TODO: not sure if this line is needed, or zero initialization already guaranteed
     for (piece_label_t p : b.m_board) {
         if (isEmpty(p)) continue;
@@ -204,19 +206,20 @@ std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const Che
 }
 
 // Consider allowed uncaptures purely by number of pieces on the board
-std::bitset<NUM_PIECE_TYPES> allowedUncapturesByCount(const ChessBoardState& b) {
-    auto piecesCountByType = countPiecesOnBoard(b);
-    std::bitset<NUM_PIECE_TYPES> res;
+template<size_t NumPieceTypes>
+std::bitset<NumPieceTypes> allowedUncapturesByCount(const ChessBoardState& b) {
+    auto piecesCountByType = countPiecesOnBoard<NumPieceTypes>(b);
+    std::bitset<NumPieceTypes> res;
 
     int totalPieces = 0;
     for (auto c : *piecesCountByType) totalPieces += c;
-    if (totalPieces >= MAN_LIMIT) return std::bitset<NUM_PIECE_TYPES>();
+    if (totalPieces >= MAN_LIMIT) return std::bitset<NumPieceTypes>();
     // otherwise, we haven't hit the man limit. Check limit of number of pieces.
 
     // Consider when it is white's turn to play, black had the previous move and could have captured a white piece;
     // therefore we uncapture the color of the turn to play.
-    int loopStart = b.m_player? 0               : NUM_PIECE_TYPES;
-    int loopEnd =   b.m_player? NUM_PIECE_TYPES : 2 * NUM_PIECE_TYPES;
+    int loopStart = b.m_player? 0               : NumPieceTypes;
+    int loopEnd =   b.m_player? NumPieceTypes : 2 * NumPieceTypes;
     int i = 0; // need to index of res
     for (size_t pieceType = loopStart; pieceType < loopEnd; ++pieceType) {
         if (piecesCountByType->at(pieceType) < MAX_PIECES_BY_TYPE.at(pieceType)) {
@@ -230,14 +233,16 @@ std::bitset<NUM_PIECE_TYPES> allowedUncapturesByCount(const ChessBoardState& b) 
 }
 
 // Consider allowed uncaptures by count and position of uncaptured piece.
-std::bitset<NUM_PIECE_TYPES> allowedUncapturesByPosAndCount(const ChessBoardState& b,  Coords piecePos) {
-    std::bitset<NUM_PIECE_TYPES> allowed = allowedUncapturesByCount(b);
+template<size_t NumPieceTypes>
+std::bitset<NumPieceTypes> allowedUncapturesByPosAndCount(const ChessBoardState& b,  Coords piecePos) {
+    std::bitset<NumPieceTypes> allowed = allowedUncapturesByCount<NumPieceTypes>(b);
     // Check that pawns cannot be in first or last rank
     if (piecePos.rank == 0 || piecePos.rank == BOARD_HEIGHT-1) {
         allowed[PAWN] = 0;
     }
     // TODO: which file are pawns allowed on? Is there a limit to how many pawns can stack into a file I should care about?
     // TODO: bishops only allowed on opposite colors, unless we consider pawns which can promote to bishops.
+    // TODO: This feels like it overlaps with ValidityChecker somehow
 
     return allowed;
 }

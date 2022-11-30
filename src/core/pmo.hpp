@@ -12,6 +12,7 @@
 // FS = FlattenedSize
 // NPDT = NonPlacementDataType
 // CT = CoordsType
+// PTC = "Piece Type Count" AKA NumPieceTypes // TODO: bad naming, refactor?
 
 // Maximum number of pieces that can be on the board specified by user.
 const size_t MAN_LIMIT = N_MAN;
@@ -31,7 +32,7 @@ public:
 /* -------- Below are some PMO templates that may be useful extending ------- */
 
 // Guarantees getUnpromotions is implemented.
-template<::std::size_t FS, typename NPDT, typename CT>
+template<::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC>
 class PromotablePMO : public PMO<FS, NPDT, CT> {
 public:
     // The same as getReverses, but exclusively used for unpromotions.
@@ -41,8 +42,8 @@ public:
 };
 
 // Any move that takes a piece and moves it somewhere else. Exposes displacement of moves to make complex move implementation easier.
-template<::std::size_t FS, typename NPDT, typename CT>
-class DisplacementPMO : public PromotablePMO<FS, NPDT, CT> {
+template<::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC>
+class DisplacementPMO : public PromotablePMO<FS, NPDT, CT, PTC> {
 public:
     // takes a board state and the piece's current position and returns a list of new possible board states 
     // AND a parallel vector of the displacements of the moving piece 
@@ -246,8 +247,8 @@ public:
     }
 };
 
-template<::std::size_t FS, typename NPDT, typename CT>
-class ModdablePMO : public DisplacementPMO<FS, NPDT, CT> {
+template<::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC>
+class ModdablePMO : public DisplacementPMO<FS, NPDT, CT, PTC> {
 public:
     virtual ::std::pair<::std::vector<BoardState<FS, NPDT>>, ::std::vector<CT>>
     getModdableMovesWithDisplacement(const BoardState<FS, NPDT>& b, CT piecePos) const = 0;
@@ -311,7 +312,7 @@ public:
             }
         }
         // main move functionality specified by subclasses.
-        auto moves = DisplacementPMO<FS, NPDT, CT>::getUnpromotionsWithDisplacement(b, piecePos, unpromotedLabel, promotedLabel);
+        auto moves = DisplacementPMO<FS, NPDT, CT, PTC>::getUnpromotionsWithDisplacement(b, piecePos, unpromotedLabel, promotedLabel);
 
         // each postFwdMod modifies moves set in-place
         for (const auto post : postUnpromotionMods) {
