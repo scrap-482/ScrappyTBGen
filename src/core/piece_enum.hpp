@@ -19,4 +19,13 @@ enum PIECE_TYPE_ENUM : piece_type_enum_t;
 PIECE_TYPE_ENUM getTypeEnumFromPieceLabel(piece_label_t letter);
 piece_label_t getPieceLabelFromTypeEnum(PIECE_TYPE_ENUM type);
 
+// extern const size_t NUM_PIECE_TYPES_COLORED;
+
+// TODO: should these still be size_t? Also //TODO: need to document what these converters are for
+size_t toColoredTypeIndex(bool colorIsWhite, PIECE_TYPE_ENUM uncoloredType);
+size_t toColoredTypeIndex(piece_label_t p);
+
+// User needs to define how many pieces of each type can be on board
+int maxPiecesByColoredType(size_t coloredType);
+
 #endif

@@ -19,6 +19,8 @@ struct ChessNPD {
     // We do not consider castling rights because it has negligable effect on end game.
 };
 
+/* ---------------------- Specify (uncolored) piece enum ---------------------- */
+
 // mnemonic to remember this order: pawn first, king last, order remaining pieces from outside in of starting position.
 enum PIECE_TYPE_ENUM : piece_label_t {PAWN=0, ROOK, KNIGHT, BISHOP, QUEEN, KING, VACANT=(piece_label_t) -1};
 
@@ -28,6 +30,19 @@ const int NUM_FLIPPABLE_PIECES = 0; // for shogi-like variants // TODO: remove i
 // flipped, then just add NUM_FLIPPABLE_PIECES to get new PIECE_TYPE_ENUM enum. Also note that this does not exclude chess-
 // like promotion.
 
+/* ------------------ Specify colored piece indexing scheme ----------------- */
+
+// The number of pieces if we distguish black and white
+const size_t NUM_PIECE_TYPES_COLORED = 2*NUM_PIECE_TYPES;
+
+inline size_t toColoredTypeIndex(bool colorIsWhite, PIECE_TYPE_ENUM uncoloredType) {
+  return uncoloredType + (colorIsWhite? 0 : NUM_PIECE_TYPES);
+}
+inline size_t toColoredTypeIndex(piece_label_t p) {
+  return toColoredTypeIndex(isWhite(p), getTypeEnumFromPieceLabel(p));
+}
+
+/* -------------------------------------------------------------------------- */
 using ChessBoardState = BoardState<64, ChessNPD>;
 using ChessPMO = PMO<64, ChessNPD, Coords>;
 using ChessModdablePMO = ModdablePMO<64, ChessNPD, Coords, NUM_PIECE_TYPES>;
@@ -62,9 +77,13 @@ namespace encapsulate_this_lol {
 const ChessBoardState INIT_BOARD_STATE = {true, encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
 
 /* -------- Specify max number of pieces for reverse move generation -------- */
+
 // assumes use of toColoredTypeIndex
 // TODO: What are good values for these? Obvi there can only be 1 king and 8 pawns, but what about the rest? E.g. how many queens should we limit our search to?
-const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1};
+const std::array<const int, NUM_PIECE_TYPES_COLORED> MAX_PIECES_BY_TYPE = {8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1};
+inline int maxPiecesByColoredType(size_t coloredType) {
+  return MAX_PIECES_BY_TYPE.at(coloredType);
+}
 
 /* ------------- Specify label_t to PIECE_TYPE_ENUM conversions ------------- */
 
@@ -87,14 +106,6 @@ inline piece_label_t getPieceLabelFromTypeEnum(PIECE_TYPE_ENUM type) {
 }
 
 /* -------------------------------------------------------------------------- */
-// The number of pieces if we distguish black and white
-const size_t NUM_PIECE_TYPES_COLORED = 2*NUM_PIECE_TYPES;
-inline size_t toColoredTypeIndex(bool colorIsWhite, PIECE_TYPE_ENUM uncoloredType) {
-  return uncoloredType + (colorIsWhite? 0 : NUM_PIECE_TYPES);
-}
-inline size_t toColoredTypeIndex(piece_label_t p) {
-  return toColoredTypeIndex(isWhite(p), getTypeEnumFromPieceLabel(p));
-}
 
 // Note: PIECE_TYPE_DATA[] is in chess_pmo.h because need of PMO definitions
 #endif

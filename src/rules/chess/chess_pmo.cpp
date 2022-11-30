@@ -37,6 +37,7 @@
     return std::make_pair(std::move(resultStates), std::move(resultDisplacements));
 }
 
+// Give res as non-capturing unmoves, this adds legal uncaptures to it.
 // ASSUMPTION: Pieces can only be removed from board via an opponent piece capturing them
 template<size_t NumPieceTypes>
 void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>& res) {
@@ -206,6 +207,7 @@ std::unique_ptr<std::array<int, 2*NumPieceTypes>> countPiecesOnBoard(const Chess
 }
 
 // Consider allowed uncaptures purely by number of pieces on the board
+// Returns bitset corresponding to PIECE_TYPE_ENUM, where 1 means uncapture of this type allowed.
 template<size_t NumPieceTypes>
 std::bitset<NumPieceTypes> allowedUncapturesByCount(const ChessBoardState& b) {
     auto piecesCountByType = countPiecesOnBoard<NumPieceTypes>(b);
@@ -222,7 +224,7 @@ std::bitset<NumPieceTypes> allowedUncapturesByCount(const ChessBoardState& b) {
     int loopEnd =   b.m_player? NumPieceTypes : 2 * NumPieceTypes;
     int i = 0; // need to index of res
     for (size_t pieceType = loopStart; pieceType < loopEnd; ++pieceType) {
-        if (piecesCountByType->at(pieceType) < MAX_PIECES_BY_TYPE.at(pieceType)) {
+        if (piecesCountByType->at(pieceType) < maxPiecesByColoredType(pieceType)) { // TODO: change logic so that specifying -1 means an unlimited number of pieces of this type can be added, e.g. queens by promotion
             res[i] = 1;
         } else {
             res[i] = 0;
@@ -233,6 +235,7 @@ std::bitset<NumPieceTypes> allowedUncapturesByCount(const ChessBoardState& b) {
 }
 
 // Consider allowed uncaptures by count and position of uncaptured piece.
+// Returns bitset corresponding to PIECE_TYPE_ENUM, where 1 means uncapture of this type allowed.
 template<size_t NumPieceTypes>
 std::bitset<NumPieceTypes> allowedUncapturesByPosAndCount(const ChessBoardState& b,  Coords piecePos) {
     std::bitset<NumPieceTypes> allowed = allowedUncapturesByCount<NumPieceTypes>(b);

@@ -167,19 +167,6 @@ const ChessPieceType PIECE_TYPE_DATA[] = {
     {'k', ChessPMOs::kingPMOs,   ChessPMOs::kingPMOsCount,   true }
 };
 
-// TODO: move these comments to new home
-// // Give res as non-capturing unmoves, this adds legal uncaptures to it.
-// void addUncaptures(const ChessBoardState& b, Coords piecePos, ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>>& res);
-
-// // Consider allowed uncaptures by count and position of uncaptured piece.
-// // Returns bitset corresponding to PIECE_TYPE_ENUM, where 1 means uncapture of this type allowed.
-// std::bitset<NUM_PIECE_TYPES> allowedUncapturesByPosAndCount(const ChessBoardState& b,  Coords piecePos);
-// // Consider allowed uncaptures purely by number of pieces on the board
-// // Returns bitset corresponding to PIECE_TYPE_ENUM, where 1 means uncapture of this type allowed.
-// std::bitset<NUM_PIECE_TYPES> allowedUncapturesByCount(const ChessBoardState& b);
-
-// std::unique_ptr<std::array<int, 2*NUM_PIECE_TYPES>> countPiecesOnBoard(const ChessBoardState& b);
-
 // Looping over all PMOs is common functionality, but what to do with them varies; as such, this is implemented as a 
 // template function.
 // actOnPMO will act on every move (except unpromotions), while actOnUnpromotionPMO acts only on unpromotions.
