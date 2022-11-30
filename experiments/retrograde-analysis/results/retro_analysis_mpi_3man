@@ -4,3 +4,4 @@ Number of MPI Processes,Runtime (ms)
 8,4132
 16,2117
 32,1305
+64,830
