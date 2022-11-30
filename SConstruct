@@ -85,6 +85,10 @@ def compile():
         clargs.extend(['-std=c++2a', '-fconcepts'])
     else:
         clargs.extend(['-std=c++20'])
+    if cluster:
+        clargs.extend(['-DMULTI_NODE'])
+        env['CXX'] = 'mpic++'
+        env['CC'] = 'mpicc'
 
     clargs.extend(userspecargs)
     env.Append(CCFLAGS = clargs)
