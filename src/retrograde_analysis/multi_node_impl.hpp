@@ -402,6 +402,9 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
     {
       MPI_Request* r = new MPI_Request();
       sendRequests.push_back(r);
+      if (loseFrontier.empty())
+        loseFrontier.insert({false, 0, { false, {}, {} }});
+
       MPI_Isend(&(*loseFrontier.begin()), 1, MPI_NodeCommData, i, 1, // need to send a 1 if it is the last msg
         MPI_COMM_WORLD, r);
     }
