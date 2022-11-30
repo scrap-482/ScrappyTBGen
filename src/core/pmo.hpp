@@ -3,14 +3,18 @@
 // #include "piece_type.hpp" // caution! circularity approaching
 
 #include "../utils/utils.h"
-#include "../core/coords_grid.hpp"
 #include "../retrograde_analysis/state.hpp"
+#include "coords_grid.hpp"
 #include "promotion.h"
+#include "ignore_macros.hpp"
 
 // Shorthand: 
 // FS = FlattenedSize
 // NPDT = NonPlacementDataType
 // CT = CoordsType
+
+// Maximum number of pieces that can be on the board specified by user.
+const size_t MAN_LIMIT = N_MAN;
 
 template<::std::size_t FS, typename NPDT, typename CT>
 class PMO {

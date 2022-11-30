@@ -7,6 +7,7 @@
 #include "../../core/piece_type.hpp"
 #include "../../core/pmo.hpp"
 #include "../../retrograde_analysis/state_transition.hpp"
+#include "../../core/rectangular_board.hpp"
 
 #include <cctype> // For tolower() and toupper()
 #include <map>
@@ -17,11 +18,6 @@ struct ChessNPD {
     int enpassantRights = -1;
     // We do not consider castling rights because it has negligable effect on end game.
 };
-
-// Since this is a rectangular board
-const size_t BOARD_WIDTH = ROW_SZ;
-const size_t BOARD_HEIGHT = COL_SZ;
-using Coords = CoordsGrid<int, int, BOARD_WIDTH>;
 
 using ChessBoardState = BoardState<64, ChessNPD>;
 using ChessPMO = PMO<64, ChessNPD, Coords>;
@@ -40,13 +36,6 @@ using ChessBwdCaptDepPMO = BwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
 
 using ChessDirRegionMod = DirectedRegionPMOPreMod<64, ChessNPD, Coords>;
 using ChessPromotionFwdPostMod = RegionalForcedSinglePromotionPMOPostMod<64, ChessNPD, Coords>;
-
-template<::std::size_t FlattenedSz, typename NonPlacementDataType>
-struct cm_function : public CheckmateEvaluator<FlattenedSz, NonPlacementDataType>
-{
-  bool operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b)
-  { return true; }
-};
 
 // mnemonic to remember this order: pawn first, king last, order remaining pieces from outside in of starting position.
 enum PIECE_TYPE_ENUM {PAWN=0, ROOK, KNIGHT, BISHOP, QUEEN, KING, VACANT=-1};
@@ -90,10 +79,6 @@ const std::vector<PIECE_TYPE_ENUM> ALLOWED_PROMOTIONS = {QUEEN};
 // assumes use of toColoredTypeIndex
 // TODO: What are good values for these? Obvi there can only be 1 king and 8 pawns, but what about the rest? E.g. how many queens should we limit our search to?
 const std::array<const int, 2*NUM_PIECE_TYPES> MAX_PIECES_BY_TYPE = {8, 2, 2, 2, 1, 1, 8, 2, 2, 2, 1, 1};
-
-// inclusive limit of number of total pieces on board, e.g. 5-man tablebase
-// TODO: we can probably take this in from the command line.
-const size_t MAN_LIMIT = N_MAN;
 
 /* ------------------------- piece_label_t functions ------------------------ */
 // TODO: move to retrograde or core file
