@@ -121,7 +121,6 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
 {
   ::std::array<::std::size_t, FlattenedSz> indexPermutations;
   auto [startFirstIdx, endFirstIdx] = partitioner.getRange(k);
-  ::std::size_t kPermute = pieceSet.size();
    
   // generates [3, ..., kPermute] sets of new checkmate positions.
   for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
