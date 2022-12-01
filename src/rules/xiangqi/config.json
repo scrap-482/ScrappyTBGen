@@ -1,6 +1,6 @@
 {
-  "ROW_SZ"   : 9,
-  "COL_SZ"   : 10,
+  "ROW_SZ"   : 10,
+  "COL_SZ"   : 9,
   "N_MAN"    : 3,
   "SRC_DIRS" : [
     "src/rules/xiangqi",
