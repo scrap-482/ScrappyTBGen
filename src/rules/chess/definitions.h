@@ -2,14 +2,12 @@
 #define STANDARD_CHESS_DEFINITIONS_H_
 
 #include "../../retrograde_analysis/state.hpp"
-// #include "../../retrograde_analysis/state_transition.hpp"
-#include "../../core/coords_grid.hpp"
-#include "../../core/piece_type.hpp"
-#include "../../core/piece_enum.hpp"
-#include "../../core/piece_count_utils.hpp"
-#include "../../core/pmo_instantiable.hpp"
 #include "../../retrograde_analysis/state_transition.hpp"
 #include "../../core/rectangular_board.hpp"
+#include "../../core/piece_enum.hpp"
+#include "../../core/piece_type.hpp"
+#include "../../core/piece_count_utils.hpp"
+#include "../../core/pmo_instantiable.hpp"
 
 #include <map>
 
@@ -19,6 +17,13 @@ struct ChessNPD {
     int enpassantRights = -1;
     // We do not consider castling rights because it has negligable effect on end game.
 };
+template<typename NonPlacementDataType>
+std::string NPDToString(const NonPlacementDataType& npd) {
+    std::string ret = "En passant rights: ";
+    ret += (npd.enpassantRights == -1)? "no" : ::std::to_string(npd.enpassantRights);
+    ret += "\n";
+    return ret;
+}
 
 /* ---------------------- Specify (uncolored) piece enum ---------------------- */
 
@@ -26,7 +31,7 @@ struct ChessNPD {
 enum PIECE_TYPE_ENUM : piece_label_t {PAWN=0, ROOK, KNIGHT, BISHOP, QUEEN, KING, VACANT=(piece_label_t) -1};
 
 const int NUM_PIECE_TYPES = KING+1;
-const int NUM_FLIPPABLE_PIECES = 0; // for shogi-like variants // TODO: remove if unused
+// const int NUM_FLIPPABLE_PIECES = 0; // for shogi-like variants // TODO: remove if unused
 // For shogi-like games, non-flippable pieces should be at end of PIECE_TYPE_ENUM enum so we can use < to check if it can be 
 // flipped, then just add NUM_FLIPPABLE_PIECES to get new PIECE_TYPE_ENUM enum. Also note that this does not exclude chess-
 // like promotion.
@@ -91,4 +96,20 @@ namespace encapsulate_this_lol {
 const ChessBoardState INIT_BOARD_STATE = {true, encapsulate_this_lol::CHESS_ARRAY, ChessNPD()};
 
 /* -------------------------------------------------------------------------- */
+
+// Implement this function, which is required for allowedUncaptures defined in core.
+template<::std::size_t FS, typename NPDT, typename CT, size_t NumPieceTypes>
+std::bitset<NumPieceTypes> allowedUncapturesByPosAndCount(const BoardState<FS, NPDT>& b,  CT piecePos) {
+    std::bitset<NumPieceTypes> allowed = allowedUncapturesByCount<FS, NPDT, CT, NumPieceTypes>(b);
+    // Check that pawns cannot be in first or last rank
+    if (piecePos.rank == 0 || piecePos.rank == BOARD_HEIGHT-1) {
+        allowed[PAWN] = 0;
+    }
+    // TODO: which file are pawns allowed on? Is there a limit to how many pawns can stack into a file I should care about?
+    // TODO: bishops only allowed on opposite colors, unless we consider pawns which can promote to bishops.
+    // TODO: This feels like it overlaps with ValidityChecker somehow
+
+    return allowed;
+}
+
 #endif

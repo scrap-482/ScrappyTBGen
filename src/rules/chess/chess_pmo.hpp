@@ -2,7 +2,6 @@
 #define STANDARD_PMO_H_
 
 #include "../../core/pmo_instantiable.hpp"
-#include "../../core/interface_logic.hpp"
 #include "../../core/pmo_mods.hpp"
 #include "definitions.h"
 
@@ -117,14 +116,6 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coor
 const PieceType<FlattenedSz, NonPlacementDataType, Coords>&
 getPieceTypeData(piece_type_enum_t pieceEnum) {
        return PIECE_TYPE_DATA[pieceEnum];
-}
-
-template<typename NonPlacementDataType>
-std::string NPDToString(const NonPlacementDataType& npd) {
-    std::string ret = "En passant rights: ";
-    ret += (npd.enpassantRights == -1)? "no" : ::std::to_string(npd.enpassantRights);
-    ret += "\n";
-    return ret;
 }
 
 #endif

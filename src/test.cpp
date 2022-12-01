@@ -2,7 +2,7 @@
 #include "retrograde_analysis/checkmate_generation.hpp"
 
 #include "rules/chess/interface.h"
-#include "rules/chess/chess_pmo.h"
+#include "rules/chess/chess_pmo.hpp"
 
 #include <iostream>
 #include <time.h>

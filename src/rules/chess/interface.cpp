@@ -1,5 +1,5 @@
 #include "interface.h"
-#include "chess_pmo.h"
+#include "chess_pmo.hpp"
 
 ::std::vector<ChessBoardState> ChessGenerateForwardMoves::operator()(const ChessBoardState& b) {
     return StandardGenerateForwardMoves<64, ChessNPD, Coords, NUM_PIECE_TYPES>(b);
