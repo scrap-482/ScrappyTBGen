@@ -126,7 +126,75 @@ bool inMate(const BoardState<FS, NPDT>& b) {
     return isMate;
 }
 
+// Forward declare that the user will implement printBoard
 template<::std::size_t FS, typename NPDT>
 std::string printBoard(const BoardState<FS, NPDT>& b);
 
+template<::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC>
+::std::vector<BoardState<FS, NPDT>> StandardGenerateForwardMoves(const BoardState<FS, NPDT>& b) {
+    ::std::vector<BoardState<FS, NPDT>> moves;
+    auto actOnPMO = [&](const BoardState<FS, NPDT>& b, const PMO<FS, NPDT, CT>* pmo, size_t flatStartPos) {
+            auto newMoves = pmo->getForwards(b, CT(flatStartPos));
+            // Save all moves that do not move self into check
+            for (auto newMove : newMoves) {
+                if (!inCheck<FS, NPDT, CT, PTC>(newMove, newMove.m_player)) {
+                    moves.push_back(newMove);
+                }
+                // else { std:: cout << "cannot do the following move because it moves into check:\n" << printBoard(newMove) << std::endl;}
+            }
+            // Do not break, go through all moves
+            return true;
+        };
+    loopAllPMOs<FS, NPDT, CT, PTC, decltype(actOnPMO)>(b, actOnPMO); // FIXME: temp hardcode
+    return moves;
+}
+
+template<::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC>
+::std::vector<BoardState<FS, NPDT>> StandardGenerateReverseMoves(const BoardState<FS, NPDT>& b) {
+    std::vector<BoardState<FS, NPDT>> moves;
+
+    auto actOnPMO = [&](const BoardState<FS, NPDT>& b, const PMO<FS, NPDT, CT>* pmo, size_t flatStartPos) {
+        auto newMoves = pmo->getReverses(b, CT(flatStartPos));
+        // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
+        for (auto newMove : newMoves) {
+            if (!inCheck<FS, NPDT, CT, PTC>(newMove, newMove.m_player)) {
+                moves.push_back(newMove);
+            }
+            // else { std:: cout << "cannot do the following unmove because it moves into check:\n" << printBoard(newMove) << std::endl;}
+        }
+        // Do not break, go through all moves
+        return true;
+    };
+    // Unpromotion function, basically the same but call getUnpromotions.
+    auto actOnUnpromotionPMO = [&](const BoardState<FS, NPDT>& b, const PromotablePMO<FS, NPDT, CT, PTC>* pmo, size_t flatStartPos, piece_label_t unpromoted, piece_label_t promoted) {
+        auto newMoves = pmo->getUnpromotions(b, CT(flatStartPos), unpromoted, promoted);
+        // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
+        for (auto newMove : newMoves) {
+            if (!inCheck<FS, NPDT, CT, PTC>(newMove, newMove.m_player)) {
+                moves.push_back(newMove);
+            }
+        }
+        // Do not break, go through all moves
+        return true;
+    };
+    // reverse=true since we are generating unmoves for previous player-to-move, not current player.
+    loopAllPMOs<FS, NPDT, CT, PTC, decltype(actOnPMO), decltype(actOnUnpromotionPMO)>(b, actOnPMO, true, actOnUnpromotionPMO); // FIXME: temp hardcode
+    return moves;
+}
+
+template<::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC>
+bool StandardCheckmateEvaluator(const BoardState<FS, NPDT>& b) {
+    if (inMate<FS, NPDT, CT, PTC>(b)) {
+        // check, i.e. if this turn was skipped then next turn the king could be captured.
+        if (inCheck<FS, NPDT, CT, PTC>(b, !b.m_player)) {
+            // check and mate
+            return true; // TODO: should be return LOSS
+        } else {
+            // mate without check is stalemate
+            return false; // TODO: should be return DRAW
+        }
+    }
+    // If not a mate, game is ongoing
+    return false; // TODO: should be return ONGOING
+}
 #endif
