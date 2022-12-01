@@ -15,10 +15,10 @@ auto probe(const BoardType& b, const MapType& m, SuccFn succFn, bool isWinIterat
   std::vector<BoardType> pathwayToEnd = {g};
   for (;;)
   {
-    auto succs = succFn(g);
-    if (succs.size() == 0)
-      break;
     std::cout << print(g) << std::endl;
+    auto succs = succFn(g);
+    if (succs.size() == 0) // checkmate
+      break;
     for (const auto& succ : succs)
     {
       // exploring a draw state
@@ -43,8 +43,6 @@ auto probe(const BoardType& b, const MapType& m, SuccFn succFn, bool isWinIterat
         break;
       }
     }
-    if (v == 0)
-      return std::make_tuple(depthToEnd, pathwayToEnd);
     isWinIteration = !isWinIteration;
   }
   return std::make_tuple(depthToEnd, pathwayToEnd);

@@ -53,7 +53,7 @@ def compile():
         # env.Append(CCFLAGS = ['-fopenmp', '-std=c++20', '-O3', '-pg'])
         # env.Append(LINKFLAGS = ['-fopenmp', '-std=c++20', '-O3', '-pg'])
 
-        flags = ['-fopenmp', '-std=c++20', '-O3', '-pg']
+        flags = ['-fopenmp', '-std=c++20', '-O3', '-DN_MAN=3', '-include../../src/rules/chess/definitions.h']
         if cluster:
             flags.append('-DMULTI_NODE')
             env['CXX'] = 'mpic++'

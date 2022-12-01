@@ -121,7 +121,6 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
 {
   ::std::array<::std::size_t, FlattenedSz> indexPermutations;
   auto [startFirstIdx, endFirstIdx] = partitioner.getRange(k);
-  ::std::size_t kPermute = pieceSet.size();
    
   // generates [3, ..., kPermute] sets of new checkmate positions.
   for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
@@ -142,6 +141,8 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
     do 
     {
       BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
+      currentBoard.m_player = false;
+
       for (::std::size_t i = 0; i != kPermute; ++i)
         currentBoard.m_board[indexPermutations[i]] = pieceSet[i]; // scatter pieces
 
