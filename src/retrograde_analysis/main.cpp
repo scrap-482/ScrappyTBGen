@@ -1,5 +1,3 @@
-// TODO:
-// board printer
 #include "retrograde_analysis.hpp"
 #include <cassert>
 #include <iostream>
@@ -132,8 +130,8 @@ int main(int argc, char* argv[])
   auto rgDuration = std::chrono::duration_cast<std::chrono::milliseconds>(t1-t0).count();
   
   std::cout << "-----------------------------------------" << std::endl;
-  std::cout << "Checkmate identification execution time: " << cmDuration << std::endl;
-  std::cout << "Retrograde analysis execution time: " << rgDuration << std::endl;
+  std::cout << "Checkmate identification execution time: " << cmDuration << " ms" << std::endl;
+  std::cout << "Retrograde analysis execution time: " << rgDuration << " ms" << std::endl;
   std::cout << "-----------------------------------------" << std::endl;
   std::cout << "Number of wins: " << wins.size() << " Number of losses: " << losses.size() << std::endl; 
   std::cout << "-----------------------------------------" << std::endl;
