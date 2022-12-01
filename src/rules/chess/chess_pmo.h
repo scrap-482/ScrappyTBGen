@@ -27,34 +27,7 @@ using ChessBwdCaptDepPMO = BwdCaptureDependentPMOPostMod<64, ChessNPD, Coords>;
 using ChessDirRegionMod = DirectedRegionPMOPreMod<64, ChessNPD, Coords>;
 using ChessPromotionFwdPostMod = RegionalForcedSinglePromotionPMOPostMod<64, ChessNPD, Coords>;
 
-class SlidePMO : public ChessModdablePMO {
-    // the increment in each direction, stored as flattened coordinates.
-    std::vector<Coords> moveOffsets;
-
-public:
-    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getModdableMovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
-    virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-    getModdableUnmovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
-
-    SlidePMO(::std::vector<Coords> _moveOffsets) 
-        : moveOffsets(_moveOffsets) { }
-
-};
-
-// class JumpPMO : public ChessModdablePMO { // Note: DirectedJump is just like Jump, but with a few more lines of code, so for now at least I am making all jumps directed.
-//     // the displacement in each direction, stored as flattened coordinates.
-//     std::vector<Coords> moveOffsets;
-
-// public:
-//     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-//     getModdableMovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
-//     virtual ::std::pair<::std::vector<ChessBoardState>, ::std::vector<Coords>> 
-//     getModdableUnmovesWithDisplacement(const ChessBoardState& b,  Coords piecePos) const override;
-
-//     JumpPMO(::std::vector<Coords> _moveOffsets) 
-//         : moveOffsets(_moveOffsets) { }
-// };
+using ChessSlidePMO = SlidePMO<64, ChessNPD, Coords, NUM_PIECE_TYPES>;
 
 // JumpPMO but moveOffsets are negated for black.
 class DirectedJumpPMO : public ChessModdablePMO {
@@ -148,8 +121,8 @@ namespace ChessPMOs {
         , noPreMods, pawnAttackPostFwdMods, noPreMods, pawnAttackPostBwdMods, pawnUnpromotionPreMods, noPostMods);
     const auto pawnDouble = DirectedJumpPMO(std::vector<Coords>{{0, 2}}, std::vector<std::vector<Coords>>{{{0, 1}}}
         , pawnDJPreFwdMods, pawnDJPostFwdMods, pawnDJPreBwdMods, pawnDJPostBwdMods, pawnUnpromotionPreMods, noPostMods);
-    const auto orthoSlide = SlidePMO(std::vector<Coords>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}});
-    const auto diagSlide = SlidePMO(std::vector<Coords>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
+    const auto orthoSlide = ChessSlidePMO(std::vector<Coords>{{-1, 0}, {1, 0}, {0, -1}, {0, 1}});
+    const auto diagSlide = ChessSlidePMO(std::vector<Coords>{{-1, -1}, {-1, 1}, {1, -1}, {1, 1}});
     const auto knightLeap = DirectedJumpPMO(std::vector<Coords>{
         {-2, -1}, {-2, 1}, {2, -1}, {2, 1},
         {-1, -2}, {-1, 2}, {1, -2}, {1, 2}});
