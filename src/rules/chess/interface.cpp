@@ -3,8 +3,7 @@
 
 ::std::vector<ChessBoardState> ChessGenerateForwardMoves::operator()(const ChessBoardState& b) {
     ::std::vector<ChessBoardState> moves;
-    loopAllPMOs(b, 
-        [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
+    auto actOnPMO = [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
             auto newMoves = pmo->getForwards(b, Coords(flatStartPos));
             // Save all moves that do not move self into check
             for (auto newMove : newMoves) {
@@ -15,38 +14,40 @@
             }
             // Do not break, go through all moves
             return true;
-        });
+        };
+    loopAllPMOs<64, ChessNPD, Coords, KING+1, decltype(actOnPMO)>(b, actOnPMO); // FIXME: temp hardcode
     return moves;
 }
 
 ::std::vector<ChessBoardState> ChessGenerateReverseMoves::operator()(const ChessBoardState& b) {
     std::vector<ChessBoardState> moves;
-    loopAllPMOs(b, 
-        [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
-            auto newMoves = pmo->getReverses(b, Coords(flatStartPos));
-            // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
-            for (auto newMove : newMoves) {
-                if (!inCheck(newMove, newMove.m_player)) {
-                    moves.push_back(newMove);
-                }
-                // else { std:: cout << "cannot do the following unmove because it moves into check:\n" << printBoard(newMove) << std::endl;}
+
+    auto actOnPMO = [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
+        auto newMoves = pmo->getReverses(b, Coords(flatStartPos));
+        // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
+        for (auto newMove : newMoves) {
+            if (!inCheck(newMove, newMove.m_player)) {
+                moves.push_back(newMove);
             }
-            // Do not break, go through all moves
-            return true;
-        // reverse=true since we are generating unmoves for previous player-to-move, not current player.
-        }, true
-        // Unpromotion function, basically the same but call getUnpromotions.
-        , [&](const ChessBoardState& b, const ChessPromotablePMO* pmo, size_t flatStartPos, piece_label_t unpromoted, piece_label_t promoted) {
-            auto newMoves = pmo->getUnpromotions(b, Coords(flatStartPos), unpromoted, promoted);
-            // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
-            for (auto newMove : newMoves) {
-                if (!inCheck(newMove, newMove.m_player)) {
-                    moves.push_back(newMove);
-                }
+            // else { std:: cout << "cannot do the following unmove because it moves into check:\n" << printBoard(newMove) << std::endl;}
+        }
+        // Do not break, go through all moves
+        return true;
+    };
+    // Unpromotion function, basically the same but call getUnpromotions.
+    auto actOnUnpromotionPMO = [&](const ChessBoardState& b, const ChessPromotablePMO* pmo, size_t flatStartPos, piece_label_t unpromoted, piece_label_t promoted) {
+        auto newMoves = pmo->getUnpromotions(b, Coords(flatStartPos), unpromoted, promoted);
+        // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
+        for (auto newMove : newMoves) {
+            if (!inCheck(newMove, newMove.m_player)) {
+                moves.push_back(newMove);
             }
-            // Do not break, go through all moves
-            return true;
-        });
+        }
+        // Do not break, go through all moves
+        return true;
+    };
+    // reverse=true since we are generating unmoves for previous player-to-move, not current player.
+    loopAllPMOs<64, ChessNPD, Coords, KING+1, decltype(actOnPMO), decltype(actOnUnpromotionPMO)>(b, actOnPMO, true, actOnUnpromotionPMO); // FIXME: temp hardcode
     return moves;
 }
 

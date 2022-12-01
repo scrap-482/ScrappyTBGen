@@ -2,8 +2,9 @@
 #define PIECE_TYPE_H
 
 #include "pmo.hpp"
-#include "../utils/utils.h"
 #include "piece_enum.hpp"
+#include "../utils/utils.h"
+#include "../retrograde_analysis/state.hpp"
 
 // An instance of this corresponds to a type of piece, e.g. there is a single Piece instance for pawns.
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coords>

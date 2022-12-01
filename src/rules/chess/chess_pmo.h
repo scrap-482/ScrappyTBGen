@@ -2,6 +2,7 @@
 #define STANDARD_PMO_H_
 
 #include "../../core/pmo_instantiable.hpp"
+#include "../../core/interface_logic.hpp"
 #include "../../core/pmo_mods.hpp"
 #include "definitions.h"
 
@@ -116,55 +117,6 @@ template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coor
 const PieceType<FlattenedSz, NonPlacementDataType, Coords>&
 getPieceTypeData(piece_type_enum_t pieceEnum) {
        return PIECE_TYPE_DATA[pieceEnum];
-}
-
-// Looping over all PMOs is common functionality, but what to do with them varies; as such, this is implemented as a 
-// template function.
-// actOnPMO will act on every move (except unpromotions), while actOnUnpromotionPMO acts only on unpromotions.
-// Set reverse=true to flip the color of who we are generating moves for (which is needed for all backwards moves).
-// ForEachPMOFunc is assumed to have the type:
-//     (std::vector<ChessBoardState> newMoves, const ChessBoardState& b) -> bool
-// ForEachPMOUnpromotionFunc is assumed to have the type:
-//     (std::vector<ChessBoardState> newMoves, const ChessBoardState& b, piece_label_t unpromotedPlt, piece_label_t thisPiece) -> bool
-// Can generate all PMOs for the player whose turn it is (forPlayerToMove=true) or for the other.
-// TODO: move this functionality into core
-template <typename ForEachPMOFunc>
-void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool reverse=false) {
-    const auto noopLambda = [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos, piece_label_t unpromoted, piece_label_t promoted) { return false; };
-    loopAllPMOs<ForEachPMOFunc>(b, actOnPMO, reverse, noopLambda);
-}
-template <typename ForEachPMOFunc, typename ForEachPMOUnpromotionFunc>
-void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool reverse, ForEachPMOUnpromotionFunc actOnUnpromotionPMO) {
-    // TODO: consider using a list of the positions of every type of piece, rather than brute-force checking all tiles
-    for (size_t flatStartPos = 0; flatStartPos < 64; ++flatStartPos) {
-        piece_label_t thisPiece = b.m_board.at(flatStartPos);
-        if (isEmpty(thisPiece)) continue;
-        // Ignore this piece if it is not for the player-to-move. Invert this result if forPlayerToMove=false.
-        if (isWhite(thisPiece) ^ b.m_player ^ reverse) continue;
-
-        PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
-
-        for (size_t i = 0; i < getPieceTypeData<64, ChessNPD, Coords>(type).pmoListSize; ++i) {
-            auto pmo = getPieceTypeData<64, ChessNPD, Coords>(type).pmoList[i];
-            // Break if function returns false
-            if (!actOnPMO(b, pmo, flatStartPos)) return;
-        }
-
-        // Now check for unpromotion PMOs
-        if (reverse) {
-            for (auto unpromotedPlt : promotionScheme.getUnpromotions(thisPiece)) {
-                PIECE_TYPE_ENUM unpromotedType = getTypeEnumFromPieceLabel(unpromotedPlt);
-
-                for (size_t i = 0; i < getPieceTypeData<64, ChessNPD, Coords>(unpromotedType).pmoListSize; ++i) {
-                    // ASSUMPTION: every PMO held by a promotable piece is a PromotablePMO.
-                    auto pmo = (ChessPromotablePMO*) getPieceTypeData<64, ChessNPD, Coords>(unpromotedType).pmoList[i];
-                    // Break if function returns false
-                    if (!actOnUnpromotionPMO(b, pmo, flatStartPos, unpromotedPlt, thisPiece)) return;
-                }
-            }
-        }
-    }
-    return;
 }
 
 // Determine if player isWhiteAttacking is attacking opponent's king

@@ -31,8 +31,7 @@ bool inCheck(const ChessBoardState& b, bool isWhiteAttacking) {
     // Check is just saying that if the player were to move again, they could capture opponent king.
     // So check for king captures.
     bool isCheck = false;
-    loopAllPMOs(bRev, 
-    [&](const ChessBoardState& bRev, const ChessPMO* pmo, size_t flatStartPos) {
+    auto actOnPMO = [&](const ChessBoardState& bRev, const ChessPMO* pmo, size_t flatStartPos) {
         auto startPos = Coords(flatStartPos);
         auto newMovesWithDisplacement = ((ChessModdablePMO*) pmo)->getForwardsWithDisplacement(bRev, startPos); // Warning: cast assumes all moves are displacements.
         
@@ -55,15 +54,15 @@ bool inCheck(const ChessBoardState& b, bool isWhiteAttacking) {
             } 
         }
         return true;
-    });
+    };
+    loopAllPMOs<64, ChessNPD, Coords, KING+1, decltype(actOnPMO)>(bRev, actOnPMO); //FIXME: temp hardcode
     return isCheck;
 }
 
 
 bool inMate(const ChessBoardState& b) {
     bool isMate = true;
-    loopAllPMOs(b, 
-    [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
+    auto actOnPMO = [&](const ChessBoardState& b, const ChessPMO* pmo, size_t flatStartPos) {
         auto newMoves = pmo->getForwards(b, Coords(flatStartPos));
         // Save all moves that do not move self into check
         for (auto newMove : newMoves) {
@@ -77,7 +76,8 @@ bool inMate(const ChessBoardState& b) {
             return false;
         }
         return true;
-    });
+    };
+    loopAllPMOs<64, ChessNPD, Coords, KING+1, decltype(actOnPMO)>(b, actOnPMO); //FIXME: temp hardcode
     return isMate;
 }
 

@@ -3,6 +3,7 @@
 
 #include "definitions.h"
 #include "../../retrograde_analysis/state_transition.hpp"
+#include "../../core/interface_logic.hpp"
 
 class ChessGenerateForwardMoves : public GenerateForwardMoves<64, ChessNPD> {
   public:
