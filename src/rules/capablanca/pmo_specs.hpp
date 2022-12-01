@@ -1,5 +1,5 @@
-#ifndef STANDARD_PMO_H_
-#define STANDARD_PMO_H_
+#ifndef CAPABLANCA_PMO_H_
+#define CAPABLANCA_PMO_H_
 
 #include "../../core/pmo_instantiable.hpp"
 #include "../../core/pmo_mods.hpp"
