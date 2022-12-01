@@ -1,7 +1,8 @@
 #ifndef STANDARD_PMO_H_
 #define STANDARD_PMO_H_
 
-#include "../../core/pmo.hpp"
+#include "../../core/pmo_moddable.hpp"
+#include "../../core/pmo_mods.hpp"
 #include "definitions.h"
 
 #include <bitset>
@@ -183,6 +184,13 @@ const ChessPieceType PIECE_TYPE_DATA[] = {
     {'q', ChessPMOs::queenPMOs,  ChessPMOs::queenPMOsCount,  false},
     {'k', ChessPMOs::kingPMOs,   ChessPMOs::kingPMOsCount,   true }
 };
+// Note: this has to be parallel to PIECE_TYPE_ENUM
+// TODO: this syntax looks disgusting, is there a better way to write this?
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coords>
+const PieceType<FlattenedSz, NonPlacementDataType, Coords>&
+getPieceTypeData(piece_type_enum_t pieceEnum) {
+       return PIECE_TYPE_DATA[pieceEnum];
+}
 
 // Looping over all PMOs is common functionality, but what to do with them varies; as such, this is implemented as a 
 // template function.
@@ -210,8 +218,8 @@ void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool reverse
 
         PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
 
-        for (size_t i = 0; i < PIECE_TYPE_DATA[type].pmoListSize; ++i) {
-            auto pmo = PIECE_TYPE_DATA[type].pmoList[i];
+        for (size_t i = 0; i < getPieceTypeData<64, ChessNPD, Coords>(type).pmoListSize; ++i) {
+            auto pmo = getPieceTypeData<64, ChessNPD, Coords>(type).pmoList[i];
             // Break if function returns false
             if (!actOnPMO(b, pmo, flatStartPos)) return;
         }
@@ -221,9 +229,9 @@ void loopAllPMOs(const ChessBoardState& b, ForEachPMOFunc actOnPMO, bool reverse
             for (auto unpromotedPlt : promotionScheme.getUnpromotions(thisPiece)) {
                 PIECE_TYPE_ENUM unpromotedType = getTypeEnumFromPieceLabel(unpromotedPlt);
 
-                for (size_t i = 0; i < PIECE_TYPE_DATA[unpromotedType].pmoListSize; ++i) {
+                for (size_t i = 0; i < getPieceTypeData<64, ChessNPD, Coords>(unpromotedType).pmoListSize; ++i) {
                     // ASSUMPTION: every PMO held by a promotable piece is a PromotablePMO.
-                    auto pmo = (ChessPromotablePMO*) PIECE_TYPE_DATA[unpromotedType].pmoList[i];
+                    auto pmo = (ChessPromotablePMO*) getPieceTypeData<64, ChessNPD, Coords>(unpromotedType).pmoList[i];
                     // Break if function returns false
                     if (!actOnUnpromotionPMO(b, pmo, flatStartPos, unpromotedPlt, thisPiece)) return;
                 }

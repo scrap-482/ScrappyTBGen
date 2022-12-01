@@ -3,6 +3,7 @@
 
 #include "pmo.hpp"
 #include "../utils/utils.h"
+#include "piece_enum.hpp"
 
 // An instance of this corresponds to a type of piece, e.g. there is a single Piece instance for pawns.
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coords>
@@ -21,5 +22,10 @@ struct PieceType {
     // only assigned to the promoted piece's PieceType.
 
 };
+
+// Note: this has to be parallel to PIECE_TYPE_ENUM
+template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename Coords>
+const PieceType<FlattenedSz, NonPlacementDataType, Coords>&
+getPieceTypeData(piece_type_enum_t pieceEnum);
 
 #endif
