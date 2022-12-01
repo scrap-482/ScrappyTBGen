@@ -11,7 +11,6 @@
 
 #include "state_transition.hpp"
 #include "checkmate_generation.hpp"
-#include "../rules/chess/interface.h"
 
 #ifdef TRACK_RETROGRADE_ANALYSIS
 // helper function when tracking board win states

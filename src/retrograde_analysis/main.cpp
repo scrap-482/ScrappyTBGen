@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
   std::cout << "Number of wins: " << wins.size() << " Number of losses: " << losses.size() << std::endl; 
   std::cout << "-----------------------------------------" << std::endl;
   // todo: adjust this to be generic
-  auto boardPrinter = ChessBoardPrinter();
+  auto boardPrinter = BOARD_PRINTER();
 
   // repeatedly ask the user for queries until they wish to quit
   bool loop = true; 

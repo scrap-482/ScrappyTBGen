@@ -27,7 +27,7 @@ void loopAllPMOs(const BoardState<FS, NPDT>& b, ForEachPMOFunc actOnPMO, bool re
 template <::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC, typename ForEachPMOFunc, typename ForEachPMOUnpromotionFunc>
 void loopAllPMOs(const BoardState<FS, NPDT>& b, ForEachPMOFunc actOnPMO, bool reverse, ForEachPMOUnpromotionFunc actOnUnpromotionPMO) {
     // TODO: consider using a list of the positions of every type of piece, rather than brute-force checking all tiles
-    for (size_t flatStartPos = 0; flatStartPos < 64; ++flatStartPos) {
+    for (size_t flatStartPos = 0; flatStartPos < FS; ++flatStartPos) {
         piece_label_t thisPiece = b.m_board.at(flatStartPos);
         if (isEmpty(thisPiece)) continue;
         // Ignore this piece if it is not for the player-to-move. Invert this result if forPlayerToMove=false.
@@ -35,8 +35,8 @@ void loopAllPMOs(const BoardState<FS, NPDT>& b, ForEachPMOFunc actOnPMO, bool re
 
         PIECE_TYPE_ENUM type = getTypeEnumFromPieceLabel(thisPiece);
 
-        for (size_t i = 0; i < getPieceTypeData<64, NPDT, CT>(type).pmoListSize; ++i) {
-            auto pmo = getPieceTypeData<64, NPDT, CT>(type).pmoList[i];
+        for (size_t i = 0; i < getPieceTypeData<FS, NPDT, CT>(type).pmoListSize; ++i) {
+            auto pmo = getPieceTypeData<FS, NPDT, CT>(type).pmoList[i];
             // Break if function returns false
             if (!actOnPMO(b, pmo, flatStartPos)) return;
         }
@@ -46,9 +46,9 @@ void loopAllPMOs(const BoardState<FS, NPDT>& b, ForEachPMOFunc actOnPMO, bool re
             for (auto unpromotedPlt : promotionScheme.getUnpromotions(thisPiece)) {
                 PIECE_TYPE_ENUM unpromotedType = getTypeEnumFromPieceLabel(unpromotedPlt);
 
-                for (size_t i = 0; i < getPieceTypeData<64, NPDT, CT>(unpromotedType).pmoListSize; ++i) {
+                for (size_t i = 0; i < getPieceTypeData<FS, NPDT, CT>(unpromotedType).pmoListSize; ++i) {
                     // ASSUMPTION: every PMO held by a promotable piece is a PromotablePMO.
-                    auto pmo = (PromotablePMO<FS, NPDT, CT, PTC>*) getPieceTypeData<64, NPDT, CT>(unpromotedType).pmoList[i];
+                    auto pmo = (PromotablePMO<FS, NPDT, CT, PTC>*) getPieceTypeData<FS, NPDT, CT>(unpromotedType).pmoList[i];
                     // Break if function returns false
                     if (!actOnUnpromotionPMO(b, pmo, flatStartPos, unpromotedPlt, thisPiece)) return;
                 }

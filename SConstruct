@@ -80,7 +80,7 @@ def compile():
     userspecargs = parse_json_cc_args(userspecs)
 # ------- First, do the things that are common to all compiled targets ------- #
 
-    clargs = ['-fopenmp', '-O3']
+    clargs = ['-fopenmp', '-O3', '-g']
     if env['use2a']:
         clargs.extend(['-std=c++2a', '-fconcepts'])
     else:

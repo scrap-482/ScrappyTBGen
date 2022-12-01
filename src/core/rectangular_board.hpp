@@ -5,6 +5,7 @@
 
 const size_t BOARD_WIDTH = ROW_SZ;
 const size_t BOARD_HEIGHT = COL_SZ;
+const size_t BOARD_FLAT_SIZE = BOARD_WIDTH * BOARD_HEIGHT;
 
 using Coords = CoordsGrid<int, int, BOARD_WIDTH>;
 
