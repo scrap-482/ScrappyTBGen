@@ -6,7 +6,8 @@
 #include "../../core/coords_grid.hpp"
 #include "../../core/piece_type.hpp"
 #include "../../core/piece_enum.hpp"
-#include "../../core/pmo_moddable.hpp"
+#include "../../core/piece_count_utils.hpp"
+#include "../../core/pmo_instantiable.hpp"
 #include "../../retrograde_analysis/state_transition.hpp"
 #include "../../core/rectangular_board.hpp"
 

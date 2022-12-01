@@ -25,7 +25,4 @@ piece_label_t getPieceLabelFromTypeEnum(PIECE_TYPE_ENUM type);
 size_t toColoredTypeIndex(bool colorIsWhite, PIECE_TYPE_ENUM uncoloredType);
 size_t toColoredTypeIndex(piece_label_t p);
 
-// User needs to define how many pieces of each type can be on board
-int maxPiecesByColoredType(size_t coloredType);
-
 #endif
