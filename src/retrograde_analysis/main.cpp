@@ -50,7 +50,7 @@ auto readBoardInput(const std::vector<piece_label_t>& pieceset)
     ccol = std::tolower(ccol);
     int col = ccol - 'a';
     
-    int pos = COL_SZ * (row-1) + col;
+    int pos = ROW_SZ * (row-1) + col;
 
     b.m_board[pos] = c;
   }

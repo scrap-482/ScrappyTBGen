@@ -1,6 +1,6 @@
 {
-  "ROW_SZ"   : 8,
-  "COL_SZ"   : 10,
+  "ROW_SZ"   : 10,
+  "COL_SZ"   : 8,
   "N_MAN"    : 3,
   "SRC_DIRS" : [
     "src/rules/capablanca",
