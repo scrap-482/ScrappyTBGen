@@ -2,8 +2,12 @@
 #define PIECE_LABEL_HPP_
 
 #include <cctype> // For tolower() and toupper()
+#include "../core/ignore_macros.hpp"
 
 using piece_label_t = unsigned char;
+
+const std::vector<piece_label_t> NON_ROYAL_PIECES = NO_ROYALTY_PIECESET;
+const std::vector<piece_label_t> ROYAL_PIECES = ROYALTY_PIECESET;
 
 // TODO: redo these to handle shogi-style promotion data
 

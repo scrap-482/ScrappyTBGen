@@ -57,8 +57,8 @@ auto readClArgs(int argc, char* argv[],
 // look out for clashing of macros with actual function names
 int main(int argc, char* argv[])
 {
-  std::vector<piece_label_t> noRoyaltyPieceset = NO_ROYALTY_PIECESET;
-  std::vector<piece_label_t> royaltyPieceset = ROYALTY_PIECESET;
+  std::vector<piece_label_t> noRoyaltyPieceset = NON_ROYAL_PIECES;
+  std::vector<piece_label_t> royaltyPieceset = ROYAL_PIECES;
 
   std::vector<piece_label_t> fullPieceset = readClArgs(argc, argv, royaltyPieceset);
 

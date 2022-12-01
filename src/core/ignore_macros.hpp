@@ -15,5 +15,13 @@
     #error "N_MAN not specified!"
     #define N_MAN 3
 #endif
+#ifndef NO_ROYALTY_PIECESET
+    #error "NO_ROYALTY_PIECESET not specified!"
+    #define NO_ROYALTY_PIECESET {'p', 'P', 'r', 'R', 'n', 'N', 'b', 'B', 'q', 'Q'};
+#endif
+#ifndef ROYALTY_PIECESET
+    #error "ROYALTY_PIECESET not specified!"
+    #define ROYALTY_PIECESET {'k', 'K'};
+#endif
 
 #endif
