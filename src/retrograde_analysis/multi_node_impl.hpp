@@ -187,7 +187,6 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
   // MPI processes)
   bool b_localAssignedWork = false;
   ::std::vector<MPI_Request*> sendRequests;
-  int g = v - 1;
 
   for (auto& frontierState : winFrontier)
   {
@@ -218,7 +217,7 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
           }
           else
           {
-            predStore.emplace_back(true, boardMap[frontierState.b].T, ::std::move(pred));
+            predStore.emplace_back(false, boardMap[frontierState.b].T, ::std::move(pred));
             b_localAssignedWork = true;
             MPI_Request* r = new MPI_Request();
             sendRequests.push_back(r);
@@ -316,11 +315,8 @@ auto do_syncAndFree(int numNodes, short v,
     }
     else if (tag == 2)
     {
-      int rank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       ++finishedNodes;
     }
-
   } while(finishedNodes != numNodes);
   
   // 2. Wait for requests and free memory. All messages should be
@@ -384,7 +380,7 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
   for (const auto& f : winFrontier)
   {
     auto preds = generatePredecessors(f.b);
-    for (const auto& pred : preds)
+    for (auto&& pred : preds)
     {
       auto targetId = partitioner(pred);
       if (targetId != id) // different node processes this
@@ -451,9 +447,6 @@ auto retrogradeAnalysisClusterImpl(const KStateSpacePartition<FlattenedSz, Board
     sendRequests.clear();
     winFrontier.clear();
     predList.clear();
-
-    if (id == 0)
-      std::cout << "done with v=" << v << std::endl;
 
     if (!b_otherAssignedWork && !b_localAssignedWork)
       break; 
