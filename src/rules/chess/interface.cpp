@@ -7,7 +7,7 @@
             auto newMoves = pmo->getForwards(b, Coords(flatStartPos));
             // Save all moves that do not move self into check
             for (auto newMove : newMoves) {
-                if (!inCheck(newMove, newMove.m_player)) {
+                if (!inCheck<64, ChessNPD, Coords, KING+1>(newMove, newMove.m_player)) {
                     moves.push_back(newMove);
                 }
                 // else { std:: cout << "cannot do the following move because it moves into check:\n" << printBoard(newMove) << std::endl;}
@@ -26,7 +26,7 @@
         auto newMoves = pmo->getReverses(b, Coords(flatStartPos));
         // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
         for (auto newMove : newMoves) {
-            if (!inCheck(newMove, newMove.m_player)) {
+            if (!inCheck<64, ChessNPD, Coords, KING+1>(newMove, newMove.m_player)) {
                 moves.push_back(newMove);
             }
             // else { std:: cout << "cannot do the following unmove because it moves into check:\n" << printBoard(newMove) << std::endl;}
@@ -39,7 +39,7 @@
         auto newMoves = pmo->getUnpromotions(b, Coords(flatStartPos), unpromoted, promoted);
         // Save all unmoves that do not uncheck opponent, i.e. a state where opponent ended their turn in check.
         for (auto newMove : newMoves) {
-            if (!inCheck(newMove, newMove.m_player)) {
+            if (!inCheck<64, ChessNPD, Coords, KING+1>(newMove, newMove.m_player)) {
                 moves.push_back(newMove);
             }
         }
@@ -52,9 +52,9 @@
 }
 
 bool ChessCheckmateEvaluator::operator()(const ChessBoardState& b) {
-    if (inMate(b)) {
+    if (inMate<64, ChessNPD, Coords, KING+1>(b)) {
         // check, i.e. if this turn was skipped then next turn the king could be captured.
-        if (inCheck(b, !b.m_player)) {
+        if (inCheck<64, ChessNPD, Coords, KING+1>(b, !b.m_player)) {
             // check and mate
             return true; // TODO: should be return LOSS
         } else {

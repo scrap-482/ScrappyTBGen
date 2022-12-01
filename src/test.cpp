@@ -250,7 +250,7 @@ int main()
   // std::vector<ChessBoardState> statesToTest = {EXAMPLE_BLACK_CHECKMATE_1, EXAMPLE_BLACK_CHECKMATE_2};
   for (auto state : statesToTest) {
     std::cout << boardPrinter(state) << std::endl;;
-    // std::cout << "In Mate= " << inMate(state) << std::endl;;
+    // std::cout << "In Mate= " << inMate<64, ChessNPD, Coords, KING+1>(state) << std::endl;;
     std::cout << "WDL = " << winCondEvaluator(state) << std::endl;;
     std::cout << "Validity Evaluator: " << validityEvaluator(state) << std::endl;
 

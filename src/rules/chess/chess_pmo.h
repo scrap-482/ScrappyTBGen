@@ -119,11 +119,6 @@ getPieceTypeData(piece_type_enum_t pieceEnum) {
        return PIECE_TYPE_DATA[pieceEnum];
 }
 
-// Determine if player isWhiteAttacking is attacking opponent's king
-bool inCheck(const ChessBoardState& b, bool isWhiteAttacking);
-
-bool inMate(const ChessBoardState& b);
-
 std::string printBoard(const ChessBoardState& b);
 
 
