@@ -2,6 +2,7 @@
 #define PIECE_LABEL_HPP_
 
 #include <cctype> // For tolower() and toupper()
+#include <algorithm> // std::find
 #include "../core/ignore_macros.hpp"
 
 using piece_label_t = unsigned char;
@@ -22,6 +23,9 @@ inline bool isEmpty(piece_label_t letter) {
 }
 inline bool isWhite(piece_label_t letter) {
   return isupper(letter);
+}
+inline bool isRoyal(piece_label_t letter) {
+  return (std::find(ROYAL_PIECES.begin(), ROYAL_PIECES.end(), letter) != ROYAL_PIECES.end());
 }
 
 #endif

@@ -60,7 +60,8 @@ void loopAllPMOs(const BoardState<FS, NPDT>& b, ForEachPMOFunc actOnPMO, bool re
 
 /* -------------------------------------------------------------------------- */
 
-// Determine if player isWhiteAttacking is attacking opponent's king
+// Determine if player isWhiteAttacking is attacking opponent's (last) royal
+// ASSUMPTION: only 1 Royal piece per color for now
 template<::std::size_t FS, typename NPDT, typename CT, ::std::size_t PTC>
 bool inCheck(const BoardState<FS, NPDT>& b, bool isWhiteAttacking) {
     // std::cout << "in inCheck start, isWhiteAttacking: " << isWhiteAttacking << std::endl;
@@ -75,8 +76,8 @@ bool inCheck(const BoardState<FS, NPDT>& b, bool isWhiteAttacking) {
 
     //std::cout << "in inCheck start, after copy bRev.m_player: " << bRev.m_player << std::endl;
 
-    // Check is just saying that if the player were to move again, they could capture opponent king.
-    // So check for king captures.
+    // Check is just saying that if the player were to move again, they could capture opponent royal.
+    // So check for royal captures.
     bool isCheck = false;
     auto actOnPMO = [&](const BoardState<FS, NPDT>& bRev, const PMO<FS, NPDT, CT>* pmo, size_t flatStartPos) {
         auto startPos = CT(flatStartPos);
@@ -86,15 +87,12 @@ bool inCheck(const BoardState<FS, NPDT>& b, bool isWhiteAttacking) {
             // auto move = newMovesWithDisplacement.first.at(i);
             auto displacement = newMovesWithDisplacement.second.at(i);
 
-            // Check if this move is the capture of a king
-            // ASSUMPTION: a piece can only capture a king by ending its turn on king's position
+            // Check if this move is the capture of a royal
+            // ASSUMPTION: a piece can only capture a royal by ending its turn on royal's position
             auto endPos = startPos + displacement;
 
-            if (getTypeEnumFromPieceLabel(bRev.m_board.at(endPos.flatten())) == KING) {
-            // TODO: if counting was fast, we could just use that on royal pieces, something like:
-            // size_t kingIndex = toColoredTypeIndex(!bRev.m_player, KING);
-            // if (countPiecesOnBoard(bRev)->at(kingIndex) == 0) {
-
+            if (isRoyal(bRev.m_board.at(endPos.flatten()))) {
+            // TODO: if counting was fast, we could just use that on royal pieces
                 isCheck = true;
                 // stop search
                 return false;
@@ -113,7 +111,7 @@ bool inMate(const BoardState<FS, NPDT>& b) {
         auto newMoves = pmo->getForwards(b, CT(flatStartPos));
         // Save all moves that do not move self into check
         for (auto newMove : newMoves) {
-            // prune out moves where player-to-move checks their own king
+            // prune out moves where player-to-move checks themselves
             if (inCheck<FS, NPDT, CT, PTC>(newMove, newMove.m_player)) {
                 continue;
             }
