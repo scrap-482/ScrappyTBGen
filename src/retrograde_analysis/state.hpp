@@ -6,6 +6,7 @@
 #include <tuple>
 #include <cassert>
 #include <functional>
+#include <string>
 
 #include "piece_label.hpp"
 
@@ -19,6 +20,10 @@ struct BoardState
   ::std::array<piece_label_t, FlattenedSz> m_board{};
   NonPlacementDataType nonPlacementData;
 };
+
+// Forward declare this; user will specify
+template<typename NonPlacementDataType>
+std::string NPDToString(const NonPlacementDataType& npd);
 
 // TODO: hash the NonPlacementType? 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>

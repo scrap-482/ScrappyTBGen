@@ -119,7 +119,12 @@ getPieceTypeData(piece_type_enum_t pieceEnum) {
        return PIECE_TYPE_DATA[pieceEnum];
 }
 
-std::string printBoard(const ChessBoardState& b);
-
+template<typename NonPlacementDataType>
+std::string NPDToString(const NonPlacementDataType& npd) {
+    std::string ret = "En passant rights: ";
+    ret += (npd.enpassantRights == -1)? "no" : ::std::to_string(npd.enpassantRights);
+    ret += "\n";
+    return ret;
+}
 
 #endif

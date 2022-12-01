@@ -126,5 +126,7 @@ bool inMate(const BoardState<FS, NPDT>& b) {
     return isMate;
 }
 
+template<::std::size_t FS, typename NPDT>
+std::string printBoard(const BoardState<FS, NPDT>& b);
 
 #endif

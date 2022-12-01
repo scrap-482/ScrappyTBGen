@@ -14,23 +14,3 @@ std::bitset<NumPieceTypes> allowedUncapturesByPosAndCount(const BoardState<FS, N
 
     return allowed;
 }
-
-std::string printBoard(const ChessBoardState& b) {
-    std::string ret = "";
-    /* -------------------------- Print placement data -------------------------- */
-    // go reverse in rank since the y-axis is mirrored (lower rank is further down on output)
-    for (size_t rank = BOARD_HEIGHT-1; rank != (size_t)-1; --rank) {
-        for (size_t file = 0; file < BOARD_WIDTH; ++file) {
-            auto piece = b.m_board.at(file + rank*BOARD_WIDTH);
-            ret += (piece == '\0')? '.' : piece;
-        }
-        ret += "\n";
-    }
-    /* --------------------------- Print player's turn -------------------------- */
-    ret += (b.m_player? "White to move\n" : "Black to move\n");
-    /* -------------------------------- Print NPD ------------------------------- */
-    ret += "En passant rights: ";
-    ret += (b.nonPlacementData.enpassantRights == -1)? "no" : ::std::to_string(b.nonPlacementData.enpassantRights);
-    ret += "\n";
-    return ret;
-}
