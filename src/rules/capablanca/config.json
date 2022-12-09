@@ -1,0 +1,23 @@
+{
+  "ROW_SZ"   : 10,
+  "COL_SZ"   : 8,
+  "N_MAN"    : 3,
+  "SRC_DIRS" : [
+    "src/rules/capablanca",
+    "src/core",
+    "src/utils"
+  ],
+  "INCLUDE_HEADERS" : [
+    "src/rules/capablanca/interface.h"
+  ],
+  "NO_ROYALTY_PIECESET"     : ["p", "P", "r", "R", "n", "N", "b", "B", "q", "Q", "a", "A", "c", "C"],
+  "ROYALTY_PIECESET"        : ["k", "K"],
+  "FORWARD_MOVE_GENERATOR"  : "CapablancaGenerateForwardMoves",
+  "REVERSE_MOVE_GENERATOR"  : "CapablancaGenerateReverseMoves",
+  "WIN_COND_EVALUATOR"      : "CapablancaCheckmateEvaluator",
+  "BOARD_PRINTER"           : "CapablancaBoardPrinter",
+  "NON_PLACEMENT_DATATYPE"  : "CapablancaNPD",
+  "IS_VALID_BOARD_FN"       : "CapablancaValidBoardEvaluator",
+  "HZ_SYM_EVALUATOR"        : null,
+  "VT_SYM_EVALUATOR"        : null
+}

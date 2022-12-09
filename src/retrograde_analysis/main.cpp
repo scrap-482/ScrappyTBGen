@@ -50,7 +50,7 @@ auto readBoardInput(const std::vector<piece_label_t>& pieceset)
     ccol = std::tolower(ccol);
     int col = ccol - 'a';
     
-    int pos = COL_SZ * (row-1) + col;
+    int pos = ROW_SZ * (row-1) + col;
 
     b.m_board[pos] = c;
   }
@@ -98,9 +98,9 @@ int main(int argc, char* argv[])
   && defined REVERSE_MOVE_GENERATOR && defined WIN_COND_EVALUATOR && defined NO_ROYALTY_PIECESET \
   && defined ROYALTY_PIECESET
   constexpr std::size_t FLATTENED_SZ = ROW_SZ * COL_SZ;
-  
-  std::vector<piece_label_t> noRoyaltyPieceset = NO_ROYALTY_PIECESET;
-  std::vector<piece_label_t> royaltyPieceset = ROYALTY_PIECESET;
+
+  std::vector<piece_label_t> noRoyaltyPieceset = NON_ROYAL_PIECES;
+  std::vector<piece_label_t> royaltyPieceset = ROYAL_PIECES;
 
   std::vector<piece_label_t> fullPieceset = readClArgs(argc, argv, royaltyPieceset);
 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
   std::cout << "Number of wins: " << wins.size() << " Number of losses: " << losses.size() << std::endl; 
   std::cout << "-----------------------------------------" << std::endl;
   // todo: adjust this to be generic
-  auto boardPrinter = ChessBoardPrinter();
+  auto boardPrinter = BOARD_PRINTER();
 
   // repeatedly ask the user for queries until they wish to quit
   bool loop = true; 

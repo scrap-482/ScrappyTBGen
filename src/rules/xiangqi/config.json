@@ -1,0 +1,23 @@
+{
+  "ROW_SZ"   : 9,
+  "COL_SZ"   : 10,
+  "N_MAN"    : 3,
+  "SRC_DIRS" : [
+    "src/rules/xiangqi",
+    "src/core",
+    "src/utils"
+  ],
+  "INCLUDE_HEADERS" : [
+    "src/rules/xiangqi/interface.h"
+  ],
+  "NO_ROYALTY_PIECESET"     : ["p", "P", "r", "R", "n", "N", "b", "B", "q", "Q", "a", "A", "c", "C"],
+  "ROYALTY_PIECESET"        : ["k", "K"],
+  "FORWARD_MOVE_GENERATOR"  : "XiangqiGenerateForwardMoves",
+  "REVERSE_MOVE_GENERATOR"  : "XiangqiGenerateReverseMoves",
+  "WIN_COND_EVALUATOR"      : "XiangqiCheckmateEvaluator",
+  "BOARD_PRINTER"           : "XiangqiBoardPrinter",
+  "NON_PLACEMENT_DATATYPE"  : "XiangqiNPD",
+  "IS_VALID_BOARD_FN"       : "XiangqiValidBoardEvaluator",
+  "HZ_SYM_EVALUATOR"        : null,
+  "VT_SYM_EVALUATOR"        : null
+}

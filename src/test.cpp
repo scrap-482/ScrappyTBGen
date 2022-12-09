@@ -2,7 +2,7 @@
 #include "retrograde_analysis/checkmate_generation.hpp"
 
 #include "rules/chess/interface.h"
-#include "rules/chess/chess_pmo.h"
+#include "rules/chess/pmo_specs.hpp"
 
 #include <iostream>
 #include <time.h>
@@ -175,6 +175,18 @@ const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_4_1 = {
   '\0','\0','P' ,'\0','\0','\0','\0','\0',
   '\0','\0','\0','Q' ,'\0','\0','\0','k' 
 };
+/* -------------------------------------------------------------------------- */
+const ::std::array<piece_label_t, 64> EXAMPLE_ARRAY_5_1 = {
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','R' ,
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','\0','\0','\0',
+  '\0','\0','\0','\0','\0','K' ,'\0','k'
+};
+
 
 const ChessBoardState EXAMPLE_BOARD_STATE = {false, EXAMPLE_ARRAY, ChessNPD()};
 const ChessBoardState EXAMPLE_CHECKMATE_STATE = {false, EXAMPLE_ARRAY_2, ChessNPD()};
@@ -197,6 +209,9 @@ const ChessBoardState EXAMPLE_INVALID_1 = {true, EXAMPLE_ARRAY_3_1, ChessNPD()};
 
 const ChessBoardState EXAMPLE_PROMOTION_1 = {true, EXAMPLE_ARRAY_4_1, ChessNPD()};
 const ChessBoardState EXAMPLE_PROMOTION_2 = {false, EXAMPLE_ARRAY_4_1, ChessNPD()};
+
+const ChessBoardState EXAMPLE_BLACK_CHECKMATE_1 = {true, EXAMPLE_ARRAY_5_1, ChessNPD()};
+const ChessBoardState EXAMPLE_BLACK_CHECKMATE_2 = {false, EXAMPLE_ARRAY_5_1, ChessNPD()};
 
 
 int main()
@@ -231,10 +246,11 @@ int main()
   auto validityEvaluator = ChessValidBoardEvaluator();
 
   std::cout << "=============================================\n Forward Move Gen and Win Condition Testing\n =============================================\n" << std::endl;
-  std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4, EXAMPLE_INVALID_1, EXAMPLE_PROMOTION_1, EXAMPLE_PROMOTION_2};
+  std::vector<ChessBoardState> statesToTest = {INIT_BOARD_STATE, EXAMPLE_BOARD_STATE, EXAMPLE_CHECKMATE_STATE, EXAMPLE_STALEMATE_STATE, EXAMPLE_STALEMATE_STATE_1_2, EXAMPLE_STALEMATE_STATE_1_3, EXAMPLE_STALEMATE_STATE_2, QUEEN_TEST_STATE, EXAMPLE_CHECK_STATE_1, EXAMPLE_CHECK_STATE_2, EXAMPLE_CHECK_STATE_3, EXAMPLE_CHECK_STATE_4, EXAMPLE_INVALID_1, EXAMPLE_PROMOTION_1, EXAMPLE_PROMOTION_2, EXAMPLE_BLACK_CHECKMATE_1, EXAMPLE_BLACK_CHECKMATE_2};
+  // std::vector<ChessBoardState> statesToTest = {EXAMPLE_BLACK_CHECKMATE_1, EXAMPLE_BLACK_CHECKMATE_2};
   for (auto state : statesToTest) {
     std::cout << boardPrinter(state) << std::endl;;
-    // std::cout << "In Mate= " << inMate(state) << std::endl;;
+    // std::cout << "In Mate= " << inMate<64, ChessNPD, Coords, KING+1>(state) << std::endl;;
     std::cout << "WDL = " << winCondEvaluator(state) << std::endl;;
     std::cout << "Validity Evaluator: " << validityEvaluator(state) << std::endl;
 

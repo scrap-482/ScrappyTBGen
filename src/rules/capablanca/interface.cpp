@@ -1,23 +1,23 @@
 #include "interface.h"
 #include "pmo_specs.hpp"
 
-::std::vector<ChessBoardState> ChessGenerateForwardMoves::operator()(const ChessBoardState& b) {
-    return StandardGenerateForwardMoves<64, ChessNPD, Coords, NUM_PIECE_TYPES>(b);
+::std::vector<CapablancaBoardState> CapablancaGenerateForwardMoves::operator()(const CapablancaBoardState& b) {
+    return StandardGenerateForwardMoves<BOARD_FLAT_SIZE, CapablancaNPD, Coords, NUM_PIECE_TYPES>(b);
 }
 
-::std::vector<ChessBoardState> ChessGenerateReverseMoves::operator()(const ChessBoardState& b) {
-    return StandardGenerateReverseMoves<64, ChessNPD, Coords, NUM_PIECE_TYPES>(b);
+::std::vector<CapablancaBoardState> CapablancaGenerateReverseMoves::operator()(const CapablancaBoardState& b) {
+    return StandardGenerateReverseMoves<BOARD_FLAT_SIZE, CapablancaNPD, Coords, NUM_PIECE_TYPES>(b);
 }
 
-bool ChessCheckmateEvaluator::operator()(const ChessBoardState& b) {
-    return StandardCheckmateEvaluator<64, ChessNPD, Coords, NUM_PIECE_TYPES>(b);
+bool CapablancaCheckmateEvaluator::operator()(const CapablancaBoardState& b) {
+    return StandardCheckmateEvaluator<BOARD_FLAT_SIZE, CapablancaNPD, Coords, NUM_PIECE_TYPES>(b);
 }
 
-std::string ChessBoardPrinter::operator()(const ChessBoardState& b) {
+std::string CapablancaBoardPrinter::operator()(const CapablancaBoardState& b) {
     return printBoard(b);
 }
 
-bool ChessValidBoardEvaluator::operator()(const ChessBoardState& b) {
+bool CapablancaValidBoardEvaluator::operator()(const CapablancaBoardState& b) {
     // Check kings are not adjacent
     // First, find a king. //TODO: this could really be sped up by a piece list...
     size_t kingIndex = 0;
@@ -31,7 +31,7 @@ bool ChessValidBoardEvaluator::operator()(const ChessBoardState& b) {
     Coords firstKingCoords(kingIndex);
 
     // check all adjacents of king
-    for (const auto& coords : ChessPMOs::kingMove.moveOffsets) {
+    for (const auto& coords : CapablancaPMOs::kingMove.moveOffsets) {
         Coords secondKingCoords = firstKingCoords + coords;
         if (!inBounds(secondKingCoords)) continue;
 
@@ -42,12 +42,12 @@ bool ChessValidBoardEvaluator::operator()(const ChessBoardState& b) {
     }
 
     // Check pawns are not in first rank of their side
-    const std::vector<std::pair<piece_label_t, size_t>> piecesProhibitedFromRanks {{'P', 0}, {'p', 64-8}};
+    const std::vector<std::pair<piece_label_t, size_t>> piecesProhibitedFromRanks {{'P', 0}, {'p', BOARD_FLAT_SIZE-BOARD_WIDTH}};
     for (auto pieceProhibitedFromRank : piecesProhibitedFromRanks) {
         auto rankValue = pieceProhibitedFromRank.second;
         auto pieceProhibited = pieceProhibitedFromRank.first;
 
-        for (size_t fileIndex = 0; fileIndex < 8; ++fileIndex) {
+        for (size_t fileIndex = 0; fileIndex < BOARD_WIDTH; ++fileIndex) {
             if (b.m_board.at(rankValue + fileIndex) == pieceProhibited) {
                 return false;
             }
