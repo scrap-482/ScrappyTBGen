@@ -2,7 +2,7 @@
 
 The config.json file will need to be changed to account for whatever game you wish to run. The following is a description of each item:
 
-ROW_SZ = number of rows for the board
+ROW_SZ = number of rows for the board\n
 COL_SZ = number of columns for the board
 N_MAN = number of pieces you wish to include in your tablebase
 SRC_DIRS = all paths containing files needed to operate your game
