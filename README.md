@@ -24,13 +24,13 @@ WIN_COND_EVALUATOR = name of your functor that checks if a state is a checkmate 
 
 BOARD_PRINTER = name of your functor that prints boardstates
 
-NON_PLACEMENT_DATATYPE = 
+NON_PLACEMENT_DATATYPE = domain specific data that is stored within a board state
 
 IS_VALID_BOARD_FN = name of your functor that checks if a boardstate is legal
 
-HZ_SYM_EVALUATOR = 
+HZ_SYM_EVALUATOR = condition for symmetry across horizontal board axis
 
-VT_SYM_EVALUATOR = 
+VT_SYM_EVALUATOR = condition for symmetry across vertical board axis
 
 
 To compile, run:
