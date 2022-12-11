@@ -2,6 +2,7 @@
 
 The config.json file will need to be changed to account for whatever game you wish to run. The following is a description of each item:
 
+```
 ROW_SZ = number of rows for the board
 
 COL_SZ = number of columns for the board
@@ -24,14 +25,14 @@ WIN_COND_EVALUATOR = name of your functor that checks if a state is a checkmate 
 
 BOARD_PRINTER = name of your functor that prints boardstates
 
-NON_PLACEMENT_DATATYPE = 
+NON_PLACEMENT_DATATYPE = domain specific data that is stored within a board state
 
 IS_VALID_BOARD_FN = name of your functor that checks if a boardstate is legal
 
-HZ_SYM_EVALUATOR = 
+HZ_SYM_EVALUATOR = condition for symmetry across horizontal board axis
 
-VT_SYM_EVALUATOR = 
-
+VT_SYM_EVALUATOR = condition for symmetry across vertical board axis
+```
 
 To compile, run:
 ```
