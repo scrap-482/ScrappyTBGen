@@ -1,8 +1,9 @@
 /*
- * The jist of the retrograde analysis implementation exists within this file. The implementation is
- * heavily templated to promote aggressive optimization of certain compile time data (ex: board row and column size) 
- * along with checking that functors implement the appropriate virtual parent functors. 
- * This has yielded significant measurable benefit in terms of performance thus far.
+ * Wrappers around the base implementations of retrograde analysis
+ * are provided within this header file. They are not currently used
+ * within main.cpp but this may be used for convenience by users in the future
+ * so that for both single node and cluster systems, the same function may be invoked
+ * with different template and parameter arguments 
  */
 #ifndef RETROGRADE_ANALYSIS_H_
 #define RETROGRADE_ANALYSIS_H_

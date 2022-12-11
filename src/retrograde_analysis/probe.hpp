@@ -1,9 +1,21 @@
+/*
+ * This header is utilize to probe a tablebase once stored in memory
+ */
 #ifndef PROBE_HPP_
 
 #include <vector>
 #include "state.hpp"
 #include <iostream>
 
+/*
+ * Probing technique inspired by the following paper
+ * Makhnychev Vladimir Sergeevich, “Parallelization of retroanalysis algorithms for solving enumeration problems in computing 
+ * systems without shared memory,” Moscow State University, Russia, 2012.
+ *
+ * The following probing function is to be invoked after a tablebase is generated. The function
+ * returns the depth-to-mate depth along with a pathway from the original state to the checkmate state. 
+ * Furthermore, the pathway is printed to the terminal with the BoardPrinter through execution
+ */
 template<typename BoardType, typename MapType, typename SuccFn,
   typename BoardPrinter>
 auto probe(const BoardType& b, const MapType& m, SuccFn succFn, bool isWinIteration,

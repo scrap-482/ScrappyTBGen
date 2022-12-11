@@ -137,6 +137,9 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
 
     auto startBoard = indexPermutations;
 
+    // k-permutation iteration inspired by answer from Vaughn Cato last updated on May 23, 2017
+    // https://stackoverflow.com/a/28712605
+    // answer licensed under CC BY-SA 3.0
     bool hasNext = false;
     do 
     {

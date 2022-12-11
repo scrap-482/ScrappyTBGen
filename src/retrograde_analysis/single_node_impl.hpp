@@ -1,3 +1,7 @@
+/*
+ * The internal implementation for single node retrograde analysis utilizing
+ * OpenMP is provided in this header.
+ */
 #ifndef SINGLE_NODE_IMPL_HPP_
 #define SINGLE_NODE_IMPL_HPP_
 
@@ -62,7 +66,15 @@ void print_loss(auto l, int v)
 
 #endif
 
-// This function is the base implementation for the single-node implementation
+/*
+ * Technique for ensuring that a type extends a separate type in the below function templating
+ * found in the following answer last updated June 7th, 2015
+ * https://stackoverflow.com/a/30687399 
+ * answer licensed under CC BY-SA 3.0
+ *
+ * This function is the internal base implementation for the single-node implementation and requires
+ * compilation with OpenMP.
+ */
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
   ::std::size_t rowSz, ::std::size_t colSz,
   typename MoveGenerator, typename ReverseMoveGenerator, typename HorizontalSymFn=false_fn, 
@@ -113,10 +125,11 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
       localWins.reserve(loseFrontier.size() / numThreads);
       local_frontier_t localPreds;
       localPreds.reserve(loseFrontier.size());
-
-      // parallel for loop to collect in local buckets 
-      // identify win states and generate predecessors.
-      // Parallelizing over std::unordered_set - https://stackoverflow.com/questions/26034642/openmp-gnu-parallel-for-an-unordered-map
+      
+      // The technique for parallelizing over an unordered set is inspired by the following answer by Richard
+      // on June 21, 2019
+      // https://stackoverflow.com/a/56710797
+      // answer licensed under CC BY-SA 4.0
 #pragma omp for nowait
       for (::std::size_t i = 0; i < loseFrontier.bucket_count(); ++i)
       for (auto bState = loseFrontier.begin(i); bState != loseFrontier.end(i); ++bState)
@@ -136,7 +149,7 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
         auto preds = generatePredecessors(*bState);
         localPreds.insert(::std::end(localPreds), ::std::begin(preds), ::std::end(preds));
       }
-    // critical section - each thread adds to win buffer
+      // critical section - each thread adds to win buffer
 #pragma omp critical
       {
         for (const auto& prev : localPreds)

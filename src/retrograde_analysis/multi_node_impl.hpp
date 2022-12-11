@@ -56,6 +56,9 @@ struct NodeEstimateData
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
 void initialize_comm_structs(void)
 {
+  // MPI struct serialization based upon 'Gilles' explanation last updated on May 23, 2017
+  // https://stackoverflow.com/a/33624425
+  // answer licensed under CC BY-SA 3.0
   { // serialize Board State
     // C++ preprocessor does not understand template syntax so this is necessary
     typedef BoardState<FlattenedSz, NonPlacementDataType> board_state_t;
@@ -83,7 +86,12 @@ void initialize_comm_structs(void)
     MPI_Type_create_resized(tmp, lowerBound, extent, &MPI_BoardState);
     MPI_Type_commit(&MPI_BoardState);
   }
-  { // Serialize NodeCommData 
+  
+  // MPI struct serialization based upon 'Gilles' explanation last updated on May 23, 2017
+  // https://stackoverflow.com/a/33624425
+  // answer licensed under CC BY-SA 3.0
+  { // Serialize NodeCommData
+
     // C++ preprocessor does not understand template syntax so this is necessary
     typedef NodeCommData<FlattenedSz, NonPlacementDataType> node_comm_data_t;
 
@@ -257,6 +265,10 @@ inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p,
 }
 
 // TODO: Consider more efficient communication scheme with One-sided Communication 
+/*
+ * The following function is the required synchronization routine performed at the end of
+ * each major and minor iteration 
+ */
 template<bool fromWinIteration, typename BoardMap, typename BoardSet, typename Frontier> 
 auto do_syncAndFree(int numNodes, short v,
     ::std::vector<MPI_Request*> sendRequests,
@@ -333,7 +345,19 @@ auto do_syncAndFree(int numNodes, short v,
   return ::std::make_tuple(::std::move(boardMap), ::std::move(frontier), b_otherAssignedWork);
 }
 
-// This function is the base implementation for the single-node implementation
+/*
+* Technique for ensuring that a type extends a separate type in the below function templating
+* found in the following answer last updated June 7th, 2015
+* https://stackoverflow.com/a/30687399 
+* answer licensed under CC BY-SA 3.0
+*
+* Implementation inspired by following thesis paper: 
+* Makhnychev Vladimir Sergeevich, “Parallelization of retroanalysis algorithms for solving enumeration problems in computing 
+* systems without shared memory,” Moscow State University, Russia, 2012.
+*
+* This below function is the internal implementation for the multi-node retrograde analysis implementation. Invoking
+* this function assumes an MPI installation on the system 
+*/
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
   ::std::size_t rowSz, ::std::size_t colSz,
   typename MoveGenerator, typename ReverseMoveGenerator, typename HorizontalSymFn=false_fn, 
