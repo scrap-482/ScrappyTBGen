@@ -13,8 +13,10 @@
 * You should have received a copy of the GNU General Public License along with Scrappy Tablebase Generator. If not, see <https://www.gnu.org/licenses/>.
 */
 
-
-// user must include this file in their own implementation
+/* 
+ * user must include this file in their own implementation
+ * This header defines many of the user callbacks that must be inherited and implemented
+ */
 
 #ifndef STATE_TRANSITION_HPP_
 #define STATE_TRANSITION_HPP_
@@ -24,6 +26,7 @@
 
 #include "state.hpp"
 
+// given a board state, generate all forward moves 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class GenerateForwardMoves 
 {
@@ -32,6 +35,7 @@ public:
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
+// generate all moves that lead to the given board state 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class GenerateReverseMoves 
 {
@@ -40,6 +44,7 @@ public:
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
+// determine if the given board state is a checkmate / end of game
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class CheckmateEvaluator
 {
@@ -48,6 +53,7 @@ public:
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
+// print the board in an unicode friendly manner 
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class BoardPrinter
 {
@@ -55,6 +61,7 @@ class BoardPrinter
   operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
 };
 
+// determine if the given board state is indeed valid
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 class ValidBoardEvaluator 
 {

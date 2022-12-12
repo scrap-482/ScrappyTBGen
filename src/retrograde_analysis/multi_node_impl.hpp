@@ -13,6 +13,10 @@
 * You should have received a copy of the GNU General Public License along with Scrappy Tablebase Generator. If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+ * The multinode implementation is designed for execution on clusters with MPI support
+ */
+
 
 #ifndef MULTI_NODE_IMPL_HPP_
 
@@ -68,7 +72,7 @@ struct NodeEstimateData
 };
 
 // Works under the assumption that NonPlacement DataType is already
-// serialized in the MPI_NonPlacementDataType global variable
+// serialized in the MPI_NonPlacementDataType global variable. The user must manually do this previous step
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
 void initialize_comm_structs(void)
 {
@@ -135,6 +139,7 @@ void initialize_comm_structs(void)
   }
 }
 
+// The major iteration of retrograde analysis. Win states are identified in this iteration
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename PredStore, typename EndGameSet,
   typename PredecessorGen, typename BoardMap>
 inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& p, PredStore& predStore, 
@@ -201,6 +206,7 @@ inline auto do_majorIteration(int id, short v, int numProcs, const Partitioner& 
     ::std::move(boardMap), ::std::move(winFrontier), ::std::move(wins));
 }
 
+// Performs the minor iteration of retrograde analysis where loss moves are identified
 template <typename WinFrontier, typename LoseFrontier, typename Partitioner, typename PredStore, typename EndGameSet, 
   typename PredecessorGen, typename SuccessorGen, typename BoardMap>
 inline auto do_minorIteration(int id, int v, int numProcs, const Partitioner& p, PredStore& predStore,

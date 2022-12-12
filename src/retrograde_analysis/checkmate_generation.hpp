@@ -13,6 +13,11 @@
 * You should have received a copy of the GNU General Public License along with Scrappy Tablebase Generator. If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+ * The checkmate generation header implementations are responsible for invoking the appropriate board permuters
+ * and to identify all checkmate states with the 
+ */
+
 
 #ifndef CHECKMATE_GENERATION_HPP_ 
 #define CHECKMATE_GENERATION_HPP_ 
@@ -110,6 +115,7 @@ auto generateAllCheckmates(const ::std::vector<piece_label_t>& noRoyaltyPieceset
   return checkmates;
 }
 
+// for a given pieceset configuration, identify all checkmate states of its valid permutations
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
   ::std::size_t rowSz, ::std::size_t colSz, typename CheckmateEvalFn,
   typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn, typename IsValidBoardFn = null_type,
@@ -127,6 +133,8 @@ auto generateConfigCheckmates(const ::std::vector<piece_label_t>& pieceSet,
   return losses;
 }
 
+// a parallelized search of all permutations in the game. Parallelization occurs over the permutations themselves
+// based upon lexicographical ordering.
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, typename EvalFn,
   typename IsValidBoardFn=null_type>
 auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<FlattenedSz, BoardState<FlattenedSz, NonPlacementDataType>>& partitioner,
@@ -154,8 +162,8 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
     auto startBoard = indexPermutations;
 
     // k-permutation iteration inspired by answer from Vaughn Cato last updated on May 23, 2017
-    // https://stackoverflow.com/a/28712605
-    // answer licensed under CC BY-SA 3.0
+    // answer: https://stackoverflow.com/a/28712605
+    // author: https://stackoverflow.com/users/951890/vaughn-cato
     bool hasNext = false;
     do 
     {
@@ -194,7 +202,7 @@ auto inline generatePartitionCheckmates(int k, const KStateSpacePartition<Flatte
   return ::std::move(losses);
 }
 
-// TODO: integrate symmetry 
+// identifies all checkmates across a given configuration with OpenMP parallelism
 template<::std::size_t FlattenedSz, typename NonPlacementDataType, ::std::size_t N, 
   ::std::size_t rowSz, ::std::size_t colSz, typename CheckmateEvalFn,
   typename HorizontalSymFn = false_fn, typename VerticalSymFn = false_fn, typename IsValidBoardFn = null_type,

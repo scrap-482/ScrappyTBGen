@@ -13,6 +13,10 @@
 * You should have received a copy of the GNU General Public License along with Scrappy Tablebase Generator. If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+ * This is the runner program of our codebase. It will define the appropriate macros to the user-defined functions that
+ * are later used during implementation 
+ */
 
 #include "retrograde_analysis.hpp"
 #include <cassert>

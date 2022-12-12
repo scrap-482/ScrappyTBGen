@@ -13,6 +13,10 @@
 * You should have received a copy of the GNU General Public License along with Scrappy Tablebase Generator. If not, see <https://www.gnu.org/licenses/>.
 */
 
+/*
+ * The generic board representation with the NonPlacementDataType is provided in this
+ * file
+ */
 
 #ifndef STATE_HPP_
 #define STATE_HPP_
@@ -27,6 +31,8 @@
 #include "piece_label.hpp"
 
 #if 1
+// The flattened size is the 1d size of the board. Ex: 8x8 chess has flattened size of 64
+// The NonPlacementDataType is any domain-specific type inserted by the user
 template<::std::size_t FlattenedSz, typename NonPlacementDataType>
 struct BoardState
 {

@@ -82,8 +82,8 @@ public:
     for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
     {
       // k-permutation iteration inspired by answer from Vaughn Cato last updated on May 23, 2017
-      // https://stackoverflow.com/a/28712605
-      // answer licensed under CC BY-SA 3.0
+      // answer: https://stackoverflow.com/a/28712605
+      // author: https://stackoverflow.com/users/951890/vaughn-cato
       do 
       {
         BoardState<FlattenedSz, NonPlacementDataType> currentBoard;
@@ -130,8 +130,8 @@ public:
     for (::std::size_t kPermute = 3; kPermute != pieceSet.size() + 1; ++kPermute)
     {
       // k-permutation iteration inspired by answer from Vaughn Cato last updated on May 23, 2017
-      // https://stackoverflow.com/a/28712605
-      // answer licensed under CC BY-SA 3.0
+      // answer: https://stackoverflow.com/a/28712605
+      // author: https://stackoverflow.com/users/951890/vaughn-cato
       do 
       {
         BoardState<FlattenedSz, NonPlacementDataType> currentBoard;

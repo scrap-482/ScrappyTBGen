@@ -15,7 +15,7 @@
 
 
 /*
- * This header is utilize to probe a tablebase once stored in memory
+ * This header is utilized to probe a tablebase once stored in memory
  */
 #ifndef PROBE_HPP_
 
