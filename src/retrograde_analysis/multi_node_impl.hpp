@@ -56,9 +56,9 @@ struct NodeEstimateData
 template <::std::size_t FlattenedSz, typename NonPlacementDataType> 
 void initialize_comm_structs(void)
 {
-  // MPI struct serialization based upon 'Gilles' explanation last updated on May 23, 2017
-  // https://stackoverflow.com/a/33624425
-  // answer licensed under CC BY-SA 3.0
+  // MPI struct serialization inspired by 'Gilles' explanation last updated on May 23, 2017
+  // Answer: https://stackoverflow.com/a/33624425
+  // Author: https://stackoverflow.com/users/5239503/gilles
   { // serialize Board State
     // C++ preprocessor does not understand template syntax so this is necessary
     typedef BoardState<FlattenedSz, NonPlacementDataType> board_state_t;
@@ -87,9 +87,9 @@ void initialize_comm_structs(void)
     MPI_Type_commit(&MPI_BoardState);
   }
   
-  // MPI struct serialization based upon 'Gilles' explanation last updated on May 23, 2017
-  // https://stackoverflow.com/a/33624425
-  // answer licensed under CC BY-SA 3.0
+  // MPI struct serialization inspired by 'Gilles' explanation last updated on May 23, 2017
+  // Answer: https://stackoverflow.com/a/33624425
+  // Author: https://stackoverflow.com/users/5239503/gilles
   { // Serialize NodeCommData
 
     // C++ preprocessor does not understand template syntax so this is necessary
@@ -347,9 +347,9 @@ auto do_syncAndFree(int numNodes, short v,
 
 /*
 * Technique for ensuring that a type extends a separate type in the below function templating
-* found in the following answer last updated June 7th, 2015
-* https://stackoverflow.com/a/30687399 
-* answer licensed under CC BY-SA 3.0
+* inspired by the following answer by 'AndyG' last updated June 7th, 2015
+* author: https://stackoverflow.com/users/27678/andyg
+* answer: https://stackoverflow.com/a/30687399 
 *
 * Implementation inspired by following thesis paper: 
 * Makhnychev Vladimir Sergeevich, “Parallelization of retroanalysis algorithms for solving enumeration problems in computing 

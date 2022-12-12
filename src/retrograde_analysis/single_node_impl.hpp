@@ -68,9 +68,9 @@ void print_loss(auto l, int v)
 
 /*
  * Technique for ensuring that a type extends a separate type in the below function templating
- * found in the following answer last updated June 7th, 2015
- * https://stackoverflow.com/a/30687399 
- * answer licensed under CC BY-SA 3.0
+ * found in the following answer by 'AndyG' last updated June 7th, 2015
+ * answer: https://stackoverflow.com/a/30687399 
+ * author: https://stackoverflow.com/users/27678/andyg 
  *
  * This function is the internal base implementation for the single-node implementation and requires
  * compilation with OpenMP.
@@ -126,10 +126,10 @@ auto retrogradeAnalysisBaseImpl(::std::unordered_set<BoardState<FlattenedSz, Non
       local_frontier_t localPreds;
       localPreds.reserve(loseFrontier.size());
       
-      // The technique for parallelizing over an unordered set is inspired by the following answer by Richard
+      // The technique for parallelizing over an unordered set is inspired by the following answer by 'Richard'
       // on June 21, 2019
-      // https://stackoverflow.com/a/56710797
-      // answer licensed under CC BY-SA 4.0
+      // Answer: https://stackoverflow.com/a/56710797
+      // Author: https://stackoverflow.com/users/752843/richard
 #pragma omp for nowait
       for (::std::size_t i = 0; i < loseFrontier.bucket_count(); ++i)
       for (auto bState = loseFrontier.begin(i); bState != loseFrontier.end(i); ++bState)
