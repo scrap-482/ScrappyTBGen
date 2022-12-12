@@ -1,5 +1,51 @@
 # Scrappy Tablebase Generator for Chess Variants
 
+The Scrappy Tablebase Generator is an open-source project implemented to allow for easy generation of tablebases for chess variant games. Our implementation
+works utilizing C++ templating to implement retrograde analysis, the backwards induction algorithm used to generate tablebases, in a rule agnostic manner. 
+To implement specific rulesets of a game, we invoke user-defined callbacks to generate moves, check move validity, and determine if a position is an 
+end-of-game (or checkmate) state. Users designing a variant to generate tablebases for must implement a list of functionalities as C++ functors
+which are then specified in a configuration file and are integrated into the SCons build process.
+
+## Example Variant Implementations
+To get you started with supporting variants of your choice or if you are just in the interesting of generating tablebases for games we already support,
+`ScrappyTBGen/src/rules` contains to games that have been fully implemented. The first is simply the game of standard chess. We have generated this implementation 
+located in `ScrappyTBGen/rules/chess` in 
+order to validate the correctness of our retrograde analysis implementation and as an easy way to get started with our generator. The other game we current support
+is the game of Capabalanca chess located in `ScrappyTBGen/src/rules/capablanca`. This variant is played on a 10&times;8 board and introduces the archbishop and 
+chancellor pieces to the game.
+
+## Generating Tablebases for a Custom Variant
+
+To support tablebase generation for a custom variant, the user must extend and implement the purely virtual functors provided in 
+`ScrappyTBGen/src/retrograde_analysis/state_transition.hpp`. An example of one such functor to implement the reverse
+move mechanism is showcased below:
+```cpp
+template<::std::size_t FlattenedSz, typename NonPlacementDataType>
+class GenerateReverseMoves 
+{
+public:
+  virtual ::std::vector<BoardState<FlattenedSz, NonPlacementDataType>> 
+  operator()(const BoardState<FlattenedSz, NonPlacementDataType>& b) = 0;
+};
+```
+We describe the necessary functors to support a variant in the following table
+
+| **Functor** | **Description** |
+|-------------|-----------------|
+|GenerateForwardMoves|Takes in a single board state and returns a vector of all moves from the current position|
+|GenerateReverseMoves|Takes in a single board state and returns a vector of all moves that lead to the current position|
+|CheckmateEvaluator|Determines if the given board state is an end-of-game or checkmate state|
+|BoardPrinter|Displays the board in an unicode friendly format|
+|ValidBoardEvaluator|Determines if the given board configuration is a valid state in the game|
+
+Furthermore, the optional functors `HzSymEvaluator` and `VtSymEvaluator` exploit horizontal and vertical symmetry for certain piece combinations.
+These may be optionally passed but more work is required to ensure that the retrograde analysis algorithm fully exploits these symmetries. Within the
+`ScrappyTBGen/src/core`, we provide several class hierarchies which generalize many of the ruleset features across chess variants. Usage of these features
+may be useful to streamline the development process of variant rulesets. Examples utilizing these features are demonstrated in `ScrappyTBGen/src/rules/chess`
+and `ScrappyTBGen/src/rules/capablanca`.
+
+## JSON Configuration File
+
 The config.json file will need to be changed to account for whatever game you wish to run. The following is a description of each item:
 
 ```
@@ -32,6 +78,8 @@ IS_VALID_BOARD_FN = name of your functor that checks if a boardstate is legal
 HZ_SYM_EVALUATOR = condition for symmetry across horizontal board axis
 
 VT_SYM_EVALUATOR = condition for symmetry across vertical board axis
+
+## Compilation Instructions
 ```
 
 To compile, run:
@@ -52,4 +100,5 @@ For example,
 ./scrappytbgen QkK
 ```
 
-The above example represents a white queen, black king, and white king in standard chess.
+The above example represents a white queen, black king, and white king in standard chess. The following convention of utilizing uppercase letters for 
+white the white piece set and lowercase letters for the black piece set is utilized in current rulset implementations.
